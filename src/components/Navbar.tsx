@@ -23,6 +23,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [logoClicks, setLogoClicks] = useState(0);
 
   // Profile data from DB
   const [profileName, setProfileName] = useState<string>("");
@@ -171,7 +172,20 @@ export default function Navbar() {
       {/* ── NAVBAR ── */}
       <nav className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-border relative">
         <div className="flex items-center gap-4 sm:gap-8">
-          <Link to="/" className="flex items-center gap-2">
+          <Link 
+            to="/" 
+            className="flex items-center gap-2 outline-none"
+            onClick={(e) => {
+              const newCount = logoClicks + 1;
+              if (newCount >= 10) {
+                e.preventDefault();
+                setLogoClicks(0);
+                navigate("/admin");
+              } else {
+                setLogoClicks(newCount);
+              }
+            }}
+          >
             <img src={logo} alt="ConnectAngels" className="h-8 w-8 sm:h-9 sm:w-9" />
             <span className="text-base sm:text-lg font-bold text-primary">ConnectAngels</span>
           </Link>
