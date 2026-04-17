@@ -1,5 +1,5 @@
 <<<<<<< HEAD
-# Welcome to your Lovable project
+# Welcome to your ConnectAngel project
 
 TODO: Document your project here
 =======
