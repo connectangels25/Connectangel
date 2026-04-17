@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 260 20% 10%;
+    --foreground: 0 0% 95%;
+    --card: 260 20% 13%;
+    --card-foreground: 0 0% 95%;
+    --popover: 260 20% 13%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 270 70% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 260 15% 18%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 260 15% 20%;
+    --muted-foreground: 260 10% 60%;
+    --accent: 270 70% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 260 15% 22%;
+    --input: 260 15% 22%;
+    --ring: 270 70% 55%;
+    --radius: 0.75rem;
+
+    --sidebar-bg: 260 25% 8%;
+    --sidebar-fg: 0 0% 90%;
+    --sidebar-border: 260 15% 16%;
+    --chat-bg: 260 18% 12%;
+    --chat-user-bubble: 270 70% 55%;
+    --chat-ai-bubble: 260 15% 18%;
+    --gold: 42 90% 55%;
+
+    --sidebar-background: 260 25% 8%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 270 70% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 260 15% 16%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 260 15% 16%;
+    --sidebar-ring: 270 70% 55%;
+  }
+
+  .light {
+    --background: 0 0% 98%;
+    --foreground: 260 20% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 260 20% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 260 20% 15%;
+    --primary: 270 70% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 260 10% 93%;
+    --secondary-foreground: 260 20% 20%;
+    --muted: 260 10% 90%;
+    --muted-foreground: 260 10% 45%;
+    --accent: 270 70% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 260 10% 85%;
+    --input: 260 10% 85%;
+    --ring: 270 70% 55%;
+
+    --sidebar-bg: 0 0% 96%;
+    --sidebar-fg: 260 20% 20%;
+    --sidebar-border: 260 10% 88%;
+    --chat-bg: 0 0% 97%;
+    --chat-user-bubble: 270 70% 55%;
+    --chat-ai-bubble: 260 10% 93%;
+    --gold: 42 90% 55%;
+
+    --sidebar-background: 0 0% 96%;
+    --sidebar-foreground: 260 20% 20%;
+    --sidebar-primary: 270 70% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 260 10% 90%;
+    --sidebar-accent-foreground: 260 20% 20%;
+    --sidebar-ring: 270 70% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--sidebar-bg));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
