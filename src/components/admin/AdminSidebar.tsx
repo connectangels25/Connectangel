@@ -203,5 +203,6 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
       </div>
       <AdminChangeCredentials open={credModalOpen} onClose={() => setCredModalOpen(false)} />
     </aside>
+    </>
   );
 };

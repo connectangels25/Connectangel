@@ -12,7 +12,7 @@ interface AdminStatCardProps {
 
 export const AdminStatCard = ({ title, value, change, isPositive, icon: Icon, iconColor }: AdminStatCardProps) => {
   return (
-    <div className="bg-card rounded-3xl p-6 border border-border">
+    <div className="bg-card rounded-3xl p-5 md:p-6 border border-border">
       <div className="flex justify-between items-start mb-4">
         <div className={`p-0 text-muted-foreground`}>
           <Icon className={`w-6 h-6 ${iconColor}`} />
