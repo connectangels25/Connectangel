@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { AdminSidebar } from "../components/admin/AdminSidebar";
 import { EventFilters } from "../components/admin/event/EventFilters";
 import { EventCard, Event } from "../components/admin/event/EventCard";
-import { Inbox, Loader2 } from "lucide-react";
+import { Inbox, Loader2, Menu } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
@@ -17,6 +17,7 @@ const EventDashboard = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<{ id: string; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const fetchEvents = async () => {
     try {
@@ -143,36 +144,47 @@ const EventDashboard = () => {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground">
       <Navbar />
-      <div className="flex flex-1 overflow-hidden">
-        <AdminSidebar />
+      <div className="flex flex-1 overflow-hidden relative">
+        <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         
         <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Mobile Header with Menu Toggle */}
+          <header className="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-2 -ml-2 text-muted-foreground hover:text-foreground"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <h2 className="font-bold text-lg">Events</h2>
+            </div>
+          </header>
 
-        
-        <main className="flex-1 overflow-y-auto p-12 custom-scrollbar">
+          <main className="flex-1 overflow-y-auto p-4 md:p-12 custom-scrollbar">
           <div className="max-w-[1400px] mx-auto">
             {/* Header section */}
-            <div className="flex justify-between items-start mb-12">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-8 md:mb-12">
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <h1 className="text-4xl font-bold tracking-tight text-foreground italic">Event Management</h1>
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground italic">Event Management</h1>
                   <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-lg border border-primary/30 uppercase tracking-widest">
                     Internal Tool
                   </span>
                 </div>
-                <p className="text-muted-foreground text-lg font-medium leading-relaxed max-w-2xl">
+                <p className="text-muted-foreground text-base md:text-lg font-medium leading-relaxed max-w-2xl">
                   Review, audit, and manage user-submitted events. Ensure community guidelines are met before publication.
                 </p>
               </div>
 
               {/* Stats card mini */}
-              <div className="bg-card border border-border p-6 rounded-[24px] flex items-center gap-6 shadow-xl">
-                <div className="p-4 bg-primary/10 rounded-2xl">
-                  <Inbox className="w-8 h-8 text-primary" />
+              <div className="bg-card border border-border p-4 md:p-6 rounded-[24px] flex items-center gap-4 md:gap-6 shadow-xl w-full sm:w-auto">
+                <div className="p-3 md:p-4 bg-primary/10 rounded-2xl">
+                  <Inbox className="w-6 h-6 md:w-8 md:h-8 text-primary" />
                 </div>
                 <div>
-                  <p className="text-4xl font-bold text-foreground leading-none">{pendingCount}</p>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-2">Pending Review</p>
+                  <p className="text-3xl md:text-4xl font-bold text-foreground leading-none">{pendingCount}</p>
+                  <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-2">Pending Review</p>
                 </div>
               </div>
             </div>

@@ -19,13 +19,13 @@ export const EventFilters: React.FC<EventFiltersProps> = ({
   const filters = ["All", "Pending", "Approved", "Rejected"];
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-      <div className="flex items-center gap-1 bg-card p-1.5 rounded-2xl border border-border">
+    <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-8 md:mb-10">
+      <div className="flex items-center gap-1 bg-card p-1.5 rounded-2xl border border-border overflow-x-auto custom-scrollbar scrollbar-hide">
         {filters.map((filter) => (
           <button
             key={filter}
             onClick={() => onFilterChange(filter)}
-            className={`px-6 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+            className={`px-4 md:px-6 py-2 rounded-xl text-[10px] md:text-xs font-bold transition-all duration-200 whitespace-nowrap ${
               currentFilter === filter
                 ? "bg-secondary text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
@@ -39,7 +39,7 @@ export const EventFilters: React.FC<EventFiltersProps> = ({
         ))}
       </div>
 
-      <div className="flex items-center gap-4 flex-1 md:max-w-md">
+      <div className="flex items-center gap-4 flex-1 xl:max-w-md">
         <div className="relative flex-1 group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <input

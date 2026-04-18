@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AdminSidebar } from '../components/admin/AdminSidebar';
 import { AdminStatCard } from '../components/admin/AdminStatCard';
 import { AdminPlatformGrowthChart } from '../components/admin/AdminPlatformGrowthChart';
@@ -6,13 +6,15 @@ import { AdminRecentActivity } from '../components/admin/AdminRecentActivity';
 import { AdminUserManagement } from '../components/admin/AdminUserManagement';
 import { AdminEventModeration } from '../components/admin/AdminEventModeration';
 import { AdminQuickActions } from '../components/admin/AdminQuickActions';
-import { Users, Calendar, UserPlus, DollarSign } from 'lucide-react';
+import { Users, Calendar, UserPlus, DollarSign, Menu } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 import Navbar from '@/components/Navbar';
 
 const AdminDashboard = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   // Fetch Total Users
   const { data: totalUsers = 0 } = useQuery({
     queryKey: ['admin-stats', 'total-users'],
@@ -51,13 +53,25 @@ const AdminDashboard = () => {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground">
       <Navbar />
-      <div className="flex flex-1 overflow-hidden">
-        <AdminSidebar />
+      <div className="flex flex-1 overflow-hidden relative">
+        <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Mobile Header with Menu Toggle */}
+          <header className="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-2 -ml-2 text-muted-foreground hover:text-foreground"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <h2 className="font-bold text-lg">Admin</h2>
+            </div>
+          </header>
 
-          <main className="flex-1 overflow-y-auto p-8 custom-scrollbar pb-16">
-          <div className="max-w-[1600px] mx-auto space-y-8">
-            <div className="flex justify-between items-end">
+          <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar pb-16">
+          <div className="max-w-[1600px] mx-auto space-y-6 md:space-y-8">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight mb-2">Overview Dashboard</h1>
                 <p className="text-muted-foreground">Real-time statistics and management for ConnectAngel.</p>

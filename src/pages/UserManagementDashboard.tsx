@@ -1,13 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { AdminSidebar } from "../components/admin/AdminSidebar";
 import { AdminStatCard } from "../components/admin/AdminStatCard";
 import { AdminUserManagement } from "../components/admin/AdminUserManagement";
-import { Users, UserPlus, ShieldCheck, Mail } from "lucide-react";
+import { Users, UserPlus, ShieldCheck, Mail, Menu } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 
 const UserManagementDashboard = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   // Fetch Total Users
   const { data: totalUsers = 0 } = useQuery({
     queryKey: ['admin-stats', 'total-users'],
@@ -49,35 +50,46 @@ const UserManagementDashboard = () => {
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground">
       <Navbar />
-      <div className="flex flex-1 overflow-hidden">
-        <AdminSidebar />
+      <div className="flex flex-1 overflow-hidden relative">
+        <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
         
         <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Mobile Header with Menu Toggle */}
+          <header className="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="p-2 -ml-2 text-muted-foreground hover:text-foreground"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <h2 className="font-bold text-lg">Users</h2>
+            </div>
+          </header>
 
-        
-        <main className="flex-1 overflow-y-auto p-12 custom-scrollbar">
+          <main className="flex-1 overflow-y-auto p-4 md:p-12 custom-scrollbar">
           <div className="max-w-[1400px] mx-auto">
             {/* Header section */}
-            <div className="flex justify-between items-start mb-12">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-8 md:mb-12">
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <h1 className="text-4xl font-bold tracking-tight text-foreground italic">User Management</h1>
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground italic">User Management</h1>
                   <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-lg border border-primary/30 uppercase tracking-widest">
                     Platform Control
                   </span>
                 </div>
-                <p className="text-muted-foreground text-lg font-medium leading-relaxed max-w-2xl">
+                <p className="text-muted-foreground text-base md:text-lg font-medium leading-relaxed max-w-2xl">
                   Manage user accounts, adjust permissions, and monitor platform growth.
                 </p>
               </div>
 
-              <div className="flex gap-4">
-                <button className="px-6 py-3 bg-secondary hover:bg-secondary/80 text-foreground rounded-2xl text-sm font-bold transition-all border border-border shadow-lg">
-                  Export User Data
+              <div className="flex flex-wrap gap-4 w-full sm:w-auto">
+                <button className="flex-1 sm:flex-none px-4 md:px-6 py-3 bg-secondary hover:bg-secondary/80 text-foreground rounded-2xl text-sm font-bold transition-all border border-border shadow-lg">
+                  Export
                 </button>
-                <button className="px-6 py-3 bg-primary hover:opacity-90 text-primary-foreground flex items-center gap-2 rounded-2xl text-sm font-bold transition-all shadow-lg shadow-primary/20">
+                <button className="flex-1 sm:flex-none px-4 md:px-6 py-3 bg-primary hover:opacity-90 text-primary-foreground flex items-center justify-center gap-2 rounded-2xl text-sm font-bold transition-all shadow-lg shadow-primary/20">
                   <UserPlus className="w-4 h-4" />
-                  Invite User
+                  Invite
                 </button>
               </div>
             </div>

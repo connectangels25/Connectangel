@@ -82,16 +82,16 @@ export const AdminUserManagement = () => {
 
   return (
     <div className="bg-card rounded-3xl p-6 border border-border mt-8">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h3 className="text-foreground text-lg font-semibold">User Management</h3>
           <p className="text-muted-foreground text-xs mt-1">Audit and manage platform participants</p>
         </div>
-        <div className="flex gap-3">
-          <button className="px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-foreground text-sm font-medium transition-colors border border-border">
+        <div className="flex gap-2 w-full sm:w-auto">
+          <button className="flex-1 sm:flex-none px-3 md:px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-foreground text-xs md:text-sm font-medium transition-colors border border-border">
             Filters
           </button>
-          <button className="px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-foreground text-sm font-medium transition-colors border border-border">
+          <button className="flex-1 sm:flex-none px-3 md:px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-foreground text-xs md:text-sm font-medium transition-colors border border-border">
             Bulk Actions
           </button>
         </div>
@@ -115,15 +115,16 @@ export const AdminUserManagement = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-border text-muted-foreground text-xs font-semibold">
-                <th className="pb-3 px-4 w-2/5">User</th>
-                <th className="pb-3 px-4 w-1/5">Signup Method</th>
-                <th className="pb-3 px-4 w-1/5">Created Date</th>
+                <th className="pb-3 px-4 min-w-[200px]">User</th>
+                <th className="pb-3 px-4 min-w-[120px]">Method</th>
+                <th className="pb-3 px-4 min-w-[120px]">Joined</th>
                 <th className="pb-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {users.map((user) => {
-                const method = user.avatar_url?.includes("googleusercontent.com") ? "Google" : "Email";
+                const rawMethod = user.signup_method || "email";
+                const method = rawMethod.toLowerCase() === "google" ? "Google" : "Email";
 
                 return (
                   <tr key={user.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
