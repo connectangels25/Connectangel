@@ -33,12 +33,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const isGoogle = user.app_metadata?.provider === "google";
 
         if (isGoogle) {
-          const createdAt = new Date(user.created_at).getTime();
-          const now = Date.now();
-          const isNewAccount = now - createdAt < 60000;
-
           // Check if user exists in the profiles table
-          const { data: profile } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from("profiles")
             .select("id")
             .eq("id", user.id)
@@ -46,15 +42,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           const profileExists = !!profile;
 
-          // Combine both checks: block if new account OR no profile exists
-          if (isNewAccount || !profileExists) {
-            await supabase.auth.signOut();
-            toast.error("Account does not exist. Please sign up first.");
-            setSession(null);
-            setUser(null);
-            setLoading(false);
-            window.location.href = "/signup";
-            return;
+          if (!profileExists) {
+            const createdAt = new Date(user.created_at).getTime();
+            const now = Date.now();
+            const isNewAccount = now - createdAt < 60000;
+
+            if (isNewAccount) {
+              // If it's a new account but profile doesn't exist yet (race condition with trigger),
+              // we can try to create it here as a safety net or just wait.
+              // For now, let's allow them to proceed as the trigger should handle it.
+              console.log("New Google account detected, allowing profile creation trigger to complete.");
+            } else {
+              // Existing Google account but no profile found - this is the restricted case
+              await supabase.auth.signOut();
+              toast.error("Access denied. Your account is not authorized.");
+              setSession(null);
+              setUser(null);
+              setLoading(false);
+              window.location.href = "/signup";
+              return;
+            }
           }
         }
       }

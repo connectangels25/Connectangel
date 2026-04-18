@@ -1,6 +1,5 @@
 import React from 'react';
 import { AdminSidebar } from '../components/admin/AdminSidebar';
-import { AdminNavbar } from '../components/admin/AdminNavbar';
 import { AdminStatCard } from '../components/admin/AdminStatCard';
 import { AdminPlatformGrowthChart } from '../components/admin/AdminPlatformGrowthChart';
 import { AdminRecentActivity } from '../components/admin/AdminRecentActivity';
@@ -55,7 +54,7 @@ const AdminDashboard = () => {
       <div className="flex flex-1 overflow-hidden">
         <AdminSidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
-          <AdminNavbar />
+
           <main className="flex-1 overflow-y-auto p-8 custom-scrollbar pb-16">
           <div className="max-w-[1600px] mx-auto space-y-8">
             <div className="flex justify-between items-end">

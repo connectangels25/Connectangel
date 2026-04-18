@@ -1,6 +1,5 @@
 import React from "react";
 import { AdminSidebar } from "../components/admin/AdminSidebar";
-import { AdminNavbar } from "../components/admin/AdminNavbar";
 import { AdminStatCard } from "../components/admin/AdminStatCard";
 import { AdminUserManagement } from "../components/admin/AdminUserManagement";
 import { Users, UserPlus, ShieldCheck, Mail } from "lucide-react";
@@ -54,7 +53,7 @@ const UserManagementDashboard = () => {
         <AdminSidebar />
         
         <div className="flex-1 flex flex-col overflow-hidden">
-          <AdminNavbar />
+
         
         <main className="flex-1 overflow-y-auto p-12 custom-scrollbar">
           <div className="max-w-[1400px] mx-auto">

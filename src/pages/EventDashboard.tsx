@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { AdminSidebar } from "../components/admin/AdminSidebar";
-import { AdminNavbar } from "../components/admin/AdminNavbar";
 import { EventFilters } from "../components/admin/event/EventFilters";
 import { EventCard, Event } from "../components/admin/event/EventCard";
 import { Inbox, Loader2 } from "lucide-react";
@@ -148,7 +147,7 @@ const EventDashboard = () => {
         <AdminSidebar />
         
         <div className="flex-1 flex flex-col overflow-hidden">
-          <AdminNavbar />
+
         
         <main className="flex-1 overflow-y-auto p-12 custom-scrollbar">
           <div className="max-w-[1400px] mx-auto">
