@@ -12,6 +12,7 @@ export interface Event {
   description: string;
   image: string;
   status: 'pending' | 'approved' | 'rejected';
+  creatorEmail: string;
 }
 
 interface EventCardProps {
@@ -61,7 +62,10 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onApprove, onReject
           <div className="w-8 h-8 rounded-full border-2 border-white/20 overflow-hidden shadow-lg">
             <img src={event.organizerAvatar} alt={event.organizer} className="w-full h-full object-cover" />
           </div>
-          <span className="text-xs font-bold text-white tracking-tight drop-shadow-md">{event.organizer}</span>
+          <div className="flex flex-col">
+            <span className="text-xs font-bold text-white tracking-tight drop-shadow-md">{event.organizer}</span>
+            <span className="text-[10px] text-white/70 font-medium truncate max-w-[120px] drop-shadow-md">{event.creatorEmail}</span>
+          </div>
         </div>
       </div>
 

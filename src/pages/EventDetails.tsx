@@ -1,5 +1,5 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Calendar, Clock, MapPin, Users, Trophy, Mail, ChevronDown, ChevronRight, Download, Bookmark, Share2, MessageCircle, Globe, ExternalLink, Eye } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Trophy, Mail, ChevronDown, ChevronRight, Download, Bookmark, Share2, MessageCircle, Globe, ExternalLink, Eye, Ticket, User, Info, Building2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,8 +7,20 @@ import logo from "@/assets/logo.png";
 
 interface AgendaItem {
   time: string;
-  title: string;
-  lead: string;
+  session: string;
+  speaker: string;
+}
+
+interface Speaker {
+  name: string;
+  role: string;
+}
+
+interface TicketTier {
+  name: string;
+  price: string;
+  quantity: string;
+  salesEndDate: string;
 }
 
 interface FaqItem {
@@ -44,6 +56,10 @@ interface FullEvent {
   agenda: AgendaItem[] | null;
   faqs: FaqItem[] | null;
   tags: string[] | null;
+  tickets: TicketTier[] | null;
+  speakers: Speaker[] | null;
+  room_floor: string | null;
+  arrival_instructions: string | null;
 }
 
 interface RelatedEvent {
@@ -99,10 +115,23 @@ export default function EventDetails() {
           return;
         }
 
+        const parseJSON = (field: any) => {
+          if (!field) return [];
+          if (typeof field !== 'string') return field;
+          try {
+            return JSON.parse(field);
+          } catch (e) {
+            console.error("Failed to parse JSON field:", e);
+            return [];
+          }
+        };
+
         const parsed: FullEvent = {
           ...data,
-          agenda: Array.isArray(data.agenda) ? (data.agenda as unknown as AgendaItem[]) : [],
-          faqs: Array.isArray(data.faqs) ? (data.faqs as unknown as FaqItem[]) : [],
+          agenda: parseJSON(data.agenda),
+          faqs: parseJSON(data.faqs),
+          tickets: parseJSON(data.tickets),
+          speakers: parseJSON(data.speakers),
         };
         setEvent(parsed);
 
@@ -149,6 +178,10 @@ export default function EventDetails() {
 
   const agenda = event.agenda || [];
   const faqs = event.faqs || [];
+  const tickets = event.tickets || [];
+  const speakers = event.speakers || [];
+
+  const minPrice = tickets.length > 0 ? Math.min(...tickets.map(t => parseFloat(t.price) || 0)) : null;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -186,7 +219,12 @@ export default function EventDetails() {
             )}
             {event.venue_address && (
               <span className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-secondary text-sm text-foreground border border-border">
-                <MapPin className="h-3.5 w-3.5 text-primary" /> {event.venue_address}
+                <MapPin className="h-3.5 w-3.5 text-primary" /> {event.venue_name || event.venue_address}
+              </span>
+            )}
+            {minPrice !== null && (
+              <span className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-primary/10 text-sm text-primary border border-primary/20 font-bold">
+                <Ticket className="h-3.5 w-3.5" /> Tickets from ${minPrice}
               </span>
             )}
             <span className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-secondary text-sm text-foreground border border-border">
@@ -248,11 +286,88 @@ export default function EventDetails() {
                     </div>
                     <div>
                       <p className="text-xs text-primary font-semibold">{item.time}</p>
-                      <p className="font-semibold text-foreground text-sm">{item.title}</p>
-                      {item.lead && <p className="text-xs text-muted-foreground">{item.lead}</p>}
+                      <p className="font-semibold text-foreground text-sm">{item.session}</p>
+                      {item.speaker && <p className="text-xs text-muted-foreground">Speaker: {item.speaker}</p>}
                     </div>
                   </div>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {/* Speakers */}
+          {speakers.length > 0 && (
+            <section>
+              <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                <span className="text-primary">◎</span> Featured Speakers
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {speakers.map((s, i) => (
+                  <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-secondary/30 border border-border">
+                    <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                      <User className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-foreground">{s.name}</p>
+                      <p className="text-xs text-muted-foreground">{s.role}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Tickets & Pricing */}
+          {tickets.length > 0 && (
+            <section>
+              <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                <span className="text-primary">◎</span> Tickets & Pricing
+              </h3>
+              <div className="space-y-3">
+                {tickets.map((t, i) => (
+                  <div key={i} className="flex items-center justify-between p-5 rounded-2xl bg-card border border-border hover:border-primary/30 transition-colors group">
+                    <div>
+                      <p className="font-bold text-foreground group-hover:text-primary transition-colors">{t.name}</p>
+                      <p className="text-xs text-muted-foreground">Sales end on {t.salesEndDate || "event start"}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xl font-bold text-primary">${t.price}</p>
+                      <p className="text-[10px] text-muted-foreground">{t.quantity} spots available</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Venue Details */}
+          {(event.venue_name || event.room_floor || event.arrival_instructions) && (
+            <section>
+              <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                <span className="text-primary">◎</span> Venue Details
+              </h3>
+              <div className="p-6 rounded-2xl bg-secondary/20 border border-border space-y-4">
+                {event.venue_name && (
+                  <div className="flex gap-3">
+                    <Building2 className="h-5 w-5 text-primary shrink-0" />
+                    <div>
+                      <p className="text-sm font-bold text-foreground">{event.venue_name}</p>
+                      <p className="text-xs text-muted-foreground">{event.venue_address}</p>
+                    </div>
+                  </div>
+                )}
+                {event.room_floor && (
+                  <div className="flex gap-3 text-sm">
+                    <span className="font-bold text-foreground shrink-0 w-24">Room/Floor:</span>
+                    <span className="text-muted-foreground">{event.room_floor}</span>
+                  </div>
+                )}
+                {event.arrival_instructions && (
+                  <div className="flex gap-3 text-sm">
+                    <span className="font-bold text-foreground shrink-0 w-24">Instructions:</span>
+                    <span className="text-muted-foreground italic">{event.arrival_instructions}</span>
+                  </div>
+                )}
               </div>
             </section>
           )}
@@ -327,37 +442,53 @@ export default function EventDetails() {
             </div>
 
             {/* Quick Facts */}
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <h4 className="font-bold text-foreground mb-4">Quick Facts</h4>
-              <div className="space-y-3">
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-xl">
+              <h4 className="font-bold text-foreground mb-4 flex items-center gap-2">
+                <Info className="h-4 w-4 text-primary" /> Quick Facts
+              </h4>
+              <div className="space-y-4">
                 {event.deadline_date && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-2 text-muted-foreground"><Calendar className="h-3.5 w-3.5" /> Deadline</span>
-                    <span className="text-foreground font-medium">{event.deadline_date}</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Registration Deadline</span>
+                    <span className="text-sm font-bold text-foreground flex items-center gap-2">
+                      <Clock className="h-3.5 w-3.5 text-primary" /> {event.deadline_date} {event.deadline_time && `@ ${event.deadline_time}`}
+                    </span>
+                  </div>
+                )}
+                {minPrice !== null && (
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Starting Price</span>
+                    <span className="text-sm font-bold text-primary flex items-center gap-2">
+                      <Ticket className="h-3.5 w-3.5" /> ${minPrice}
+                    </span>
                   </div>
                 )}
                 {event.max_team_size && (
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between py-2 border-t border-border/50 text-sm">
                     <span className="flex items-center gap-2 text-muted-foreground"><Users className="h-3.5 w-3.5" /> Team Size</span>
-                    <span className="text-foreground font-medium">{event.max_team_size}</span>
-                  </div>
-                )}
-                {event.prizes && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-2 text-muted-foreground"><Trophy className="h-3.5 w-3.5" /> Prizes</span>
-                    <span className="text-foreground font-medium">{event.prizes}</span>
-                  </div>
-                )}
-                {event.support_email && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-2 text-muted-foreground"><Mail className="h-3.5 w-3.5" /> Support</span>
-                    <span className="text-primary font-medium">{event.support_email}</span>
+                    <span className="text-foreground font-bold">{event.max_team_size}</span>
                   </div>
                 )}
                 {event.total_capacity && (
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between py-2 border-t border-border/50 text-sm">
                     <span className="flex items-center gap-2 text-muted-foreground"><Users className="h-3.5 w-3.5" /> Capacity</span>
-                    <span className="text-foreground font-medium">{event.total_capacity}</span>
+                    <span className="text-foreground font-bold">{event.total_capacity}</span>
+                  </div>
+                )}
+                {event.prizes && (
+                  <div className="flex flex-col gap-1 py-2 border-t border-border/50">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Prizes & Rewards</span>
+                    <span className="text-sm font-bold text-foreground flex items-center gap-2 italic">
+                      <Trophy className="h-3.5 w-3.5 text-primary" /> {event.prizes}
+                    </span>
+                  </div>
+                )}
+                {event.support_email && (
+                  <div className="flex flex-col gap-1 py-2 border-t border-border/50">
+                    <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Support Contact</span>
+                    <a href={`mailto:${event.support_email}`} className="text-sm font-bold text-primary hover:underline flex items-center gap-2">
+                      <Mail className="h-3.5 w-3.5" /> {event.support_email}
+                    </a>
                   </div>
                 )}
               </div>

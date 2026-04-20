@@ -22,14 +22,28 @@ const EventDashboard = () => {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      // Fetch events
+      const { data: eventsData, error: eventError } = await supabase
         .from("events")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (eventError) throw eventError;
 
-      const formattedEvents: Event[] = (data || [])
+      // Fetch profiles mapping for creator emails
+      const { data: profilesData, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, email");
+
+      if (profileError) throw profileError;
+
+      // Create a map of user_id to email
+      const emailMap = (profilesData || []).reduce((acc: any, curr) => {
+        acc[curr.id] = curr.email;
+        return acc;
+      }, {});
+
+      const formattedEvents: Event[] = (eventsData || [])
         .filter((row: any) => row.status !== 'draft') // Explicitly exclude drafts from admin view
         .map((row: any) => ({
         id: row.id,
@@ -42,6 +56,7 @@ const EventDashboard = () => {
         description: row.short_summary || "No description provided",
         image: row.banner_url || "https://images.unsplash.com/photo-1540575861501-7ad05823c9f5?auto=format&fit=crop&w=800&q=80",
         status: ((row.status?.toLowerCase() === 'published' ? 'approved' : row.status?.toLowerCase()) || 'pending') as 'pending' | 'approved' | 'rejected',
+        creatorEmail: emailMap[row.user_id] || "No email",
       }));
 
       setEvents(formattedEvents);

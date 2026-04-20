@@ -24,13 +24,32 @@ export const AdminUserManagement = () => {
   const { data: users, isLoading, error } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch profiles
+      const { data: profiles, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .order("created_at", { ascending: false });
+      
+      if (profileError) throw profileError;
 
-      if (error) throw error;
-      return data;
+      // Fetch event counts manually since relationship might be missing in schema cache
+      const { data: events, error: eventError } = await supabase
+        .from("events")
+        .select("user_id");
+
+      if (eventError) throw eventError;
+
+      // Create a map of user_id to event count
+      const eventCountMap = (events || []).reduce((acc: any, curr) => {
+        acc[curr.user_id] = (acc[curr.user_id] || 0) + 1;
+        return acc;
+      }, {});
+
+      // Merge counts into profiles
+      return (profiles || []).map(p => ({
+        ...p,
+        event_count: eventCountMap[p.id] || 0
+      }));
     },
   });
 
@@ -117,6 +136,7 @@ export const AdminUserManagement = () => {
               <tr className="border-b border-border text-muted-foreground text-xs font-semibold">
                 <th className="pb-3 px-4 min-w-[200px]">User</th>
                 <th className="pb-3 px-4 min-w-[120px]">Method</th>
+                <th className="pb-3 px-4 min-w-[120px]">Total Events</th>
                 <th className="pb-3 px-4 min-w-[120px]">Joined</th>
                 <th className="pb-3 px-4 text-right">Actions</th>
               </tr>
@@ -151,6 +171,11 @@ export const AdminUserManagement = () => {
                       <div className="flex items-center text-sm text-foreground">
                         {method === "Google" ? <GoogleIcon /> : <Mail className="w-4 h-4 mr-2 text-muted-foreground" />}
                         {method}
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="py-1 px-3 bg-primary/10 text-primary text-xs font-bold rounded-lg border border-primary/20 inline-block">
+                        {(user as any).event_count || 0}
                       </div>
                     </td>
                     <td className="py-3 px-4 text-foreground text-sm">
