@@ -1,5 +1,5 @@
-import React from "react";
 import { MapPin, Calendar, Check, X, ArrowUpRight, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export interface Event {
   id: string;
@@ -111,10 +111,13 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onApprove, onReject
             </>
           ) : (
             <>
-              <button className="flex-1 flex items-center justify-center gap-2 py-3 bg-secondary hover:bg-secondary/80 text-foreground rounded-xl text-xs font-bold transition-all duration-200 border border-border">
+              <Link 
+                to={`/event/${event.id}`}
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-secondary hover:bg-secondary/80 text-foreground rounded-xl text-xs font-bold transition-all duration-200 border border-border"
+              >
                 <ArrowUpRight className="w-4 h-4" />
                 View Details
-              </button>
+              </Link>
               <button 
                 onClick={() => onDelete?.(event.id)}
                 className="px-4 flex items-center justify-center bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl transition-all border border-rose-500/20"
