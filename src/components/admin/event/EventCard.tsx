@@ -90,43 +90,50 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onApprove, onReject
           {event.description}
         </p>
 
-        {/* Actions Section */}
-        <div className="mt-auto pt-6 border-t border-border flex gap-3">
-          {event.status === 'pending' ? (
-            <>
-              <button 
-                onClick={() => onApprove?.(event.id)}
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-500/10 hover:bg-emerald-600 text-emerald-600 hover:text-white rounded-xl text-xs font-bold transition-all duration-200 border border-emerald-500/20"
-              >
-                <Check className="w-4 h-4" />
-                Approve
-              </button>
-              <button 
-                onClick={() => onReject?.(event.id)}
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-rose-500/10 hover:bg-rose-600 text-rose-600 hover:text-white rounded-xl text-xs font-bold transition-all duration-200 border border-rose-500/20"
-              >
-                <X className="w-4 h-4" />
-                Reject
-              </button>
-            </>
-          ) : (
-            <>
-              <Link 
-                to={`/event/${event.id}`}
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-secondary hover:bg-secondary/80 text-foreground rounded-xl text-xs font-bold transition-all duration-200 border border-border"
-              >
-                <ArrowUpRight className="w-4 h-4" />
-                View Details
-              </Link>
-              <button 
-                onClick={() => onDelete?.(event.id)}
-                className="px-4 flex items-center justify-center bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl transition-all border border-rose-500/20"
-                title="Delete Event"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </>
-          )}
+        <div className="mt-auto pt-6 border-t border-border flex flex-col gap-3">
+          {/* Row 1: Status Controls */}
+          <div className="flex gap-2">
+            <button 
+              onClick={() => onApprove?.(event.id)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-bold transition-all duration-200 border ${
+                event.status === 'approved' 
+                  ? "bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20" 
+                  : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-600 hover:text-white"
+              }`}
+            >
+              <Check className="w-3.5 h-3.5" />
+              Approve
+            </button>
+            <button 
+              onClick={() => onReject?.(event.id)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[10px] font-bold transition-all duration-200 border ${
+                event.status === 'rejected' 
+                  ? "bg-rose-500 text-white border-rose-500 shadow-lg shadow-rose-500/20" 
+                  : "bg-rose-500/10 text-rose-600 border-rose-500/20 hover:bg-rose-600 hover:text-white"
+              }`}
+            >
+              <X className="w-3.5 h-3.5" />
+              Reject
+            </button>
+          </div>
+
+          {/* Row 2: Navigation & Deletion */}
+          <div className="flex gap-2">
+            <Link 
+              to={`/event/${event.id}`}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-secondary hover:bg-secondary/80 text-foreground rounded-xl text-[10px] font-bold transition-all duration-200 border border-border"
+            >
+              <ArrowUpRight className="w-3.5 h-3.5 text-primary" />
+              View Details
+            </Link>
+            <button 
+              onClick={() => onDelete?.(event.id)}
+              className="px-3 flex items-center justify-center bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl transition-all duration-200 border border-rose-500/20"
+              title="Delete Event"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

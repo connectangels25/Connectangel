@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
-import { Calendar, Plus, FileText, Globe } from "lucide-react";
+import { Calendar, Plus, FileText, Globe, Trash2, Edit, Clock } from "lucide-react";
+import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
 
 interface EventRow {
   id: string;
@@ -15,6 +17,7 @@ interface EventRow {
   organizer_logo_url: string | null;
   short_summary: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export default function MyEventsPage() {
@@ -30,7 +33,7 @@ export default function MyEventsPage() {
       setLoading(true);
       const { data } = await supabase
         .from("events")
-        .select("id, title, status, category, start_date, banner_url, organizer_logo_url, short_summary, created_at")
+        .select("id, title, status, category, start_date, banner_url, organizer_logo_url, short_summary, created_at, updated_at")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       setEvents((data as EventRow[]) || []);
@@ -40,14 +43,29 @@ export default function MyEventsPage() {
   }, [user]);
 
   const filtered = events.filter((e) => {
-    if (tab === "draft") return e.status === "draft";
+    if (e.status === "draft") return false; // Exclude drafts from main section
     if (tab === "published") return e.status === "published" || e.status === "approved";
     return true;
   });
 
-  const draftCount = events.filter((e) => e.status === "draft").length;
+  const drafts = events.filter((e) => e.status === "draft");
+
   const publishedCount = events.filter((e) => e.status === "published" || e.status === "approved").length;
   const pendingCount = events.filter((e) => e.status === "pending").length;
+
+  const handleDeleteEvent = async (id: string, isDraft: boolean = false) => {
+    const confirmed = window.confirm(`Are you sure you want to delete this ${isDraft ? 'draft' : 'event'}?`);
+    if (!confirmed) return;
+
+    try {
+      const { error } = await supabase.from("events").delete().eq("id", id);
+      if (error) throw error;
+      setEvents(events.filter((e) => e.id !== id));
+      toast.success(`${isDraft ? 'Draft' : 'Event'} deleted successfully`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -66,11 +84,9 @@ export default function MyEventsPage() {
           </button>
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {[
-            { key: "all" as const, label: "All", count: events.length },
-            { key: "draft" as const, label: "Drafts", count: draftCount },
+            { key: "all" as const, label: "All", count: events.length - drafts.length },
             { key: "published" as const, label: "Approved", count: publishedCount },
           ].map((t) => (
             <button
@@ -143,6 +159,73 @@ export default function MyEventsPage() {
             ))}
           </div>
         )}
+
+        {/* My Drafts Section */}
+        <div className="mt-16 border-t border-border pt-12">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="p-3 bg-primary/10 rounded-2xl">
+              <FileText className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-foreground italic">My Drafts</h2>
+              <p className="text-sm text-muted-foreground">Incomplete events saved for later</p>
+            </div>
+          </div>
+
+          {drafts.length === 0 ? (
+            <div className="bg-secondary/30 rounded-[32px] border border-border border-dashed p-12 text-center">
+              <p className="text-muted-foreground font-medium text-lg italic">No Drafts Yet</p>
+              <p className="text-sm text-muted-foreground mt-2">Any partially filled event forms will appear here.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {drafts.map((draft) => (
+                <div key={draft.id} className="group rounded-[28px] bg-card border border-border overflow-hidden flex flex-col hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
+                  <div className="relative h-44 bg-secondary">
+                    {draft.banner_url ? (
+                      <img src={draft.banner_url} alt={draft.title} className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-500" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center opacity-40">
+                        <Globe className="h-12 w-12 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="absolute top-4 right-4">
+                      <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-background/80 backdrop-blur-md text-primary border border-primary/20">
+                        Draft
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-6 flex-1 flex flex-col">
+                    <h3 className="text-lg font-bold text-foreground mb-2 line-clamp-1 italic">{draft.title || "Untitled Draft"}</h3>
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2 h-10">{draft.short_summary || "No summary provided yet."}</p>
+                    
+                    <div className="mt-auto space-y-4">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                        <Clock className="h-3.5 w-3.5" />
+                        Edited {formatDistanceToNow(new Date(draft.updated_at))} ago
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => navigate(`/edit-event/${draft.id}`)}
+                          className="flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all"
+                        >
+                          <Edit className="h-4 w-4" /> Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteEvent(draft.id, true)}
+                          className="flex items-center justify-center gap-2 py-3 rounded-xl border border-destructive/20 text-destructive text-sm font-bold hover:bg-destructive hover:text-destructive-foreground transition-all"
+                        >
+                          <Trash2 className="h-4 w-4" /> Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

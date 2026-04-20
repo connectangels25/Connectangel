@@ -29,7 +29,9 @@ const EventDashboard = () => {
 
       if (error) throw error;
 
-      const formattedEvents: Event[] = (data || []).map((row: any) => ({
+      const formattedEvents: Event[] = (data || [])
+        .filter((row: any) => row.status !== 'draft') // Explicitly exclude drafts from admin view
+        .map((row: any) => ({
         id: row.id,
         title: row.title,
         organizer: row.organizer_name,
@@ -39,7 +41,7 @@ const EventDashboard = () => {
         category: row.category,
         description: row.short_summary || "No description provided",
         image: row.banner_url || "https://images.unsplash.com/photo-1540575861501-7ad05823c9f5?auto=format&fit=crop&w=800&q=80",
-        status: (row.status === 'published' ? 'approved' : row.status) as 'pending' | 'approved' | 'rejected',
+        status: ((row.status?.toLowerCase() === 'published' ? 'approved' : row.status?.toLowerCase()) || 'pending') as 'pending' | 'approved' | 'rejected',
       }));
 
       setEvents(formattedEvents);

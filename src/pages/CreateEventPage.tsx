@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
@@ -25,6 +25,7 @@ type FieldErrors = Record<string, string>;
 
 export default function CreateEventPage() {
   const navigate = useNavigate();
+  const { id } = useParams();
   const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,6 +73,74 @@ export default function CreateEventPage() {
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [prizes, setPrizes] = useState("");
+  const [loadingEvent, setLoadingEvent] = useState(false);
+
+  useEffect(() => {
+    if (id && user) {
+      const fetchEvent = async () => {
+        setLoadingEvent(true);
+        try {
+          const { data, error } = await supabase
+            .from("events")
+            .select("*")
+            .eq("id", id)
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+          if (error) throw error;
+          if (data) {
+            setEventTitle(data.title || "");
+            setOrganizerName(data.organizer_name || "");
+            setOrganizerLogoUrl(data.organizer_logo_url || "");
+            setCategory(data.category || "Conference");
+            setTags(data.tags || []);
+            setShortSummary(data.short_summary || "");
+            setEventLink(data.event_link || "");
+            setBannerUrl(data.banner_url || "");
+            setStartDate(data.start_date || "");
+            setStartTime(data.start_time || "");
+            setEndDate(data.end_date || "");
+            setEndTime(data.end_time || "");
+            setEventMode(data.event_mode as any || "In-Person");
+            setLocationType(data.location_type || "");
+            setVenueAddress(data.venue_address || "");
+            setVenueName(data.venue_name || "");
+            setRoomFloor(data.room_floor || "");
+            setArrivalInstructions(data.arrival_instructions || "");
+            setDeadlineDate(data.deadline_date || "");
+            setDeadlineTime(data.deadline_time || "");
+            setShowTimezone(data.show_timezone ?? true);
+            setTotalCapacity(data.total_capacity || "");
+            setMaxTeamSize(data.max_team_size || "");
+            setSupportEmail(data.support_email || "");
+            setSupportPhone(data.support_phone || "");
+            setAgreeTerms(data.agree_terms ?? false);
+            setFullDescription(data.full_description || "");
+            setPrizes(data.prizes || "");
+            
+            if (data.tickets) {
+              try { setTickets(typeof data.tickets === 'string' ? JSON.parse(data.tickets) : data.tickets); } catch (e) { console.error(e); }
+            }
+            if (data.agenda) {
+              try { setAgenda(typeof data.agenda === 'string' ? JSON.parse(data.agenda) : data.agenda); } catch (e) { console.error(e); }
+            }
+            if (data.speakers) {
+              try { setSpeakers(typeof data.speakers === 'string' ? JSON.parse(data.speakers) : data.speakers); } catch (e) { console.error(e); }
+            }
+            if (data.faqs) {
+              try { setFaqs(typeof data.faqs === 'string' ? JSON.parse(data.faqs) : data.faqs); } catch (e) { console.error(e); }
+            }
+          }
+        } catch (err: any) {
+          toast.error("Failed to load event data");
+          console.error(err);
+        } finally {
+          setLoadingEvent(false);
+        }
+      };
+      fetchEvent();
+    }
+  }, [id, user]);
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [step]);
 
@@ -126,7 +195,7 @@ export default function CreateEventPage() {
     setIsSubmitting(true);
     try {
       const payload = buildPayload("draft");
-      const { error } = await supabase.from("events").insert(payload as any);
+      const { error } = await supabase.from("events").upsert(payload as any);
       if (error) throw error;
       toast.success("Draft saved successfully!");
       navigate("/my-events");
@@ -144,18 +213,19 @@ export default function CreateEventPage() {
     setIsSubmitting(true);
     try {
       const payload = buildPayload("pending");
-      const { error } = await supabase.from("events").insert(payload as any);
+      const { error } = await supabase.from("events").upsert(payload as any);
       if (error) throw error;
-      toast.success("Event published successfully!");
+      toast.success("Event submitted successfully!");
       navigate("/my-events");
     } catch (err: any) {
       toast.error(err.message || "Failed to publish event");
     } finally { setIsSubmitting(false); }
   };
 
-  const buildPayload = (status: string) => ({
-    user_id: user!.id,
-    title: eventTitle,
+  const buildPayload = (status: string) => {
+    const payload: any = {
+      user_id: user!.id,
+      title: eventTitle || "Untitled Draft",
     organizer_name: organizerName,
     organizer_logo_url: organizerLogoUrl || null,
     category,
@@ -188,7 +258,15 @@ export default function CreateEventPage() {
     faqs: JSON.stringify(faqs),
     prizes: prizes || null,
     status,
-  });
+    updated_at: new Date().toISOString(),
+  };
+
+  if (id) {
+    payload.id = id;
+  }
+
+  return payload;
+};
 
   const inputCls = (field: string) =>
     `mt-1 w-full px-4 py-3 rounded-xl bg-secondary border ${errors[field] ? "border-destructive" : "border-border"} text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50`;

@@ -51,6 +51,11 @@ const App = () => (
                 <CreateEventPage />
               </ProtectedRoute>
             } />
+            <Route path="/edit-event/:id" element={
+              <ProtectedRoute>
+                <CreateEventPage />
+              </ProtectedRoute>
+            } />
             <Route path="/admindashboard" element={
               <AdminProtectedRoute>
                 <AdminDashboard />
