@@ -10,7 +10,7 @@ export const AdminRecentActivity = () => {
     queryFn: async () => {
       const [profilesRes, eventsRes] = await Promise.all([
         supabase.from("profiles").select("id, name, created_at").order("created_at", { ascending: false }).limit(3),
-        supabase.from("events").select("id, title, organizer_name, created_at").order("created_at", { ascending: false }).limit(3)
+        supabase.from("events").select("id, title, organizer_name, created_at").neq('status', 'draft').order("created_at", { ascending: false }).limit(3)
       ]);
 
       const log: any[] = [];

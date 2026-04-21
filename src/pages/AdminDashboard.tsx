@@ -29,7 +29,10 @@ const AdminDashboard = () => {
   const { data: totalEvents = 0 } = useQuery({
     queryKey: ['admin-stats', 'total-events'],
     queryFn: async () => {
-      const { count, error } = await supabase.from('events').select('*', { count: 'exact', head: true });
+      const { count, error } = await supabase
+        .from('events')
+        .select('*', { count: 'exact', head: true })
+        .neq('status', 'draft');
       if (error) throw error;
       return count || 0;
     }

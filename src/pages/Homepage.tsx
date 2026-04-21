@@ -37,7 +37,7 @@ const SLIDES = [
 const SITEMAP_LINKS = ["Domain", "Events", "Internship", "Training", "Mentors"];
 const LEGAL_LINKS = ["Privacy Policy", "Terms of Service", "Cookie Settings"];
 
-const EVENT_TYPES = ["All", "Conference", "Hackathon", "Workshop", "Meetup", "Summit", "Demo Day"];
+const EVENT_TYPES = ["All", "Conference", "Workshop", "Hackathon", "Meetup", "Webinar", "Summit", "Bootcamp", "Demo Day"];
 const LOCATIONS = ["All", "Online", "Offline", "Hybrid"];
 
 export default function Homepage() {

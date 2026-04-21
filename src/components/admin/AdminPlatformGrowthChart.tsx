@@ -20,7 +20,7 @@ export const AdminPlatformGrowthChart = () => {
 
       const [profilesRes, eventsRes] = await Promise.all([
         supabase.from("profiles").select("created_at").gte("created_at", startDate.toISOString()),
-        supabase.from("events").select("created_at").gte("created_at", startDate.toISOString())
+        supabase.from("events").select("created_at").gte("created_at", startDate.toISOString()).neq('status', 'draft')
       ]);
 
       const monthlyData: Record<string, { name: string; revenue: number; users: number }> = {};

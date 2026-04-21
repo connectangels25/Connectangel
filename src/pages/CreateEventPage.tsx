@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 const STEP_LABELS = ["Basic Info", "Schedule & Venue", "Registration & Tickets", "Content & Assets"];
-const CATEGORIES = ["Conference", "Workshop", "Hackathon", "Meetup", "Webinar", "Summit", "Bootcamp"];
+const CATEGORIES = ["Conference", "Workshop", "Hackathon", "Meetup", "Webinar", "Summit", "Bootcamp", "Demo Day"];
 const LOCATION_TYPES = ["Online", "Offline", "Hybrid"];
 
 interface TicketTier { name: string; price: string; quantity: string; salesEndDate: string; }
