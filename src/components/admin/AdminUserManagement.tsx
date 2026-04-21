@@ -35,7 +35,8 @@ export const AdminUserManagement = () => {
       // Fetch event counts manually since relationship might be missing in schema cache
       const { data: events, error: eventError } = await supabase
         .from("events")
-        .select("user_id");
+        .select("user_id")
+        .neq('status', 'draft');
 
       if (eventError) throw eventError;
 

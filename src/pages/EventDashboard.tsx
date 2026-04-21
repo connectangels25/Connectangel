@@ -89,6 +89,9 @@ const EventDashboard = () => {
 
   const handleApprove = async (id: string) => {
     try {
+      // Optimistic update
+      setEvents(prev => prev.map(e => e.id === id ? { ...e, status: 'approved' } : e));
+
       const { error } = await supabase
         .from("events")
         .update({ status: "approved" })
@@ -97,12 +100,17 @@ const EventDashboard = () => {
       if (error) throw error;
       toast.success("Event approved successfully!");
     } catch (err: any) {
+      // Rollback on error
+      fetchEvents();
       toast.error(err.message || "Failed to approve event");
     }
   };
 
   const handleReject = async (id: string) => {
     try {
+      // Optimistic update
+      setEvents(prev => prev.map(e => e.id === id ? { ...e, status: 'rejected' } : e));
+
       const { error } = await supabase
         .from("events")
         .update({ status: "rejected" })
@@ -111,6 +119,8 @@ const EventDashboard = () => {
       if (error) throw error;
       toast.success("Event rejected");
     } catch (err: any) {
+      // Rollback on error
+      fetchEvents();
       toast.error(err.message || "Failed to reject event");
     }
   };
