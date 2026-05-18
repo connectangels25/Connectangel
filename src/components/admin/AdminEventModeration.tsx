@@ -46,15 +46,22 @@ export const AdminEventModeration = () => {
   }, []);
 
   const handleApprove = async (id: string) => {
+    const event = events.find((e) => e.id === id);
+    if (!event) return;
+
+    const isCurrentlyApproved = event.status === "approved";
+    const newStatus = isCurrentlyApproved ? "pending" : "approved";
+    const successMsg = isCurrentlyApproved ? "Event moved back to pending" : "Event approved!";
+
     try {
       const { error } = await supabase
         .from("events")
-        .update({ status: "approved" })
+        .update({ status: newStatus })
         .eq("id", id);
       if (error) throw error;
-      toast.success("Event approved!");
+      toast.success(successMsg);
     } catch (err: any) {
-      toast.error(err.message || "Approval failed");
+      toast.error(err.message || "Update failed");
     }
   };
 

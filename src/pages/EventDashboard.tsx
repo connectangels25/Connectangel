@@ -88,21 +88,28 @@ const EventDashboard = () => {
   }, []);
 
   const handleApprove = async (id: string) => {
+    const event = events.find(e => e.id === id);
+    if (!event) return;
+
+    const isCurrentlyApproved = event.status === 'approved';
+    const newStatus = isCurrentlyApproved ? 'pending' : 'approved';
+    const successMsg = isCurrentlyApproved ? "Event moved back to pending" : "Event approved successfully!";
+
     try {
       // Optimistic update
-      setEvents(prev => prev.map(e => e.id === id ? { ...e, status: 'approved' } : e));
+      setEvents(prev => prev.map(e => e.id === id ? { ...e, status: newStatus as any } : e));
 
       const { error } = await supabase
         .from("events")
-        .update({ status: "approved" })
+        .update({ status: newStatus })
         .eq("id", id);
 
       if (error) throw error;
-      toast.success("Event approved successfully!");
+      toast.success(successMsg);
     } catch (err: any) {
       // Rollback on error
       fetchEvents();
-      toast.error(err.message || "Failed to approve event");
+      toast.error(err.message || "Failed to update status");
     }
   };
 

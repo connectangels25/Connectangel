@@ -9,7 +9,7 @@ import logo from "@/assets/logo.png";
 
 const NAV_LINKS = [
   { label: "Home", to: "/" },
-  { label: "Events", to: "/", isEvents: true },
+  { label: "Events", to: "/events" },
   { label: "Chat", to: "/chat" },
   { label: "Blog", to: "/blog" },
   { label: "My Events", to: "/my-events" },
@@ -69,15 +69,7 @@ export default function Navbar() {
   // ── Nav helpers ───────────────────────────────────────────────
   const handleNavClick = (link: typeof NAV_LINKS[number]) => {
     setMobileOpen(false);
-    if (link.isEvents) {
-      if (location.pathname === "/") {
-        document.getElementById("events-section")?.scrollIntoView({ behavior: "smooth" });
-      } else {
-        navigate("/?scrollTo=events");
-      }
-    } else {
-      navigate(link.to);
-    }
+    navigate(link.to);
   };
 
   const handleSignOut = async () => {
@@ -174,7 +166,7 @@ export default function Navbar() {
         <div className="flex items-center gap-4 sm:gap-8">
           <Link 
             to="/" 
-            className="flex items-center gap-2 outline-none"
+            className="flex items-center outline-none"
             onClick={(e) => {
               const newCount = logoClicks + 1;
               if (newCount >= 10) {
@@ -186,8 +178,7 @@ export default function Navbar() {
               }
             }}
           >
-            <img src={logo} alt="ConnectAngels" className="h-8 w-8 sm:h-9 sm:w-9" />
-            <span className="text-base sm:text-lg font-bold text-primary">ConnectAngels</span>
+            <img src={logo} alt="ConnectAngels" className="h-10 sm:h-12 w-auto" />
           </Link>
           {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-6">

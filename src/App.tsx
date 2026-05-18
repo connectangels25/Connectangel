@@ -21,6 +21,7 @@ import MyEventsPage from "./pages/MyEventsPage.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import EventDashboard from "./pages/EventDashboard.tsx";
 import UserManagementDashboard from "./pages/UserManagementDashboard.tsx";
+import EventsPage from "./pages/EventsPage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/events" element={<EventsPage />} />
             <Route path="/shad" element={<ChatPage />} />
             <Route path="/chat" element={<ComingSoonChat />} />
             <Route path="/blog" element={<BlogPage />} />

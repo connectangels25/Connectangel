@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Check, Zap, Sparkles, Shield, MessageCircle, HelpCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -57,6 +57,10 @@ const FOOTER_COMPANY = ["About Us", "Careers", "Privacy Policy", "Terms of Servi
 export default function PricingPage() {
   const navigate = useNavigate();
   const [isAnnual, setIsAnnual] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
