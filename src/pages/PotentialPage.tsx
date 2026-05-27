@@ -1,8 +1,12 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
+import { AdminSidebar } from "../components/admin/AdminSidebar";
+import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
 
 export default function PotentialPage() {
   const [iframeSrc, setIframeSrc] = useState<string>("/capacity/index.html");
+  const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(true);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
 
   // Read backend URL from environment variables or default to localhost
   const DASHBOARD_URL = (import.meta.env.VITE_POTENTIAL_API_URL || "http://127.0.0.1:5000").replace(/\/$/, "");
@@ -18,21 +22,61 @@ export default function PotentialPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col overflow-hidden">
+    <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground">
       {/* Navbar wrapper */}
       <div className="flex-shrink-0 z-20 bg-background/80 backdrop-blur-md">
         <Navbar />
       </div>
 
-      {/* Main Content Area — Always loads the dashboard UI (instant load, no connection screen) */}
-      <div className="flex-1 relative flex flex-col min-h-0 bg-gradient-to-b from-background via-background/95 to-secondary/30">
-        <iframe
-          id="dashboard-iframe"
-          src={iframeSrc}
-          className="w-full flex-1 border-0 bg-transparent"
-          title="ConnectAngels Capacity Dashboard"
-          sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
-        />
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Sidebar Container with toggle control for desktop */}
+        <div 
+          className={`transition-all duration-300 ease-in-out flex shrink-0 ${
+            isSidebarVisible ? "w-64" : "w-0 border-r-0"
+          } overflow-hidden border-r border-sidebar-border h-full`}
+        >
+          <div className="w-64 shrink-0 h-full">
+            <AdminSidebar isOpen={isMobileSidebarOpen} onClose={() => setIsMobileSidebarOpen(false)} />
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-background via-background/95 to-secondary/30 relative">
+          
+          {/* Collapse/Expand Arrow Toggle Button (Visible on desktop) */}
+          <button
+            onClick={() => setIsSidebarVisible(!isSidebarVisible)}
+            className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 z-[50] bg-primary text-primary-foreground hover:bg-primary/90 p-1.5 rounded-r-lg border border-l-0 border-sidebar-border shadow-lg transition-transform hover:scale-105"
+            title={isSidebarVisible ? "Collapse Sidebar" : "Expand Sidebar"}
+          >
+            {isSidebarVisible ? (
+              <ChevronLeft className="w-5 h-5" />
+            ) : (
+              <ChevronRight className="w-5 h-5" />
+            )}
+          </button>
+
+          {/* Mobile Header with Menu Toggle */}
+          <header className="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsMobileSidebarOpen(true)}
+                className="p-2 -ml-2 text-muted-foreground hover:text-foreground"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <h2 className="font-bold text-lg">Capacity Dashboard</h2>
+            </div>
+          </header>
+
+          <iframe
+            id="dashboard-iframe"
+            src={iframeSrc}
+            className="w-full flex-1 border-0 bg-transparent"
+            title="ConnectAngels Capacity Dashboard"
+            sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+          />
+        </div>
       </div>
     </div>
   );
