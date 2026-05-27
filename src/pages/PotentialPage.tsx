@@ -23,10 +23,8 @@ export default function PotentialPage() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground">
-      {/* Navbar wrapper */}
-      <div className="flex-shrink-0 z-20 bg-background/80 backdrop-blur-md">
-        <Navbar />
-      </div>
+      {/* Navbar */}
+      <Navbar />
 
       <div className="flex flex-1 overflow-hidden relative">
         {/* Sidebar Container with toggle control for desktop */}
