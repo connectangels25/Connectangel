@@ -67,7 +67,7 @@ export default function Navbar() {
     : user?.email?.[0]?.toUpperCase() ?? "?";
 
   // ── Nav helpers ───────────────────────────────────────────────
-  const handleNavClick = (link: typeof NAV_LINKS[number]) => {
+  const handleNavClick = (link: { label: string; to: string }) => {
     setMobileOpen(false);
     navigate(link.to);
   };
@@ -159,6 +159,8 @@ export default function Navbar() {
     );
   };
 
+  const visibleLinks = isAdmin ? [...NAV_LINKS, { label: "Potential", to: "/potential" }] : NAV_LINKS;
+
   return (
     <>
       {/* ── NAVBAR ── */}
@@ -182,7 +184,7 @@ export default function Navbar() {
           </Link>
           {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-6">
-            {NAV_LINKS.map((link) => (
+            {visibleLinks.map((link) => (
               <button
                 key={link.label}
                 onClick={() => handleNavClick(link)}
@@ -304,7 +306,7 @@ export default function Navbar() {
         {mobileOpen && (
           <div className="absolute top-full left-0 right-0 bg-card border-b border-border z-50 md:hidden">
             <div className="flex flex-col p-4 gap-1">
-              {NAV_LINKS.map((link) => (
+              {visibleLinks.map((link) => (
                 <button
                   key={link.label}
                   onClick={() => handleNavClick(link)}

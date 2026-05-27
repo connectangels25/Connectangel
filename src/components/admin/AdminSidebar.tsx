@@ -74,6 +74,7 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
       category: "GENERAL",
       items: [
         { name: "Dashboard", path: "/admindashboard", icon: LayoutDashboard },
+        { name: "Potential", path: "/potential", icon: TrendingUp },
         { name: "Users", path: "/usermanagement", icon: Users },
         { name: "Events", path: "/eventdashboard", icon: Calendar, badge: pendingCount > 0 ? pendingCount : undefined },
         { name: "Messages", path: "#", icon: MessageSquare },

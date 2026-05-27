@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ConnectAngels Capacity Dashboard — Real-time startup analytics across regions and domains." />
+  <title>Capacity Dashboard — ConnectAngels</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="static/css/style.css" />
+</head>
+<body>
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!--  MAIN WRAPPER                                                       -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div class="main-wrapper">
+
+
+
+    <!-- ── PAGE CONTENT ─────────────────────────────────────────────── -->
+    <main class="page-content">
+
+      <!-- Backend Status Banner (Visible when offline) -->
+      <div id="backend-status-banner" class="status-banner hidden">
+        <div class="status-banner-content">
+          <span class="status-banner-icon">⚠️</span>
+          <div>
+            <span class="status-banner-title">Backend Connection Offline</span>
+            <span class="status-banner-desc">We couldn't connect to the Flask server. Currently displaying the dashboard in <strong>Interactive Sandbox Mode</strong> with dummy data.</span>
+          </div>
+        </div>
+        <span class="status-banner-badge">Sandbox Mode Active</span>
+      </div>
+
+      <!-- Page heading -->
+      <div class="page-heading">
+        <div>
+          <h1>Capacity Dashboard</h1>
+          <div class="page-heading-sub">
+            <span class="live-dot"></span>
+            Real-time startup analytics across regions and domains
+          </div>
+        </div>
+        <div class="page-heading-actions">
+          <button class="btn-outline">Export CSV</button>
+          <button class="btn-primary">+ New Report</button>
+        </div>
+      </div>
+
+      <!-- ── Filter Bar ─────────────────────────────────────────── -->
+      <div class="filter-bar">
+        <div class="filter-item">
+          <label class="filter-label">Country</label>
+          <select id="filter-country" class="filter-select">
+            <option value="All">All Countries</option>
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <label class="filter-label">State / Province</label>
+          <select id="filter-state" class="filter-select" disabled>
+            <option value="All">— Select Country First —</option>
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <label class="filter-label">District</label>
+          <select id="filter-district" class="filter-select" disabled>
+            <option value="All">— Select State First —</option>
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <label class="filter-label">Domain</label>
+          <select id="filter-domain" style="display:none">
+            <option value="All">All Domains</option>
+          </select>
+          <div class="cdd-wrap" id="cdd-wrap">
+            <div class="cdd-trigger" id="cdd-trigger">
+              <span id="cdd-selected-text">All Domains</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="6" viewBox="0 0 10 6">
+                <path d="M1 1l4 4 4-4" stroke="#999" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="cdd-list" id="cdd-list"></div>
+          </div>
+        </div>
+
+        <div class="filter-item" style="flex:0">
+          <label class="filter-label">&nbsp;</label>
+          <button id="search-btn" class="btn-search" onclick="applyFilters()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            Search
+          </button>
+        </div>
+      </div><!-- /filter-bar -->
+
+      <!-- Active sub-domain badge -->
+      <div id="active-sub-wrap" style="display:none;align-items:center;gap:8px;padding:0 0 14px;">
+        <span style="font-size:.7rem;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:.06em;">Active Sub-Domain:</span>
+        <span class="active-sub-badge">
+          <span id="active-sub-text"></span>
+          <button class="active-sub-clear" onclick="clearSubDomain()" title="Clear sub-domain filter">&#x2715;</button>
+        </span>
+      </div>
+
+      <!-- ── Stat Cards ──────────────────────────────────────────── -->
+      <div class="stats-grid" id="stats-grid">
+
+        <div class="stat-card">
+          <div class="stat-card-icon teal">🧩</div>
+          <div class="stat-card-body">
+            <div class="syne stat-value" id="stat-domains">19</div>
+            <div class="stat-label">Total Domains</div>
+          </div>
+          <span class="stat-badge teal">Active</span>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-icon navy">🌍</div>
+          <div class="stat-card-body">
+            <div class="syne stat-value" id="stat-countries">54</div>
+            <div class="stat-label">Total Countries</div>
+          </div>
+          <span class="stat-badge olive">Global</span>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-icon gold">📊</div>
+          <div class="stat-card-body">
+            <div class="syne stat-value" id="stat-startups">15,802</div>
+            <div class="stat-label">Total Records</div>
+          </div>
+          <span class="stat-badge gold">Live</span>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-icon rust">🚀</div>
+          <div class="stat-card-body">
+            <div class="syne stat-value accent" id="stat-potential">20,762</div>
+            <div class="stat-label">Total Potential</div>
+          </div>
+          <span class="stat-badge rust">High</span>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-icon olive">✅</div>
+          <div class="stat-card-body">
+            <div class="syne stat-value green" id="stat-unique">12,346</div>
+            <div class="stat-label">Unique Startups</div>
+          </div>
+          <span class="stat-badge teal">Verified</span>
+        </div>
+
+      </div><!-- /stats-grid -->
+
+
+      <!-- ── Main Grid ────────────────────────────────────────────── -->
+      <div class="main-grid">
+
+        <!-- Left Column -->
+        <div class="left-col">
+
+          <!-- Chart Card -->
+          <div class="card">
+            <div class="card-header">
+              <span class="syne card-title">
+                <span class="card-title-dot teal"></span>
+                Domain Analysis
+              </span>
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <div class="vis-group" id="vis-group">
+                  <button class="vis-btn active" data-vis="bar" title="Stacked Bar Chart">📊</button>
+                  <button class="vis-btn" data-vis="line" title="Line / Area Chart">📈</button>
+                  <button class="vis-btn" data-vis="doughnut" title="Nested Doughnut Chart">🍩</button>
+                  <button class="vis-btn" data-vis="grid" title="Interactive Grid Table">📋</button>
+                </div>
+                <div class="tab-group" id="tab-group">
+                  <button class="tab active" data-tab="Domain">Domain</button>
+                  <button class="tab" data-tab="State">State</button>
+                  <button class="tab" data-tab="District">District</button>
+                </div>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="domainChart"></canvas>
+              <div id="domainGridWrap" class="grid-wrap hidden"></div>
+            </div>
+            <div class="chart-legend">
+              <span class="legend-item"><span class="legend-dot green"></span>Existing Startups</span>
+              <span class="legend-item"><span class="legend-dot red"></span>Startup Potential Gap</span>
+            </div>
+            <div class="chart-hint">
+              Click <strong style="color:#52b5a4;">green</strong> to see startups &nbsp;|&nbsp;
+              <strong style="color:#c0614a;">red</strong> to see gaps &nbsp;|&nbsp;
+              Click <strong>+</strong> on table rows to explore sub-domains
+            </div>
+          </div>
+
+          <!-- Table Card -->
+          <div class="card">
+            <div class="card-header">
+              <span class="syne card-title">
+                <span class="card-title-dot gold"></span>
+                Domain Overview
+              </span>
+            </div>
+            <div class="table-wrap">
+              <table class="domain-table">
+                <thead>
+                  <tr>
+                    <th>Domain</th>
+                    <th>Current Potential</th>
+                    <th>Total Potential</th>
+                    <th>Sub-Domains</th>
+                  </tr>
+                </thead>
+                <tbody id="domain-tbody">
+                  <!-- Rows injected by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div><!-- /left-col -->
+
+
+        <!-- Right Column — Startup Details -->
+        <div class="card startup-card" id="startup-card">
+          <div class="card-header">
+            <span class="syne card-title">
+              <span class="card-title-dot rust"></span>
+              Startup Details
+            </span>
+          </div>
+          <div class="startup-body" id="startup-body">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+
+      </div><!-- /main-grid -->
+
+
+    </main><!-- /page-content -->
+
+
+    <!-- ── FOOTER ────────────────────────────────────────────────── -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-grid">
+
+          <div>
+            <div class="syne footer-brand">🦅 ConnectAngels</div>
+            <p class="footer-desc">ConnectAngelsOTT connects founders, incubators, and investors across regions to drive innovation and sustainable growth.</p>
+            <div class="footer-socials">
+              <a href="#" class="social-icon">𝕏</a>
+              <a href="#" class="social-icon">in</a>
+              <a href="#" class="social-icon">f</a>
+              <a href="#" class="social-icon">🔗</a>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="syne footer-col-title">Platform</h4>
+            <a href="#" class="footer-link">Domain Explorer</a>
+            <a href="#" class="footer-link">Events</a>
+            <a href="#" class="footer-link">Internship</a>
+            <a href="#" class="footer-link">Training</a>
+            <a href="#" class="footer-link">Mentors</a>
+          </div>
+
+          <div>
+            <h4 class="syne footer-col-title">Legal</h4>
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Cookie Settings</a>
+          </div>
+
+        </div>
+
+        <div class="footer-bottom">
+          <span>© 2026 ConnectAngels. All rights reserved.</span>
+          <button class="back-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+            Back to Top ↑
+          </button>
+        </div>
+      </div>
+    </footer>
+
+  </div><!-- /main-wrapper -->
+
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!--  MODALS                                                            -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+
+  <div class="modal-overlay hidden" id="sub-modal-overlay" onclick="closeSubModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="syne modal-title" id="sub-modal-title">Sub-domains</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn-back" onclick="closeSubModal()">← Back</button>
+          <button class="btn-close" onclick="closeSubModal()">✕</button>
+        </div>
+      </div>
+      <div class="modal-body" id="sub-modal-body"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="briefing-modal-overlay" onclick="closeBriefingModal()">
+    <div class="modal modal-wide" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2 class="syne" style="font-size:1rem;color:var(--text-dark);">Strategic Briefing</h2>
+          <p id="briefing-subtitle" style="color:#aaa;font-size:.76rem;margin-top:2px;"></p>
+        </div>
+        <button class="btn-close" onclick="closeBriefingModal()">✕</button>
+      </div>
+      <div class="modal-body" id="briefing-body"></div>
+      <div style="padding:0 16px 16px">
+        <button class="btn-full-gradient" onclick="closeBriefingModal()">Close Briefing</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Problem Statement Modal -->
+  <div class="modal-overlay hidden" id="prob-stmt-overlay" onclick="closeProbStmt()">
+    <div class="modal modal-wide" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2 class="syne" style="font-size:1rem;color:var(--text-dark);">🧠 Problem Statement</h2>
+          <p id="prob-stmt-subtitle" style="color:#aaa;font-size:.76rem;margin-top:2px;"></p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn-back" id="prob-copy-btn" onclick="copyProbStatement()">📋 Copy</button>
+          <button class="btn-close" onclick="closeProbStmt()">✕</button>
+        </div>
+      </div>
+      <div class="modal-body" id="prob-stmt-body" style="white-space:pre-wrap;line-height:1.8;font-size:.88rem;color:#ccc;"></div>
+      <div style="padding:0 16px 16px">
+        <button class="btn-full-gradient" onclick="closeProbStmt()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Potential Finder Modal (two-phase: filter form → problem cards) -->
+  <div class="modal-overlay hidden" id="pf-overlay" onclick="closePotentialFinder()">
+    <div class="modal modal-wide pf-modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="syne" style="font-size:1rem;color:var(--text-dark);">🚀 Potential</span>
+        <button class="btn-close" onclick="closePotentialFinder()">✕</button>
+      </div>
+      <div id="pf-body" class="pf-modal-body"></div>
+    </div>
+  </div>
+
+
+
+
+  <!-- Sub-domain Flyout -->
+  <div id="subdomain-flyout" role="tooltip" aria-hidden="true">
+    <div class="sdf-header">
+      <span class="sdf-icon">🗂</span>
+      <span class="sdf-title" id="sdf-title">Sub-Domains</span>
+    </div>
+    <ul class="sdf-list" id="sdf-list"></ul>
+  </div>
+
+  <!-- Global Loading Overlay -->
+  <div id="global-loader" class="global-loader hidden">
+    <div class="spinner"></div>
+    <div class="loading-text">Fetching live data...</div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="static/js/dashboard.js"></script>
+
+</body>
+</html>

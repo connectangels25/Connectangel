@@ -22,6 +22,7 @@ import AdminDashboard from "./pages/AdminDashboard.tsx";
 import EventDashboard from "./pages/EventDashboard.tsx";
 import UserManagementDashboard from "./pages/UserManagementDashboard.tsx";
 import EventsPage from "./pages/EventsPage.tsx";
+import PotentialPage from "./pages/PotentialPage.tsx";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +72,11 @@ const App = () => (
             <Route path="/usermanagement" element={
               <AdminProtectedRoute>
                 <UserManagementDashboard />
+              </AdminProtectedRoute>
+            } />
+            <Route path="/potential" element={
+              <AdminProtectedRoute>
+                <PotentialPage />
               </AdminProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
