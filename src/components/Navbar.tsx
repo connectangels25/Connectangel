@@ -159,7 +159,7 @@ export default function Navbar() {
     );
   };
 
-  const visibleLinks = isAdmin ? [...NAV_LINKS, { label: "Potential", to: "/potential" }] : NAV_LINKS;
+  const visibleLinks = NAV_LINKS;
 
   return (
     <>

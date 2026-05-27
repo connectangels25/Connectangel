@@ -6,7 +6,7 @@ import { AdminRecentActivity } from '../components/admin/AdminRecentActivity';
 import { AdminUserManagement } from '../components/admin/AdminUserManagement';
 import { AdminEventModeration } from '../components/admin/AdminEventModeration';
 import { AdminQuickActions } from '../components/admin/AdminQuickActions';
-import { Users, Calendar, UserPlus, DollarSign, Menu } from 'lucide-react';
+import { Users, Calendar, UserPlus, DollarSign, Menu, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -14,6 +14,7 @@ import Navbar from '@/components/Navbar';
 
 const AdminDashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
 
   // Fetch Total Users
   const { data: totalUsers = 0 } = useQuery({
@@ -57,8 +58,30 @@ const AdminDashboard = () => {
     <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground">
       <Navbar />
       <div className="flex flex-1 overflow-hidden relative">
-        <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-        <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Sidebar Container with toggle control for desktop */}
+        <div 
+          className={`transition-all duration-300 ease-in-out flex shrink-0 ${
+            isSidebarVisible ? "w-64" : "w-0 border-r-0"
+          } overflow-hidden border-r border-sidebar-border h-full`}
+        >
+          <div className="w-64 shrink-0 h-full">
+            <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+          </div>
+        </div>
+
+        <div className="flex-1 flex flex-col overflow-hidden relative">
+          {/* Collapse/Expand Arrow Toggle Button (Visible on desktop) */}
+          <button
+            onClick={() => setIsSidebarVisible(!isSidebarVisible)}
+            className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 z-[50] bg-primary text-primary-foreground hover:bg-primary/90 p-1.5 rounded-r-lg border border-l-0 border-sidebar-border shadow-lg transition-transform hover:scale-105"
+            title={isSidebarVisible ? "Collapse Sidebar" : "Expand Sidebar"}
+          >
+            {isSidebarVisible ? (
+              <ChevronLeft className="w-5 h-5" />
+            ) : (
+              <ChevronRight className="w-5 h-5" />
+            )}
+          </button>
           {/* Mobile Header with Menu Toggle */}
           <header className="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card">
             <div className="flex items-center gap-3">
