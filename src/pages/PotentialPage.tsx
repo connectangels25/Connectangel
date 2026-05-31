@@ -8,8 +8,17 @@ export default function PotentialPage() {
   const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
 
-  // Read backend URL from environment variables or default to localhost
-  const DASHBOARD_URL = (import.meta.env.VITE_POTENTIAL_API_URL || "http://127.0.0.1:5000").replace(/\/$/, "");
+  // Read backend URL from environment variables or dynamically resolve it
+  const getBackendUrl = () => {
+    if (import.meta.env.VITE_POTENTIAL_API_URL) return import.meta.env.VITE_POTENTIAL_API_URL;
+    // If running in local Vite development server (port 8080/5173), fallback to port 5000
+    if (window.location.port === "8080" || window.location.port === "5173") {
+      return `${window.location.protocol}//${window.location.hostname}:5000`;
+    }
+    // Otherwise, we are served directly by the backend (e.g. unified port or ngrok), so use same origin!
+    return window.location.origin;
+  };
+  const DASHBOARD_URL = getBackendUrl().replace(/\/$/, "");
 
   // Expose the API URL globally to the iframe so that dashboard.js can load it
   useEffect(() => {
