@@ -8,15 +8,9 @@ export default function PotentialPage() {
   const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
 
-  // Read backend URL from environment variables or dynamically resolve it
+  // Expose backend via ngrok for Vercel and local usage
   const getBackendUrl = () => {
-    if (import.meta.env.VITE_POTENTIAL_API_URL) return import.meta.env.VITE_POTENTIAL_API_URL;
-    // If running in local Vite development server (port 8080/5173), fallback to port 5000
-    if (window.location.port === "8080" || window.location.port === "5173") {
-      return `${window.location.protocol}//${window.location.hostname}:5000`;
-    }
-    // Otherwise, we are served directly by the backend (e.g. unified port or ngrok), so use same origin!
-    return window.location.origin;
+    return "https://freezing-botch-glove.ngrok-free.dev";
   };
   const DASHBOARD_URL = getBackendUrl().replace(/\/$/, "");
 
