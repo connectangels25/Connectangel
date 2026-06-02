@@ -74,11 +74,7 @@ const App = () => (
                 <UserManagementDashboard />
               </AdminProtectedRoute>
             } />
-            <Route path="/potential" element={
-              <AdminProtectedRoute>
-                <PotentialPage />
-              </AdminProtectedRoute>
-            } />
+            <Route path="/potential" element={<PotentialPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

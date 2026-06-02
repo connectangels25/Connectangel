@@ -10,6 +10,7 @@ import logo from "@/assets/logo.png";
 const NAV_LINKS = [
   { label: "Home", to: "/" },
   { label: "Events", to: "/events" },
+  { label: "Capacity", to: "/potential" },
   { label: "Chat", to: "/chat" },
   { label: "Blog", to: "/blog" },
   { label: "My Events", to: "/my-events" },
