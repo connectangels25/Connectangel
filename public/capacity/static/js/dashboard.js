@@ -25,6 +25,17 @@ const originalFetch = window.fetch.bind(window);
 window.fetch = function(url, options) {
   if (typeof url === "string" && url.startsWith("/api/")) {
     url = API_BASE + url;
+    
+    // Inject header to bypass ngrok browser interstitial warning page
+    options = options || {};
+    options.headers = options.headers || {};
+    if (options.headers instanceof Headers) {
+      options.headers.set("ngrok-skip-browser-warning", "true");
+    } else if (Array.isArray(options.headers)) {
+      options.headers.push(["ngrok-skip-browser-warning", "true"]);
+    } else {
+      options.headers["ngrok-skip-browser-warning"] = "true";
+    }
   }
   return originalFetch(url, options);
 };
