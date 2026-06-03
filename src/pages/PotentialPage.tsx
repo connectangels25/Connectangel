@@ -9,12 +9,12 @@ export default function PotentialPage() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
 
   // Expose backend via ngrok for Vercel and local usage
-  const getBackendUrl = () => {
-    return "https://freezing-botch-glove.ngrok-free.dev";
-  };
-  const DASHBOARD_URL = getBackendUrl().replace(/\/$/, "");
+  const DASHBOARD_URL = "https://freezing-botch-glove.ngrok-free.dev";
 
-  // Expose the API URL globally to the iframe so that dashboard.js can load it
+  // Set globally IMMEDIATELY (before iframe loads) so dashboard.js can read it
+  (window as any).__POTENTIAL_API_URL = DASHBOARD_URL;
+
+  // Also set via useEffect to ensure it stays fresh
   useEffect(() => {
     (window as any).__POTENTIAL_API_URL = DASHBOARD_URL;
   }, [DASHBOARD_URL]);

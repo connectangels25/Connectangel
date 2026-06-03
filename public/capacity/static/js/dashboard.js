@@ -20,10 +20,21 @@
  */
 
 // Prepend API_BASE to all relative /api/ fetches
-const API_BASE = (window.parent && window.parent.__POTENTIAL_API_URL) || "http://127.0.0.1:5000";
+// Check window itself, then window.parent (when inside iframe), fallback to localhost
+function resolveApiBase() {
+  if (window.__POTENTIAL_API_URL) return window.__POTENTIAL_API_URL;
+  try {
+    if (window.parent && window.parent.__POTENTIAL_API_URL) return window.parent.__POTENTIAL_API_URL;
+  } catch(e) {}
+  return "http://127.0.0.1:5000";
+}
+let API_BASE = resolveApiBase();
+
 const originalFetch = window.fetch.bind(window);
 window.fetch = function(url, options) {
   if (typeof url === "string" && url.startsWith("/api/")) {
+    // Re-resolve every time in case parent set the URL after iframe loaded
+    API_BASE = resolveApiBase();
     url = API_BASE + url;
     
     // Inject header to bypass ngrok browser interstitial warning page
