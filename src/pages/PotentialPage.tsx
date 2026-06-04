@@ -9,7 +9,7 @@ export default function PotentialPage() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
 
   // Expose backend via ngrok for Vercel and local usage
-  const DASHBOARD_URL = "https://freezing-botch-glove.ngrok-free.dev";
+  const DASHBOARD_URL = "https://maryln-dutiable-felicita.ngrok-free.dev";
 
   // Set globally IMMEDIATELY (before iframe loads) so dashboard.js can read it
   (window as any).__POTENTIAL_API_URL = DASHBOARD_URL;
