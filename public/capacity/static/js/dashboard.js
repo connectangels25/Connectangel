@@ -2724,6 +2724,12 @@ function _pfRenderPhase2(problems, ctx) {
               </div>
             </div>
             <p class="pf-problem-reason">${p.reason}</p>
+            ${p.millionDollarReason ? `
+              <div class="pf-million-dollar-reason" style="margin: 10px 0 14px; padding: 10px 12px; background: rgba(0, 245, 160, 0.05); border-left: 3px solid #00F5A0; border-radius: 0 4px 4px 0;">
+                <span style="font-family: 'Space Grotesk', sans-serif; font-size: 0.72rem; font-weight: 700; color: #00F5A0; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">💎 Why it's a Million-Dollar Idea</span>
+                <p style="margin: 0; font-size: 0.8rem; color: #E8EDF5; line-height: 1.5; font-weight: 500;">${p.millionDollarReason}</p>
+              </div>
+            ` : ''}
             <div class="pf-problem-meta">
               <span><b style="color:#999">Target:</b> ${p.affectedGroup}</span>
               ${p.impact ? (function() {
@@ -2965,10 +2971,16 @@ function openProblemDetail(idx) {
         <p class="pd-text">${p.affectedGroup}</p>
       </div>
 
+      ${p.millionDollarReason ? `
+      <div class="pd-section" style="background: rgba(0, 245, 160, 0.04); border-radius: 8px; padding: 16px; margin: 8px 0; border: 1px solid rgba(0, 245, 160, 0.1) !important;">
+        <h4 class="pd-section-title" style="color: #00F5A0; margin-bottom: 8px;">💎 Why It's a Million-Dollar Idea</h4>
+        <p class="pd-text" style="color: #E8EDF5; font-weight: 500;">${p.millionDollarReason}</p>
+      </div>` : ''}
+
       ${p.startupOpportunity ? `
       <div class="pd-section pd-opportunity">
         <h4 class="pd-section-title">🚀 Startup Opportunity</h4>
-        <p class="pd-text">${p.startupOpportunity}</p>
+        <p class="pd-text" style="white-space: pre-line; line-height: 1.8;">${p.startupOpportunity}</p>
       </div>` : ''}
 
       ${p.monetization ? `

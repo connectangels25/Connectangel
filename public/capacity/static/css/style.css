@@ -2028,6 +2028,7 @@ body {
   border-radius: 6px;
   padding: 20px 22px;
   transition: border-color .2s;
+  cursor: pointer;
 }
 
 .pf-problem-card:hover { border-color: rgba(0,245,160,0.2); }
