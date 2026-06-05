@@ -2723,13 +2723,17 @@ function _pfRenderPhase2(problems, ctx) {
                 <span class="pf-card-arrow">›</span>
               </div>
             </div>
-            <p class="pf-problem-reason">${p.reason}</p>
             ${p.millionDollarReason ? `
-              <div class="pf-million-dollar-reason" style="margin: 10px 0 14px; padding: 10px 12px; background: rgba(0, 245, 160, 0.05); border-left: 3px solid #00F5A0; border-radius: 0 4px 4px 0;">
-                <span style="font-family: 'Space Grotesk', sans-serif; font-size: 0.72rem; font-weight: 700; color: #00F5A0; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">💎 Why it's a Million-Dollar Idea</span>
-                <p style="margin: 0; font-size: 0.8rem; color: #E8EDF5; line-height: 1.5; font-weight: 500;">${p.millionDollarReason}</p>
+              <div class="pf-million-dollar-badge" style="margin: 12px 0; padding: 12px 14px; background: linear-gradient(135deg, rgba(0, 245, 160, 0.08) 0%, rgba(0, 245, 160, 0.02) 100%); border: 1px dashed rgba(0, 245, 160, 0.3); border-radius: 6px; display: flex; align-items: center; gap: 10px; box-shadow: 0 0 15px rgba(0, 245, 160, 0.03); transition: all 0.2s ease;">
+                <span style="font-size: 1.2rem; filter: drop-shadow(0 0 4px rgba(0, 245, 160, 0.5));">💎</span>
+                <div style="display: flex; flex-direction: column; gap: 2px;">
+                  <span style="font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 700; color: #00F5A0; text-transform: uppercase; letter-spacing: 0.06em; line-height: 1.2;">Million-Dollar Idea</span>
+                  <span style="font-size: 0.72rem; color: #a0aec0; font-weight: 500;">Click to unlock full description & business plan</span>
+                </div>
               </div>
-            ` : ''}
+            ` : `
+              <p class="pf-problem-reason">${p.reason}</p>
+            `}
             <div class="pf-problem-meta">
               <span><b style="color:#999">Target:</b> ${p.affectedGroup}</span>
               ${p.impact ? (function() {
