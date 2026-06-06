@@ -24,24 +24,16 @@
     <!-- ── PAGE CONTENT ─────────────────────────────────────────────── -->
     <main class="page-content">
 
-      <!-- Backend Status Banner (Visible when offline) -->
-      <div id="backend-status-banner" class="status-banner hidden">
-        <div class="status-banner-content">
-          <span class="status-banner-icon">⚠️</span>
-          <div>
-            <span class="status-banner-title">Backend Connection Offline</span>
-            <span class="status-banner-desc">We couldn't connect to the Flask server. Currently displaying the dashboard in <strong>Interactive Sandbox Mode</strong> with dummy data.</span>
-          </div>
-        </div>
-        <span class="status-banner-badge">Sandbox Mode Active</span>
-      </div>
-
       <!-- Page heading -->
       <div class="page-heading">
         <div>
           <h1>Capacity Dashboard</h1>
           <div class="page-heading-sub">
-            <span class="live-dot"></span>
+            <span id="backend-status-badge" class="status-badge-inline online">
+              <span class="status-badge-dot"></span>
+              <span class="status-badge-text">Online</span>
+            </span>
+            <span class="status-divider">|</span>
             Real-time startup analytics across regions and domains
           </div>
         </div>
@@ -381,7 +373,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="static/js/dashboard.js?v=2"></script>
+  <script src="static/js/dashboard.js?v=4"></script>
 
 </body>
 </html>

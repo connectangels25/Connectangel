@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Navbar from "@/components/Navbar";
 import { AdminSidebar } from "../components/admin/AdminSidebar";
 import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
@@ -7,6 +7,7 @@ export default function PotentialPage() {
   const [iframeSrc, setIframeSrc] = useState<string>("/capacity/index.html");
   const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Expose backend via ngrok for Vercel and local usage
   const DASHBOARD_URL = "https://maryln-dutiable-felicita.ngrok-free.dev";
@@ -19,9 +20,32 @@ export default function PotentialPage() {
     (window as any).__POTENTIAL_API_URL = DASHBOARD_URL;
   }, [DASHBOARD_URL]);
 
-  // Set fresh cache-buster URL on mount to force loading the latest scripts
+  // Helper to send theme to iframe
+  const syncThemeToIframe = useRef<(theme: string) => void>();
+
+  // Set fresh cache-buster URL on mount with theme param
   useEffect(() => {
-    setIframeSrc(`/capacity/index.html?t=${Date.now()}`);
+    const initialTheme = document.documentElement.classList.contains("light") ? "light" : "dark";
+    (window as any).__POTENTIAL_THEME = initialTheme;
+    setIframeSrc(`/capacity/index.html?t=${Date.now()}&theme=${initialTheme}`);
+  }, []);
+
+  // Watch <html> class changes via MutationObserver so we catch theme toggles
+  // from any component (useTheme creates isolated state per component)
+  useEffect(() => {
+    syncThemeToIframe.current = (theme: string) => {
+      const t = theme === "light" ? "light" : "dark";
+      (window as any).__POTENTIAL_THEME = t;
+      iframeRef.current?.contentWindow?.postMessage({ type: "theme", theme: t }, "*");
+    };
+
+    const observer = new MutationObserver(() => {
+      const isLight = document.documentElement.classList.contains("light");
+      syncThemeToIframe.current!(isLight ? "light" : "dark");
+    });
+
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
   }, []);
 
   return (
@@ -71,7 +95,7 @@ export default function PotentialPage() {
           </header>
 
           <iframe
-            id="dashboard-iframe"
+            ref={iframeRef}
             src={iframeSrc}
             className="w-full flex-1 border-0 bg-transparent"
             title="ConnectAngels Capacity Dashboard"

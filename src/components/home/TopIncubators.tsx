@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Users, Globe, Award } from "lucide-react";
 import PremiumCard from "./PremiumCard";
 
 export default function TopIncubators() {

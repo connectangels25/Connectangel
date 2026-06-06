@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { TrendingUp, Users, BarChart3 } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 
 const TRENDING = [
   {

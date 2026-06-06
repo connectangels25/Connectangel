@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { AdminSidebar } from "../components/admin/AdminSidebar";
 import { AdminStatCard } from "../components/admin/AdminStatCard";
 import { AdminUserManagement } from "../components/admin/AdminUserManagement";
-import { Users, UserPlus, ShieldCheck, Mail, Menu, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, UserPlus, ShieldCheck, Menu, ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";

@@ -98,14 +98,49 @@ let activeSubDomain = null;
 /** Searchable select instances for the three geo filters */
 let _ssCo = null, _ssSt = null, _ssDi = null;
 
+/** Global tracking of backend status */
+let isBackendOnline = null;
+
+
+// ── Theme sync with parent page ────────────────────────────────────────────────
+
+function resolveTheme() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("theme") === "light" || params.get("theme") === "dark") return params.get("theme");
+  if (window.__POTENTIAL_THEME === "light" || window.__POTENTIAL_THEME === "dark") return window.__POTENTIAL_THEME;
+  try {
+    if (window.parent && (window.parent.__POTENTIAL_THEME === "light" || window.parent.__POTENTIAL_THEME === "dark"))
+      return window.parent.__POTENTIAL_THEME;
+  } catch(e) {}
+  return "dark";
+}
+
+function applyTheme(theme) {
+  if (theme === "light") {
+    document.documentElement.classList.add("light");
+  } else {
+    document.documentElement.classList.remove("light");
+  }
+}
+
+// Listen for theme changes from parent page
+window.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "theme") {
+    applyTheme(event.data.theme);
+  }
+});
+
 
 // ── Entry point ────────────────────────────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", () => {
+  applyTheme(resolveTheme());
   loadData();
   setupFilters();
   setupTabs();
   setupVisSelector();
+  checkBackendStatus();
+  setInterval(checkBackendStatus, 10000);
 });
 
 
@@ -144,15 +179,45 @@ const DUMMY_STARTUPS = [
 async function loadData() {
   let loadedFromLive = false;
   try {
-    // Fetch both endpoints simultaneously for faster initial load
     const [domainsRes, startupsRes] = await Promise.all([
       fetch("/api/domains"),
       fetch("/api/startups"),
     ]);
 
     if (domainsRes.ok && startupsRes.ok) {
-      allDomains = await domainsRes.json();
-      allStartups = await startupsRes.json();
+      const dType = domainsRes.headers.get("content-type") || "";
+      const sType = startupsRes.headers.get("content-type") || "";
+      if (!dType.includes("application/json") || !sType.includes("application/json")) {
+        console.warn("[loadData] Unexpected Content-Type, attempting to parse anyway:", dType, sType);
+      }
+      let rawDomains = await domainsRes.json();
+      let rawStartups = await startupsRes.json();
+
+      // Normalize: if server wraps in an object (e.g. {"domains":[...]}), unwrap it
+      if (!Array.isArray(rawDomains)) {
+        rawDomains = rawDomains.domains || rawDomains.data || rawDomains.items || rawDomains.results || [];
+      }
+      if (!Array.isArray(rawStartups)) {
+        rawStartups = rawStartups.startups || rawStartups.data || rawStartups.items || rawStartups.results || [];
+      }
+
+      // Normalize domain field names so the UI works regardless of server naming
+      allDomains = (Array.isArray(rawDomains) ? rawDomains : []).map(d => ({
+        name: d.name || d.domain || d.domain_name || d.label || "Unknown",
+        short: d.short || d.short_name || (d.name ? d.name.slice(0, 4) : (d.domain ? d.domain.slice(0, 4) : "N/A")),
+        current: d.current || d.count || d.current_startups || d.actual || 0,
+        total: d.total || d.potential || d.total_potential || 0,
+        subs: d.subs || d.subdomains || d.sub_domains || d.subDomains || []
+      }));
+      allStartups = (Array.isArray(rawStartups) ? rawStartups : []).map(s => ({
+        name: s.name || s.startup_name || s.company || "Unknown",
+        initials: s.initials || (s.name ? s.name.slice(0, 2).toUpperCase() : (s.startup_name ? s.startup_name.slice(0, 2).toUpperCase() : "??")),
+        focus: s.focus || s.industry || s.sector || "",
+        country: s.country || s.country_name || "",
+        domain: s.domain || s.industry || s.sector || "",
+        email: s.email || s.contact_email || "",
+        domains_count: s.domains_count || s.sectors_count || s.count || 0
+      }));
       loadedFromLive = true;
       console.log("[loadData] Successfully loaded live data from Flask API!");
     } else {
@@ -166,7 +231,6 @@ async function loadData() {
 
   // ── Render UI Components (runs for both live and dummy data!) ──
 
-  // Populate select dropdowns dynamically (since they are now served as static HTML)
   const countrySelect = document.getElementById("filter-country");
   if (countrySelect) {
     const countries = Array.from(new Set(allStartups.map(s => s.country))).filter(Boolean).sort();
@@ -194,14 +258,11 @@ async function loadData() {
     });
   }
 
-  // Initialize searchable select comboboxes after options are populated
   _initSearchableSelects();
 
-  // Initialise filtered state to the full dataset
   currentFilteredDomains = allDomains;
   currentFilteredStartups = allStartups;
 
-  // Populate stat cards
   const totalPotential = allDomains.reduce((sum, d) => sum + d.total, 0);
   const totalCurrent = allDomains.reduce((sum, d) => sum + d.current, 0);
   setStatCard("stat-domains", allDomains.length.toString());
@@ -211,29 +272,61 @@ async function loadData() {
   const uniqueCount = new Set(allStartups.map(s => s.name)).size;
   setStatCard("stat-unique", uniqueCount.toLocaleString());
 
-  // Show status notification and toggle UI banner / dot state
-  const statusBanner = document.getElementById("backend-status-banner");
-  const liveDot = document.querySelector(".live-dot");
+  isBackendOnline = loadedFromLive;
+  const statusBadge = document.getElementById("backend-status-badge");
+  const statusText = statusBadge ? statusBadge.querySelector(".status-badge-text") : null;
 
   if (loadedFromLive) {
     showToast("🧩 Connected to live backend data!", "success");
-    if (statusBanner) statusBanner.classList.add("hidden");
-    if (liveDot) liveDot.classList.remove("offline");
+    if (statusBadge) {
+      statusBadge.className = "status-badge-inline online";
+      if (statusText) statusText.textContent = "Online";
+    }
   } else {
     showToast("⚠️ Backend offline. Displaying dummy sandbox data.", "info");
-    if (statusBanner) statusBanner.classList.remove("hidden");
-    if (liveDot) liveDot.classList.add("offline");
+    if (statusBadge) {
+      statusBadge.className = "status-badge-inline offline";
+      if (statusText) statusText.textContent = "Offline (Sandbox)";
+    }
   }
 
-  // Render the UI components
   renderChart(allDomains);
   renderTable(allDomains);
-  buildCustomDomainDropdown();   // Build hover-flyout domain picker
+  buildCustomDomainDropdown();
 
   if (allStartups.length > 0) {
     renderStartupCard(allStartups[0]);
   }
 
+}
+
+// ── 1c. Backend Status & Polling Logic ────────────────────────────────────────
+
+/**
+ * Lightweight check of backend server online/offline status.
+ * Only updates the badge and isBackendOnline flag — does NOT reload data or filters.
+ */
+async function checkBackendStatus() {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 2500);
+
+  let online = false;
+  try {
+    const response = await fetch("/api/domains", { signal: controller.signal });
+    online = response.ok;
+  } catch (err) {
+    online = false;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  isBackendOnline = online;
+
+  const statusBadge = document.getElementById("backend-status-badge");
+  if (!statusBadge) return;
+  statusBadge.className = "status-badge-inline " + (online ? "online" : "offline");
+  const statusText = statusBadge.querySelector(".status-badge-text");
+  if (statusText) statusText.textContent = online ? "Online" : "Offline (Sandbox)";
 }
 
 
@@ -2394,6 +2487,29 @@ class SearchableSelect {
 
 /** Initialise searchable comboboxes for the three geo filter selects. */
 function _initSearchableSelects() {
+  if (_ssCo && _ssSt && _ssDi) {
+    _ssCo.refresh();
+    
+    // Reset state and district selects to original initial state
+    const stateSel = document.getElementById('filter-state');
+    const distSel = document.getElementById('filter-district');
+    
+    if (stateSel) {
+      stateSel.innerHTML = '<option value="All">— Select Country First —</option>';
+      stateSel.disabled = true;
+    }
+    _ssSt.refresh();
+    _ssSt.setDisabled(true, '— Select Country First —');
+    
+    if (distSel) {
+      distSel.innerHTML = '<option value="All">— Select State First —</option>';
+      distSel.disabled = true;
+    }
+    _ssDi.refresh();
+    _ssDi.setDisabled(true, '— Select State First —');
+    return;
+  }
+
   _ssCo = new SearchableSelect(
     document.getElementById('filter-country'), 'Search country…');
   _ssSt = new SearchableSelect(

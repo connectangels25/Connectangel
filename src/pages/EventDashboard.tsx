@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { AdminSidebar } from "../components/admin/AdminSidebar";
 import { EventFilters } from "../components/admin/event/EventFilters";
 import { EventCard, Event } from "../components/admin/event/EventCard";
