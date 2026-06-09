@@ -9,8 +9,8 @@ export default function PotentialPage() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Expose backend via localhost for local development
-  const DASHBOARD_URL = "http://127.0.0.1:5000";
+  // Expose backend via ngrok for Vercel and local usage
+  const DASHBOARD_URL = "https://maryln-dutiable-felicita.ngrok-free.dev";
 
   // Set globally IMMEDIATELY (before iframe loads) so dashboard.js can read it
   (window as any).__POTENTIAL_API_URL = DASHBOARD_URL;
