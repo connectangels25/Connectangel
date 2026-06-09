@@ -3109,9 +3109,42 @@ function openProblemDetail(idx) {
         <p class="pd-text">${p.monetization}</p>
       </div>` : ''}
 
+      ${p.subIdeas && p.subIdeas.length > 0 ? `
+      <div class="pd-section">
+        <h4 class="pd-section-title">💡 Execution Sub-Ideas (7 Phases)</h4>
+        <p class="pd-section-sub" style="margin-bottom: 12px;">Click on any phase to view implementation details</p>
+        <div class="pd-subideas-list" style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;">
+          ${p.subIdeas.map((sub, sIdx) => `
+            <div class="pd-subidea-item" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 6px; overflow: hidden; transition: all 0.2s;">
+              <button onclick="toggleSubIdea(${sIdx})" style="width: 100%; text-align: left; padding: 12px 16px; background: transparent; border: none; color: #00F5A0; font-family: 'Space Grotesk', sans-serif; font-size: 0.88rem; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <span>${sIdx + 1}. ${sub.title}</span>
+                <span id="sub-chevron-${sIdx}" style="font-size: 0.75rem; transition: transform 0.2s;">▼</span>
+              </button>
+              <div id="sub-details-${sIdx}" style="display: none; padding: 0 16px 14px 16px; font-size: 0.82rem; color: #9BA5B4; line-height: 1.6; border-top: 1px solid rgba(255, 255, 255, 0.03);">
+                ${sub.details}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>` : ''}
+
       ${impactHTML}
     </div>
   `;
+
+  window.toggleSubIdea = function(sIdx) {
+    const el = document.getElementById(`sub-details-${sIdx}`);
+    const chev = document.getElementById(`sub-chevron-${sIdx}`);
+    if (el && chev) {
+      if (el.style.display === 'none') {
+        el.style.display = 'block';
+        chev.style.transform = 'rotate(180deg)';
+      } else {
+        el.style.display = 'none';
+        chev.style.transform = 'rotate(0deg)';
+      }
+    }
+  };
 
   overlay.classList.remove('hidden');
   requestAnimationFrame(() => overlay.classList.add('pd-visible'));
