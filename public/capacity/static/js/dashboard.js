@@ -3080,17 +3080,21 @@ function openProblemDetail(idx) {
       <p class="pd-domain-tag">${ctx.domain} › ${ctx.subDomain}</p>
       
       <div class="pd-nav-bar">
-        <button id="btn-nav-desc" class="pd-nav-item active" onclick="scrollToSection('pd-sec-desc')">Description</button>
+        ${hasImpact ? `<button id="btn-nav-impact" class="pd-nav-item active" onclick="scrollToSection('pd-sec-impact')">Geographic Impact</button>` : ''}
+        <button id="btn-nav-desc" class="pd-nav-item ${!hasImpact ? 'active' : ''}" onclick="scrollToSection('pd-sec-desc')">Description</button>
         <button id="btn-nav-affected" class="pd-nav-item" onclick="scrollToSection('pd-sec-affected')">Who is Affected</button>
         ${p.millionDollarReason ? `<button id="btn-nav-million" class="pd-nav-item" onclick="scrollToSection('pd-sec-million')">Million-Dollar Idea</button>` : ''}
         ${p.startupOpportunity ? `<button id="btn-nav-opportunity" class="pd-nav-item" onclick="scrollToSection('pd-sec-opportunity')">Opportunity</button>` : ''}
         ${p.monetization ? `<button id="btn-nav-monetization" class="pd-nav-item" onclick="scrollToSection('pd-sec-monetization')">Monetization</button>` : ''}
         ${p.subIdeas && p.subIdeas.length > 0 ? `<button id="btn-nav-subideas" class="pd-nav-item" onclick="scrollToSection('pd-sec-subideas')">Execution</button>` : ''}
-        ${hasImpact ? `<button id="btn-nav-impact" class="pd-nav-item" onclick="scrollToSection('pd-sec-impact')">Geographic Impact</button>` : ''}
       </div>
     </div>
 
     <div class="pd-body">
+      <div id="pd-sec-impact">
+        ${impactHTML}
+      </div>
+
       <div id="pd-sec-desc" class="pd-section">
         <h4 class="pd-section-title">📝 Problem Description</h4>
         <p class="pd-text">${p.reason}</p>
@@ -3137,10 +3141,6 @@ function openProblemDetail(idx) {
           `).join('')}
         </div>
       </div>` : ''}
-
-      <div id="pd-sec-impact">
-        ${impactHTML}
-      </div>
     </div>
   `;
 
@@ -3180,13 +3180,13 @@ function openProblemDetail(idx) {
   if (modalScrollContainer) {
     const updateActiveNav = () => {
       const sections = [
+        { id: 'pd-sec-impact', btnId: 'btn-nav-impact' },
         { id: 'pd-sec-desc', btnId: 'btn-nav-desc' },
         { id: 'pd-sec-affected', btnId: 'btn-nav-affected' },
         { id: 'pd-sec-million', btnId: 'btn-nav-million' },
         { id: 'pd-sec-opportunity', btnId: 'btn-nav-opportunity' },
         { id: 'pd-sec-monetization', btnId: 'btn-nav-monetization' },
-        { id: 'pd-sec-subideas', btnId: 'btn-nav-subideas' },
-        { id: 'pd-sec-impact', btnId: 'btn-nav-impact' }
+        { id: 'pd-sec-subideas', btnId: 'btn-nav-subideas' }
       ];
       
       let activeId = null;
@@ -3207,7 +3207,7 @@ function openProblemDetail(idx) {
       sections.forEach(sec => {
         const btn = document.getElementById(sec.btnId);
         if (btn) {
-          if (sec.btnId === activeId || (!activeId && sec.btnId === 'btn-nav-desc')) {
+          if (sec.btnId === activeId || (!activeId && sec.btnId === (hasImpact ? 'btn-nav-impact' : 'btn-nav-desc'))) {
             btn.classList.add('active');
           } else {
             btn.classList.remove('active');
