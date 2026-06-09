@@ -3078,39 +3078,49 @@ function openProblemDetail(idx) {
       </div>
       <h2 class="pd-title">${p.title}</h2>
       <p class="pd-domain-tag">${ctx.domain} › ${ctx.subDomain}</p>
+      
+      <div class="pd-nav-bar">
+        <button id="btn-nav-desc" class="pd-nav-item active" onclick="scrollToSection('pd-sec-desc')">Description</button>
+        <button id="btn-nav-affected" class="pd-nav-item" onclick="scrollToSection('pd-sec-affected')">Who is Affected</button>
+        ${p.millionDollarReason ? `<button id="btn-nav-million" class="pd-nav-item" onclick="scrollToSection('pd-sec-million')">Million-Dollar Idea</button>` : ''}
+        ${p.startupOpportunity ? `<button id="btn-nav-opportunity" class="pd-nav-item" onclick="scrollToSection('pd-sec-opportunity')">Opportunity</button>` : ''}
+        ${p.monetization ? `<button id="btn-nav-monetization" class="pd-nav-item" onclick="scrollToSection('pd-sec-monetization')">Monetization</button>` : ''}
+        ${p.subIdeas && p.subIdeas.length > 0 ? `<button id="btn-nav-subideas" class="pd-nav-item" onclick="scrollToSection('pd-sec-subideas')">Execution</button>` : ''}
+        ${hasImpact ? `<button id="btn-nav-impact" class="pd-nav-item" onclick="scrollToSection('pd-sec-impact')">Geographic Impact</button>` : ''}
+      </div>
     </div>
 
     <div class="pd-body">
-      <div class="pd-section">
+      <div id="pd-sec-desc" class="pd-section">
         <h4 class="pd-section-title">📝 Problem Description</h4>
         <p class="pd-text">${p.reason}</p>
       </div>
 
-      <div class="pd-section">
+      <div id="pd-sec-affected" class="pd-section">
         <h4 class="pd-section-title">👥 Who Is Affected?</h4>
         <p class="pd-text">${p.affectedGroup}</p>
       </div>
 
       ${p.millionDollarReason ? `
-      <div class="pd-section" style="background: rgba(0, 245, 160, 0.04); border-radius: 8px; padding: 16px; margin: 8px 0; border: 1px solid rgba(0, 245, 160, 0.1) !important;">
+      <div id="pd-sec-million" class="pd-section" style="background: rgba(0, 245, 160, 0.04); border-radius: 8px; padding: 16px; margin: 8px 0; border: 1px solid rgba(0, 245, 160, 0.1) !important;">
         <h4 class="pd-section-title" style="color: #00F5A0; margin-bottom: 8px;">💎 Why It's a Million-Dollar Idea</h4>
         <p class="pd-text" style="color: #E8EDF5; font-weight: 500;">${p.millionDollarReason}</p>
       </div>` : ''}
 
       ${p.startupOpportunity ? `
-      <div class="pd-section pd-opportunity">
+      <div id="pd-sec-opportunity" class="pd-section pd-opportunity">
         <h4 class="pd-section-title">🚀 Startup Opportunity</h4>
         <p class="pd-text" style="white-space: pre-line; line-height: 1.8;">${p.startupOpportunity}</p>
       </div>` : ''}
 
       ${p.monetization ? `
-      <div class="pd-section">
+      <div id="pd-sec-monetization" class="pd-section">
         <h4 class="pd-section-title">💰 Monetization Strategy</h4>
         <p class="pd-text">${p.monetization}</p>
       </div>` : ''}
 
       ${p.subIdeas && p.subIdeas.length > 0 ? `
-      <div class="pd-section">
+      <div id="pd-sec-subideas" class="pd-section">
         <h4 class="pd-section-title">💡 Execution Sub-Ideas (7 Phases)</h4>
         <p class="pd-section-sub" style="margin-bottom: 12px;">Click on any phase to view implementation details</p>
         <div class="pd-subideas-list" style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;">
@@ -3128,7 +3138,9 @@ function openProblemDetail(idx) {
         </div>
       </div>` : ''}
 
-      ${impactHTML}
+      <div id="pd-sec-impact">
+        ${impactHTML}
+      </div>
     </div>
   `;
 
@@ -3146,6 +3158,69 @@ function openProblemDetail(idx) {
     }
   };
 
+  window.scrollToSection = function(id) {
+    const el = document.getElementById(id);
+    const modal = document.getElementById('pd-modal');
+    if (el && modal) {
+      const header = document.querySelector('.pd-header');
+      const headerHeight = header ? header.offsetHeight : 150;
+      
+      const modalRect = modal.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const relativeTop = elRect.top - modalRect.top + modal.scrollTop;
+      
+      modal.scrollTo({
+        top: relativeTop - headerHeight - 10,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const modalScrollContainer = document.getElementById('pd-modal');
+  if (modalScrollContainer) {
+    const updateActiveNav = () => {
+      const sections = [
+        { id: 'pd-sec-desc', btnId: 'btn-nav-desc' },
+        { id: 'pd-sec-affected', btnId: 'btn-nav-affected' },
+        { id: 'pd-sec-million', btnId: 'btn-nav-million' },
+        { id: 'pd-sec-opportunity', btnId: 'btn-nav-opportunity' },
+        { id: 'pd-sec-monetization', btnId: 'btn-nav-monetization' },
+        { id: 'pd-sec-subideas', btnId: 'btn-nav-subideas' },
+        { id: 'pd-sec-impact', btnId: 'btn-nav-impact' }
+      ];
+      
+      let activeId = null;
+      const header = document.querySelector('.pd-header');
+      const headerHeight = header ? header.offsetHeight : 150;
+      const modalRect = modalScrollContainer.getBoundingClientRect();
+      
+      for (const sec of sections) {
+        const el = document.getElementById(sec.id);
+        if (el) {
+          const elRect = el.getBoundingClientRect();
+          if (elRect.top - modalRect.top <= headerHeight + 30) {
+            activeId = sec.btnId;
+          }
+        }
+      }
+      
+      sections.forEach(sec => {
+        const btn = document.getElementById(sec.btnId);
+        if (btn) {
+          if (sec.btnId === activeId || (!activeId && sec.btnId === 'btn-nav-desc')) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        }
+      });
+    };
+
+    modalScrollContainer.onscroll = updateActiveNav;
+    // Set initial active state
+    setTimeout(updateActiveNav, 100);
+  }
+
   overlay.classList.remove('hidden');
   requestAnimationFrame(() => overlay.classList.add('pd-visible'));
 }
@@ -3160,6 +3235,10 @@ function closeProblemDetail() {
   if (overlay) {
     overlay.classList.remove('pd-visible');
     setTimeout(() => overlay.classList.add('hidden'), 280);
+  }
+  const modal = document.getElementById('pd-modal');
+  if (modal) {
+    modal.onscroll = null;
   }
 }
 

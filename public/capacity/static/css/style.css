@@ -2204,8 +2204,49 @@ body {
 .pd-header {
   padding: 28px 28px 20px;
   border-bottom: 1px solid rgba(255,255,255,0.06);
-  position: relative;
-  background: linear-gradient(135deg, rgba(0, 245, 160, 0.04), transparent);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #060A0F;
+  background: linear-gradient(135deg, rgba(0, 245, 160, 0.04), transparent), #060A0F;
+}
+
+/* Navigation Tabs inside Modal */
+.pd-nav-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 4px;
+}
+.pd-nav-bar::-webkit-scrollbar {
+  display: none;
+}
+.pd-nav-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #8A99AD;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+.pd-nav-item:hover {
+  background: rgba(0, 245, 160, 0.08);
+  border-color: rgba(0, 245, 160, 0.3);
+  color: #00F5A0;
+}
+.pd-nav-item.active {
+  background: rgba(0, 245, 160, 0.15);
+  border-color: #00F5A0;
+  color: #00F5A0;
+  box-shadow: 0 0 12px rgba(0, 245, 160, 0.1);
 }
 
 .pd-close-btn {
