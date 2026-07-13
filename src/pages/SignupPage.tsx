@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Mail, Lock, ArrowRight, User, Building2, Users, CreditCard, ChevronDown, ChevronRight, Shield, Clock, Globe, Network, Phone, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,16 @@ const SignupPage = () => {
   const [signupMethod, setSignupMethod] = useState<"email" | "phone">("email");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { signUp, signInWithGoogle } = useAuth();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("error") === "not_registered") {
+      toast.error("This Google account is not registered. Please sign up first.");
+      window.history.replaceState({}, "", "/signup");
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +83,7 @@ const SignupPage = () => {
             <p className="text-muted-foreground text-sm mb-6">Join the decentralized revolution. Start building in minutes.</p>
 
             {/* Social Buttons */}
-            <div className="grid grid-cols-2 gap-3 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
               <Button
                 variant="outline"
                 className="h-11 bg-secondary border-border text-foreground hover:bg-muted text-xs sm:text-sm"

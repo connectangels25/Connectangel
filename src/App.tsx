@@ -11,6 +11,7 @@ import ChatPage from "./pages/ChatPage.tsx";
 import ComingSoonChat from "./pages/ComingSoonChat.tsx";
 import BlogPage from "./pages/BlogPage.tsx";
 import PricingPage from "./pages/PricingPage.tsx";
+import HidPage from "./pages/HidPage.tsx";
 import EventDetails from "./pages/EventDetails.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import SignupPage from "./pages/SignupPage.tsx";
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/chat" element={<ComingSoonChat />} />
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/hide" element={<HidPage />} />
             <Route path="/event/:id" element={<EventDetails />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />

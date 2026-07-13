@@ -1,9 +1,10 @@
 import React from "react";
-import { User, Trash2, MoreVertical, Mail, Loader2 } from "lucide-react";
+import { User, Trash2, MoreVertical, Mail, Loader2, ArrowRight } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { AdminDeleteModal } from "./AdminDeleteModal";
 
 const GoogleIcon = () => (
@@ -15,8 +16,13 @@ const GoogleIcon = () => (
   </svg>
 );
 
-export const AdminUserManagement = () => {
+interface AdminUserManagementProps {
+  limitLatest?: number;
+}
+
+export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
@@ -53,6 +59,8 @@ export const AdminUserManagement = () => {
       }));
     },
   });
+
+  const displayUsers = limitLatest && users ? users.slice(0, limitLatest) : users;
 
   React.useEffect(() => {
     const channel = supabase
@@ -135,15 +143,15 @@ export const AdminUserManagement = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-border text-muted-foreground text-xs font-semibold">
-                <th className="pb-3 px-4 min-w-[200px]">User</th>
-                <th className="pb-3 px-4 min-w-[120px]">Method</th>
-                <th className="pb-3 px-4 min-w-[120px]">Total Events</th>
-                <th className="pb-3 px-4 min-w-[120px]">Joined</th>
-                <th className="pb-3 px-4 text-right">Actions</th>
+                <th className="pb-3 px-4 min-w-[160px] sm:min-w-[200px]">User</th>
+                <th className="pb-3 px-4 min-w-[90px] sm:min-w-[120px]">Method</th>
+                <th className="pb-3 px-4 min-w-[90px] sm:min-w-[120px]">Total Events</th>
+                <th className="pb-3 px-4 min-w-[90px] sm:min-w-[120px]">Joined</th>
+                {!limitLatest && <th className="pb-3 px-4 text-right">Actions</th>}
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => {
+              {displayUsers.map((user) => {
                 const rawMethod = user.signup_method || "email";
                 const method = rawMethod.toLowerCase() === "google" ? "Google" : "Email";
 
@@ -182,20 +190,35 @@ export const AdminUserManagement = () => {
                     <td className="py-3 px-4 text-foreground text-sm">
                       {user.created_at ? format(new Date(user.created_at), "MMM d, yyyy") : "N/A"}
                     </td>
-                    <td className="py-3 px-4 text-right flex justify-end gap-3">
-                      <button className="p-1.5 text-muted-foreground hover:text-foreground transition-colors" title="View Profile"><User className="w-4 h-4" /></button>
-                      <button 
-                        onClick={() => handleDeleteClick(user.id, user.name)}
-                        className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
-                        title="Delete User"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                      <button className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"><MoreVertical className="w-4 h-4" /></button>
-                    </td>
+                    {!limitLatest && (
+                      <td className="py-3 px-4 text-right flex justify-end gap-3">
+                        <button className="p-1.5 text-muted-foreground hover:text-foreground transition-colors" title="View Profile"><User className="w-4 h-4" /></button>
+                        <button 
+                          onClick={() => handleDeleteClick(user.id, user.name)}
+                          className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                          title="Delete User"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <button className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"><MoreVertical className="w-4 h-4" /></button>
+                      </td>
+                    )}
                   </tr>
                 );
               })}
+              {limitLatest && users && users.length > limitLatest && (
+                <tr>
+                  <td colSpan={limitLatest ? 4 : 5} className="py-4 px-4">
+                    <button
+                      onClick={() => navigate("/usermanagement")}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-dashed border-border hover:bg-secondary/50 hover:border-primary/50 text-muted-foreground hover:text-primary text-sm font-medium transition-all group"
+                    >
+                      Show all {users.length} users
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         )}

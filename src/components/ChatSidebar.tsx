@@ -79,7 +79,9 @@ export default function ChatSidebar() {
   }
 
   return (
-    <aside className="w-[320px] min-w-[320px] h-screen bg-sidebar-bg flex flex-col border-r border-border">
+    <>
+      <div className="fixed inset-0 bg-black/40 z-40 sm:hidden" onClick={() => setSidebarOpen(false)} />
+      <aside className="fixed sm:static inset-y-0 left-0 z-50 w-full sm:w-[320px] sm:min-w-[320px] h-screen bg-sidebar-bg flex flex-col border-r border-border">
       {/* Header */}
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
@@ -146,5 +148,6 @@ export default function ChatSidebar() {
         </div>
       </div>
     </aside>
+    </>
   );
 }

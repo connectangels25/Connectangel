@@ -184,7 +184,7 @@ const EventDashboard = () => {
         <div 
           className={`transition-all duration-300 ease-in-out flex shrink-0 ${
             isSidebarVisible ? "w-64" : "w-0 border-r-0"
-          } overflow-hidden border-r border-sidebar-border h-full`}
+          } overflow-hidden border-r border-sidebar-border h-full max-lg:w-0 max-lg:overflow-hidden max-lg:border-r-0`}
         >
           <div className="w-64 shrink-0 h-full">
             <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />

@@ -246,11 +246,11 @@ export default function EventDetails() {
             </button>
           </div>
         </div>
-        <div className="hidden md:block w-[400px] relative">
+        <div className="w-full md:w-[400px] h-48 sm:h-56 md:h-auto">
           {event.banner_url ? (
-            <img src={event.banner_url} alt={event.title} className="h-full w-full object-cover" />
+            <img src={event.banner_url} alt={event.title} className="w-full h-full object-cover" />
           ) : (
-            <div className="h-full w-full bg-secondary flex items-center justify-center">
+            <div className="w-full h-full bg-secondary flex items-center justify-center">
               <Globe className="h-16 w-16 text-muted-foreground" />
             </div>
           )}
@@ -415,7 +415,7 @@ export default function EventDetails() {
         </div>
 
         {/* Right Sidebar */}
-        <div className="hidden lg:block w-[340px] shrink-0">
+        <div className="w-full lg:w-[340px] shrink-0">
           <div className="sticky top-6 space-y-6">
             <div className="rounded-2xl border border-border bg-card p-6">
               <div className="flex items-center justify-between mb-6">

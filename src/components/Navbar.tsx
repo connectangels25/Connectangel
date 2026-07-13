@@ -18,7 +18,7 @@ const NAV_LINKS = [
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -222,7 +222,7 @@ export default function Navbar() {
             Add Event +
           </button>
 
-          {user ? (
+          {loading ? null : user ? (
             <div className="relative">
               {/* Profile avatar button */}
               <button
@@ -279,13 +279,21 @@ export default function Navbar() {
             <>
               <button
                 onClick={() => navigate("/login")}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className={`text-sm font-medium transition-colors ${
+                  location.pathname === "/login"
+                    ? "text-primary font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
               >
                 Sign In
               </button>
               <button
                 onClick={() => navigate("/signup")}
-                className="px-4 lg:px-5 py-2 rounded-full border border-border text-sm font-semibold text-foreground hover:bg-secondary transition-colors whitespace-nowrap"
+                className={`px-4 lg:px-5 py-2 rounded-full border text-sm font-semibold transition-colors whitespace-nowrap ${
+                  location.pathname === "/signup"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "border-border text-foreground hover:bg-secondary"
+                }`}
               >
                 Sign Up
               </button>
@@ -323,6 +331,14 @@ export default function Navbar() {
                   Admin Dashboard
                 </button>
               )}
+              <div className="relative my-2">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="w-full pl-9 pr-4 py-2.5 rounded-full bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
               <div className="h-px bg-border my-2" />
               <button
                 onClick={() => { setMobileOpen(false); navigate("/create-event"); }}
@@ -331,7 +347,7 @@ export default function Navbar() {
                 Add Event +
               </button>
 
-              {user ? (
+              {loading ? null : user ? (
                 <>
                   {/* Mobile profile card */}
                   <div className="flex items-center gap-3 px-3 py-3 rounded-lg bg-primary/10 mt-1 relative">
@@ -358,13 +374,21 @@ export default function Navbar() {
                 <>
                   <button
                     onClick={() => { setMobileOpen(false); navigate("/login"); }}
-                    className="text-left text-sm font-medium text-muted-foreground hover:text-foreground py-3 px-3 rounded-lg hover:bg-secondary transition-colors"
+                    className={`text-left text-sm font-medium py-3 px-3 rounded-lg transition-colors ${
+                      location.pathname === "/login"
+                        ? "text-primary font-semibold bg-primary/10"
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                    }`}
                   >
                     Sign In
                   </button>
                   <button
                     onClick={() => { setMobileOpen(false); navigate("/signup"); }}
-                    className="text-left text-sm font-medium text-muted-foreground hover:text-foreground py-3 px-3 rounded-lg hover:bg-secondary transition-colors"
+                    className={`text-left text-sm font-medium py-3 px-3 rounded-lg transition-colors ${
+                      location.pathname === "/signup"
+                        ? "text-primary font-semibold bg-primary/10"
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                    }`}
                   >
                     Sign Up
                   </button>
