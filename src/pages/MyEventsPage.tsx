@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
-import { Calendar, Plus, FileText, Globe, Trash2, Edit, Clock } from "lucide-react";
+import { Calendar, Plus, FileText, Globe, Trash2, Edit, Clock, Bookmark } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
@@ -24,34 +24,49 @@ export default function MyEventsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [events, setEvents] = useState<EventRow[]>([]);
+  const [savedEvents, setSavedEvents] = useState<EventRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"all" | "draft" | "published">("all");
+  const [tab, setTab] = useState<"all" | "draft" | "published" | "saved">("all");
 
   useEffect(() => {
     if (!user) return;
     const fetchEvents = async () => {
       setLoading(true);
+      
+      // Fetch created events
       const { data } = await supabase
         .from("events")
         .select("id, title, status, category, start_date, banner_url, organizer_logo_url, short_summary, created_at, updated_at")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       setEvents((data as EventRow[]) || []);
+
+      // Fetch saved events from localStorage
+      const savedIds = JSON.parse(localStorage.getItem("saved_events") || "[]");
+      if (savedIds.length > 0) {
+        const { data: savedData } = await supabase
+          .from("events")
+          .select("id, title, status, category, start_date, banner_url, organizer_logo_url, short_summary, created_at, updated_at")
+          .in("id", savedIds);
+        setSavedEvents((savedData as EventRow[]) || []);
+      } else {
+        setSavedEvents([]);
+      }
+
       setLoading(false);
     };
     fetchEvents();
   }, [user]);
 
-  const filtered = events.filter((e) => {
-    if (e.status === "draft") return false; // Exclude drafts from main section
-    if (tab === "published") return e.status === "published" || e.status === "approved";
-    return true;
-  });
+  const createdEvents = events.filter((e) => e.status !== "draft");
+  const allEvents = [
+    ...createdEvents,
+    ...savedEvents.filter((se) => !createdEvents.some((ce) => ce.id === se.id))
+  ];
+
+  const approvedEvents = allEvents.filter((e) => e.status === "published" || e.status === "approved");
 
   const drafts = events.filter((e) => e.status === "draft");
-
-  const publishedCount = events.filter((e) => e.status === "published" || e.status === "approved").length;
-  const pendingCount = events.filter((e) => e.status === "pending").length;
 
   const handleDeleteEvent = async (id: string, isDraft: boolean = false) => {
     const confirmed = window.confirm(`Are you sure you want to delete this ${isDraft ? 'draft' : 'event'}?`);
@@ -86,8 +101,9 @@ export default function MyEventsPage() {
 
         <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
           {[
-            { key: "all" as const, label: "All", count: events.length - drafts.length },
-            { key: "published" as const, label: "Approved", count: publishedCount },
+            { key: "all" as const, label: "All", count: allEvents.length },
+            { key: "published" as const, label: "Approved", count: approvedEvents.length },
+            { key: "saved" as const, label: "Saved", count: savedEvents.length },
           ].map((t) => (
             <button
               key={t.key}
@@ -103,15 +119,25 @@ export default function MyEventsPage() {
           <div className="flex justify-center py-20">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : filtered.length === 0 ? (
+        ) : (tab === "saved" ? savedEvents : tab === "published" ? approvedEvents : allEvents).length === 0 ? (
           <div className="text-center py-20">
-            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-lg font-semibold text-foreground">No events found</p>
-            <p className="text-sm text-muted-foreground mt-1">Create your first event to get started</p>
+            {tab === "saved" ? (
+              <>
+                <Bookmark className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-lg font-semibold text-foreground">No saved events</p>
+                <p className="text-sm text-muted-foreground mt-1">Explore events and save them to see them here.</p>
+              </>
+            ) : (
+              <>
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-lg font-semibold text-foreground">No events found</p>
+                <p className="text-sm text-muted-foreground mt-1">Create your first event to get started</p>
+              </>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map((event) => (
+            {(tab === "saved" ? savedEvents : tab === "published" ? approvedEvents : allEvents).map((event) => (
               <div key={event.id} className="rounded-2xl bg-card border border-border overflow-hidden flex flex-col">
                 {/* Banner top ~40% */}
                 <div className="relative h-36 bg-secondary">

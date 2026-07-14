@@ -10,7 +10,7 @@ export default function PotentialPage() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Expose backend via ngrok for Vercel and local usage
-  const DASHBOARD_URL = "https://maryln-dutiable-felicita.ngrok-free.dev";
+  const DASHBOARD_URL = "http://127.0.0.1:5000";
 
   // Set globally IMMEDIATELY (before iframe loads) so dashboard.js can read it
   (window as any).__POTENTIAL_API_URL = DASHBOARD_URL;
