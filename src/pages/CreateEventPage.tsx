@@ -606,7 +606,7 @@ export default function CreateEventPage() {
         ) : (
           <div className="space-y-3">
             {agenda.map((item, i) => (
-              <div key={i} className="grid grid-cols-[100px_1fr_1fr_40px] gap-3 items-end">
+              <div key={i} className="grid grid-cols-1 sm:grid-cols-[100px_1fr_1fr_40px] gap-3 items-end">
                 <div><label className="text-xs text-muted-foreground">Time</label><input value={item.time} onChange={(e) => { const c = [...agenda]; c[i] = { ...c[i], time: e.target.value }; setAgenda(c); }} className={inputCls("")} placeholder="10:00 AM" /></div>
                 <div><label className="text-xs text-muted-foreground">Session</label><input value={item.session} onChange={(e) => { const c = [...agenda]; c[i] = { ...c[i], session: e.target.value }; setAgenda(c); }} className={inputCls("")} placeholder="Session title" /></div>
                 <div><label className="text-xs text-muted-foreground">Speaker</label><input value={item.speaker} onChange={(e) => { const c = [...agenda]; c[i] = { ...c[i], speaker: e.target.value }; setAgenda(c); }} className={inputCls("")} placeholder="Speaker name" /></div>
@@ -691,7 +691,7 @@ export default function CreateEventPage() {
         ))}
       </div>
 
-      <div className="px-4 sm:px-6 pb-12 flex gap-8 max-w-7xl mx-auto">
+      <div className="px-4 sm:px-6 pb-12 flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
         <div className="flex-1 min-w-0">
           {stepRenderers[step]()}
 
@@ -714,7 +714,7 @@ export default function CreateEventPage() {
           </div>
         </div>
 
-        <div className="w-[280px] min-w-[280px] hidden lg:block">
+        <div className="w-full lg:w-[280px] lg:min-w-[280px]">
           <SummaryPanel />
         </div>
       </div>

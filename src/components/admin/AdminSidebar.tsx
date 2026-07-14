@@ -111,7 +111,7 @@ export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
       )}
 
       <aside className={`
-        fixed inset-y-0 left-0 z-[70] w-64 bg-sidebar-background border-r border-sidebar-border flex flex-col h-full text-sidebar-foreground transition-transform duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-[70] w-[85vw] max-w-[280px] sm:w-64 bg-sidebar-background border-r border-sidebar-border flex flex-col h-full text-sidebar-foreground transition-transform duration-300 ease-in-out
         lg:translate-x-0 lg:static lg:z-auto
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
       `}>

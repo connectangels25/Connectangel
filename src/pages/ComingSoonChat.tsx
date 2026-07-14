@@ -3,9 +3,9 @@ import Navbar from "@/components/Navbar";
 
 export default function ComingSoonChat() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Navbar />
-      <div className="relative flex items-center justify-center" style={{ height: "calc(100vh - 65px)" }}>
+      <div className="relative flex-1 flex items-center justify-center">
         {/* Blurred background to mimic chat UI */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-card via-secondary to-background opacity-60 blur-xl" />

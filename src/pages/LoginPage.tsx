@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Mail, Lock, ArrowRight, Zap, ChevronRight, Phone, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,16 @@ const LoginPage = () => {
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { signIn, signInWithGoogle } = useAuth();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("error") === "not_registered") {
+      toast.error("This Google account is not registered. Please sign up first.");
+      window.history.replaceState({}, "", "/login");
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,7 +151,7 @@ const LoginPage = () => {
                   className="border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                 />
                 <label htmlFor="keep-logged" className="text-sm text-muted-foreground cursor-pointer">
-                  Keep me logged in for 30 days
+                  Remember me
                 </label>
               </div>
 
@@ -152,7 +161,7 @@ const LoginPage = () => {
                 className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-[hsl(240,70%,60%)] hover:opacity-90 text-primary-foreground rounded-lg"
               >
                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-                Sign In to Dashboard
+                Sign In
                 {!isLoading && <ArrowRight className="w-5 h-5 ml-1" />}
               </Button>
             </form>

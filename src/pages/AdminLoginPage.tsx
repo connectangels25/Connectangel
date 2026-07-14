@@ -114,9 +114,17 @@ const AdminLoginPage = () => {
   return (
     <div className="min-h-screen bg-[#06080F] flex flex-col">
       {/* Header */}
-      <div className="flex items-center gap-2 px-6 py-4">
-        <img src={logo} alt="ConnectAngels" className="h-8 w-8" />
-        <span className="text-base font-bold text-white/90">ConnectAngels</span>
+      <div className="flex items-center justify-between px-6 py-4">
+        <div className="flex items-center gap-2">
+          <img src={logo} alt="ConnectAngels" className="h-8 w-8" />
+          <span className="text-base font-bold text-white/90">ConnectAngels</span>
+        </div>
+        <button
+          onClick={() => navigate("/")}
+          className="text-xs text-gray-400 hover:text-white transition-colors"
+        >
+          ← Home
+        </button>
       </div>
 
       {/* Main Content */}

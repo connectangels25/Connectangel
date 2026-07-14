@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useRef } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -25,15 +25,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const isRedirectingRef = useRef(false);
 
   useEffect(() => {
     const handleSession = async (currentSession: Session | null) => {
+      if (isRedirectingRef.current) return;
+
       if (currentSession?.user) {
         const user = currentSession.user;
         const isGoogle = user.app_metadata?.provider === "google";
 
         if (isGoogle) {
-          // Check if user exists in the profiles table
           const { data: profile, error: profileError } = await supabase
             .from("profiles")
             .select("id")
@@ -48,25 +50,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const isNewAccount = now - createdAt < 60000;
 
             if (isNewAccount) {
-              // If it's a new account but profile doesn't exist yet (race condition with trigger),
-              // we can try to create it here as a safety net or just wait.
-              // For now, let's allow them to proceed as the trigger should handle it.
               console.log("New Google account detected, allowing profile creation trigger to complete.");
             } else {
-              // Existing Google account but no profile found - this is the restricted case
+              isRedirectingRef.current = true;
               await supabase.auth.signOut();
-              toast.error("Access denied. Your account is not authorized.");
-              setSession(null);
-              setUser(null);
-              setLoading(false);
-              window.location.href = "/signup";
+              window.location.href = "/signup?error=not_registered";
               return;
             }
           }
         }
       }
 
-      // ✅ allow normal flow
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       setLoading(false);
@@ -114,7 +108,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={{ session, user, loading, signUp, signIn, signInWithGoogle, signOut }}>
-      {children}
+      {loading ? (
+        <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center">
+          <div className="relative flex flex-col items-center gap-6">
+            {/* Animated rings */}
+            <div className="relative w-20 h-20">
+              <div className="absolute inset-0 rounded-full border-2 border-primary/20" />
+              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary animate-spin" />
+              <div className="absolute inset-2 rounded-full border-2 border-transparent border-b-primary animate-spin [animation-duration:1.5s]" />
+              <div className="absolute inset-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              </div>
+            </div>
+            <div className="flex flex-col items-center gap-1.5">
+              <p className="text-lg font-semibold text-foreground tracking-tight">ConnectAngel</p>
+              <p className="text-sm text-muted-foreground">Verifying your account...</p>
+            </div>
+          </div>
+        </div>
+      ) : children}
     </AuthContext.Provider>
   );
 };

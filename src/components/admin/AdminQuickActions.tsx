@@ -36,7 +36,7 @@ export const AdminQuickActions = () => {
         <p className="text-muted-foreground text-xs mt-1">Commonly used administrative tools</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 flex-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
         {actions.map((action) => (
           <div key={action.id} className="bg-card rounded-3xl p-6 border border-border hover:bg-secondary/40 transition-colors flex flex-col items-center justify-center text-center cursor-pointer">
             <div className="w-12 h-12 rounded-2xl bg-secondary text-primary flex items-center justify-center mb-4 border border-border">

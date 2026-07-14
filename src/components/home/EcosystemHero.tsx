@@ -155,7 +155,7 @@ export default function EcosystemHero() {
             <motion.div 
               variants={floatingVariants}
               animate="animate"
-              className="absolute -top-6 -right-6 p-6 rounded-3xl bg-card border border-border backdrop-blur-xl shadow-2xl z-20 flex items-center gap-4"
+              className="hidden sm:flex absolute -top-6 -right-6 p-6 rounded-3xl bg-card border border-border backdrop-blur-xl shadow-2xl z-20 items-center gap-4"
             >
               <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
                 <Users className="w-6 h-6" />
@@ -170,7 +170,7 @@ export default function EcosystemHero() {
               variants={floatingVariants}
               animate="animate"
               transition={{ delay: 0.5 }}
-              className="absolute top-1/2 -left-12 p-5 rounded-3xl bg-card border border-border backdrop-blur-xl shadow-2xl z-20 flex items-center gap-4"
+              className="hidden sm:flex absolute top-1/2 -left-12 p-5 rounded-3xl bg-card border border-border backdrop-blur-xl shadow-2xl z-20 items-center gap-4"
             >
               <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
                 <Rocket className="w-6 h-6" />
@@ -185,7 +185,7 @@ export default function EcosystemHero() {
               variants={floatingVariants}
               animate="animate"
               transition={{ delay: 1 }}
-              className="absolute -bottom-8 -right-12 p-5 rounded-3xl bg-card border border-border backdrop-blur-xl shadow-2xl z-20"
+              className="hidden sm:block absolute -bottom-8 -right-12 p-5 rounded-3xl bg-card border border-border backdrop-blur-xl shadow-2xl z-20"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">

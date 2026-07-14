@@ -213,6 +213,26 @@ export default function EventsPage() {
 
       {/* Event Listing Area */}
       <section id="events-section" className="px-3 sm:px-6 mt-6 sm:mt-8 flex flex-col lg:flex-row gap-6">
+        {/* Mobile sidebar list */}
+        <div className="lg:hidden rounded-2xl bg-card border border-border p-4">
+          <h4 className="text-sm font-bold text-foreground mb-3">Top Events</h4>
+          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin">
+            {filteredEvents.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4 w-full">No events found</p>
+            ) : (
+              filteredEvents.map((event, idx) => (
+                <div key={event.id} onClick={() => navigate(`/event/${event.id}`)} className="snap-start shrink-0 w-[200px] p-3 rounded-xl hover:bg-secondary/50 cursor-pointer transition-colors border border-border/50">
+                  <span className="h-7 w-7 rounded-full border-2 border-primary flex items-center justify-center text-xs font-bold text-primary mb-2">
+                    {idx + 1}
+                  </span>
+                  <p className="text-sm font-semibold text-foreground leading-tight line-clamp-2">{event.title}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{event.venue_address || event.location_type || "Online"}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
         {/* Sidebar list */}
         <div className="hidden lg:block w-[280px] min-w-[280px] rounded-2xl bg-card border border-border p-4 space-y-1 max-h-[600px] overflow-y-auto">
           {filteredEvents.length === 0 && (
