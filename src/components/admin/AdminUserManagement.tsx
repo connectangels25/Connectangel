@@ -24,18 +24,19 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
-  const [selectedUser, setSelectedUser] = React.useState<{ id: string; name: string } | null>(null);
+  const [selectedUser, setSelectedUser] = React.useState<{ id: string; name: string | null } | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
 
   const { data: users, isLoading, error } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
       // Fetch profiles
-      const { data: profiles, error: profileError } = await supabase
+      const { data: profiles, error: profileError, count: profileCount } = await supabase
         .from("profiles")
-        .select("*")
+        .select("*", { count: 'exact' })
         .order("created_at", { ascending: false });
       
+      console.log("[AdminUserManagement] Profiles query result:", { count: profileCount, profilesReturned: profiles?.length, profileError });
       if (profileError) throw profileError;
 
       // Fetch event counts manually since relationship might be missing in schema cache
@@ -91,18 +92,20 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
     
     setIsDeleting(true);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .delete()
-        .eq("id", selectedUser.id);
+      const { data, error: fnError } = await supabase.functions.invoke("delete-user", {
+        body: { user_id: selectedUser.id },
+      });
+
+      if (fnError) throw fnError;
       
-      if (error) throw error;
-      
-      toast.success(`${selectedUser.name} has been removed from the platform.`);
+      const displayName = selectedUser.name || "User";
+      toast.success(`${displayName} has been removed from the platform.`);
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
       setDeleteModalOpen(false);
       setSelectedUser(null);
     } catch (err: any) {
-      toast.error(err.message || "Failed to delete user profile");
+      toast.error(err?.message || "Failed to delete user profile");
     } finally {
       setIsDeleting(false);
     }
@@ -133,7 +136,7 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
           </div>
         ) : error ? (
           <div className="flex items-center justify-center h-[300px] text-destructive text-sm">
-            Failed to load users: {error instanceof Error ? error.message : "Unknown error"}
+            Failed to load users: {error?.message || "Unknown error"}
           </div>
         ) : !users || users.length === 0 ? (
           <div className="flex items-center justify-center h-[300px] text-muted-foreground text-sm">

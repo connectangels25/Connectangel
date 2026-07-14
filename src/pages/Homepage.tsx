@@ -7,7 +7,7 @@ import ExploreIndustries from "@/components/home/ExploreIndustries";
 import TopIncubators from "@/components/home/TopIncubators";
 import TrendingEvents from "@/components/home/TrendingEvents";
 import TrendingIndustries from "@/components/home/TrendingIndustries";
-import { MessageCircle, ArrowUp, Mail, MapPin, Phone } from "lucide-react";
+import { MessageCircle, ArrowUp, Mail, Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.png";
 
@@ -86,17 +86,13 @@ export default function Homepage() {
             <div>
               <h4 className="text-foreground font-bold mb-6">Contact Us</h4>
               <ul className="space-y-4">
-                <li className="flex items-start gap-3 text-muted-foreground">
-                  <MapPin className="w-5 h-5 text-primary shrink-0" />
-                  <span>Doha, Qatar • Silicon Valley, CA</span>
-                </li>
                 <li className="flex items-center gap-3 text-muted-foreground">
                   <Mail className="w-5 h-5 text-primary shrink-0" />
-                  <span>contact@connectangels.com</span>
+                  <span>connectangels25@gmail.com</span>
                 </li>
                 <li className="flex items-center gap-3 text-muted-foreground">
                   <Phone className="w-5 h-5 text-primary shrink-0" />
-                  <span>+1 (555) 000-1234</span>
+                  <span>+91 84220 60195</span>
                 </li>
               </ul>
             </div>

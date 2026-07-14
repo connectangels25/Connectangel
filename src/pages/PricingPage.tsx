@@ -1,8 +1,24 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 
+const CheckIcon = () => (
+  <svg className="w-5 h-5 text-primary shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+  </svg>
+);
+
 const PricingPage = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [isAnnual, setIsAnnual] = useState(false);
+
+  const handleCta = () => {
+    if (!user) {
+      navigate("/login");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -46,29 +62,93 @@ const PricingPage = () => {
 
       {/* Pricing Cards */}
       <section className="px-6 pb-16 pt-8 max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Free */}
-          <div className="rounded-2xl border border-border bg-card p-6 flex flex-col">
-            <div className="flex items-start justify-between mb-2">
-              <h3 className="text-xl font-bold text-foreground">Free</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+
+          {/* Free Plan */}
+          <div className="rounded-2xl border border-border bg-card p-8 flex flex-col hover:border-primary/50 transition-colors">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="text-2xl font-bold text-foreground">Try Free for 26 Days</h3>
+                <p className="text-sm text-muted-foreground mt-1">Perfect for getting started</p>
+              </div>
+              <span className="text-3xl font-bold text-foreground">₹0<span className="text-sm text-muted-foreground font-normal">/mo</span></span>
             </div>
-            <div className="flex-1" />
+
+            <div className="my-6 h-[1px] bg-border" />
+
+            <div className="flex-1 space-y-4">
+              <div className="flex items-start gap-3 text-sm text-foreground">
+                <CheckIcon />
+                <span><strong>Model:</strong> meta-llama/llama-4-scout-17b-16e-instruct</span>
+              </div>
+              <div className="flex items-start gap-3 text-sm text-foreground">
+                <CheckIcon />
+                <span><strong>Only 1 AI Opportunity Check per day</strong></span>
+              </div>
+              <div className="flex items-start gap-3 text-sm text-foreground">
+                <CheckIcon />
+                <span><strong>Unlimited searches</strong> of existing benchmark database</span>
+              </div>
+              <div className="flex items-start gap-3 text-sm text-foreground">
+                <CheckIcon />
+                <span><strong>Event Discovery:</strong> Find and explore events seamlessly</span>
+              </div>
+            </div>
+
+            <button onClick={handleCta} className="mt-8 w-full py-3 rounded-lg border border-border bg-muted hover:bg-muted/80 text-foreground font-medium transition-colors">
+              Try for Free for 26 Days
+            </button>
           </div>
 
-          {/* Pro */}
-          <div className="rounded-2xl border border-border bg-card p-6 flex flex-col">
-            <div className="flex items-start justify-between mb-2">
-              <h3 className="text-xl font-bold text-foreground">Pro</h3>
+          {/* Paid Plan */}
+          <div className="rounded-2xl border-2 border-primary bg-card p-8 flex flex-col relative shadow-[0_0_30px_rgba(var(--primary),0.1)]">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">
+              MOST POPULAR
             </div>
-            <div className="flex-1" />
-          </div>
 
-          {/* Premium */}
-          <div className="rounded-2xl border border-border bg-card p-6 flex flex-col">
-            <div className="flex items-start justify-between mb-2">
-              <h3 className="text-xl font-bold text-foreground">Premium</h3>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="text-2xl font-bold text-foreground">Pro Plan</h3>
+                <p className="text-sm text-muted-foreground mt-1">For advanced analysis</p>
+              </div>
+              <div className="text-right">
+                <span className="text-3xl font-bold text-foreground">₹{isAnnual ? Math.round(149 * 0.8 * 12) : 149}</span>
+                <span className="text-sm text-muted-foreground font-normal">/{isAnnual ? 'yr' : 'mo'}</span>
+              </div>
             </div>
-            <div className="flex-1" />
+
+            <div className="my-6 h-[1px] bg-border" />
+
+            <div className="flex-1 space-y-4">
+              <div className="flex items-start gap-3 text-sm text-foreground">
+                <CheckIcon />
+                <span><strong>Everything in Free</strong></span>
+              </div>
+              <div className="flex items-start gap-3 text-sm text-foreground">
+                <CheckIcon />
+                <span><strong>Model:</strong> openai/gpt-oss-120b</span>
+              </div>
+              <div className="flex items-start gap-3 text-sm text-foreground">
+                <CheckIcon />
+                <span><strong>Daily Calls:</strong> 5 calls per day per user</span>
+              </div>
+              <div className="flex items-start gap-3 text-sm text-foreground">
+                <CheckIcon />
+                <span><strong>Advanced Search:</strong> Deeper graph analysis & insights</span>
+              </div>
+              <div className="flex items-start gap-3 text-sm text-foreground">
+                <CheckIcon />
+                <span><strong>Priority Access:</strong> Faster processing & response times</span>
+              </div>
+              <div className="flex items-start gap-3 text-sm text-foreground">
+                <CheckIcon />
+                <span><strong>Enhanced Limits:</strong> Designed for active users</span>
+              </div>
+            </div>
+
+            <button onClick={handleCta} className="mt-6 w-full py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
+              Subscribe Now
+            </button>
           </div>
         </div>
       </section>
