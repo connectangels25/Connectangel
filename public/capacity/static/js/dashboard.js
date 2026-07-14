@@ -1973,8 +1973,11 @@ async function _loadStatePotential() {
 
     drawUniversalChart();
 
+    _cachedIndiaSource = data.data_source || data.source || "";
+    _cachedIndiaStates = states;
+
     // ── Re-render table with state data ─────────────────────────────────
-    _renderStateTable(states, targetCountry, data.data_source);
+    _renderStateTable(states, targetCountry, _cachedIndiaSource);
 
     document.querySelector(".chart-legend").style.display = "";
     _updateChartHint("state");
@@ -2089,10 +2092,21 @@ function _renderDistrictTable(districts, source, state) {
 function _updateChartHint(tab) {
   const hint = document.querySelector(".chart-hint");
   if (!hint) return;
+
+  const country = document.getElementById("filter-country")?.value || "India";
+  const source = _cachedIndiaSource || "DPIIT 2024";
+
+  let locTerm = "states";
+  if (country === "United Kingdom") locTerm = "nations/regions";
+  else if (country === "United Arab Emirates") locTerm = "emirates";
+  else if (country === "Oman") locTerm = "governorates";
+  else if (country === "Qatar") locTerm = "governorates";
+  else if (country === "Saudi Arabia") locTerm = "regions";
+
   if (tab === "state") {
-    hint.innerHTML = `📊 Top 15 states &nbsp;|&nbsp; <strong style="color:var(--teal)">Teal</strong> = actual &nbsp;|&nbsp; <strong style="color:var(--rust)">Red</strong> = potential gap &nbsp;|&nbsp; Source: DPIIT 2024`;
+    hint.innerHTML = `📊 Top 15 ${locTerm} &nbsp;|&nbsp; <strong style="color:var(--teal)">Teal</strong> = actual &nbsp;|&nbsp; <strong style="color:var(--rust)">Red</strong> = potential gap &nbsp;|&nbsp; Source: ${source}`;
   } else if (tab === "industry") {
-    hint.innerHTML = `🏭 India industry breakdown &nbsp;|&nbsp; <strong style="color:var(--teal)">Teal</strong> = existing startups &nbsp;|&nbsp; <strong style="color:var(--rust)">Red</strong> = untapped potential &nbsp;|&nbsp; Source: DPIIT 2024`;
+    hint.innerHTML = `🏭 ${country} industry breakdown &nbsp;|&nbsp; <strong style="color:var(--teal)">Teal</strong> = existing startups &nbsp;|&nbsp; <strong style="color:var(--rust)">Red</strong> = untapped potential &nbsp;|&nbsp; Source: ${source}`;
   } else {
     hint.innerHTML = `Click <strong style="color:#34c4a4;">green</strong> to see startups &nbsp;|&nbsp; <strong style="color:#e05c45;">red</strong> to see gaps &nbsp;|&nbsp; Click <strong>+</strong> on table rows to explore sub-domains`;
   }

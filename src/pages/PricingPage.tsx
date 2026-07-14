@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Check, Zap, Sparkles, Shield, MessageCircle, HelpCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import logo from "@/assets/logo.png";
+import { useAuth } from "@/context/AuthContext";
 
 const FREE_FEATURES = [
   "Basic startup knowledge",
@@ -56,6 +57,7 @@ const FOOTER_COMPANY = ["About Us", "Careers", "Privacy Policy", "Terms of Servi
 
 export default function PricingPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isAnnual, setIsAnnual] = useState(false);
 
   useEffect(() => {
@@ -136,7 +138,10 @@ export default function PricingPage() {
               ))}
             </div>
 
-            <button className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
+            <button 
+              onClick={() => navigate(user ? "/events" : "/signup")}
+              className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+            >
               Get Started Free
             </button>
           </div>
@@ -178,7 +183,10 @@ export default function PricingPage() {
               ))}
             </div>
 
-            <button className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
+            <button 
+              onClick={() => navigate(user ? "/events" : "/signup")}
+              className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+            >
               Upgrade to Pro
             </button>
           </div>
@@ -206,7 +214,10 @@ export default function PricingPage() {
               ))}
             </div>
 
-            <button className="w-full py-3 rounded-xl border border-border text-foreground text-sm font-semibold hover:bg-secondary transition-colors">
+            <button 
+              onClick={() => navigate(user ? "/chat" : "/signup")}
+              className="w-full py-3 rounded-xl border border-border text-foreground text-sm font-semibold hover:bg-secondary transition-colors"
+            >
               Book a Demo
             </button>
           </div>

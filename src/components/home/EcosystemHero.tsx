@@ -1,9 +1,11 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Play, Users, Globe, Rocket, ShieldCheck, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 export default function EcosystemHero() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 500], [0, 200]);
   const y2 = useTransform(scrollY, [0, 500], [0, -150]);
@@ -76,10 +78,10 @@ export default function EcosystemHero() {
 
             <div className="flex flex-wrap gap-5">
               <button 
-                onClick={() => navigate("/signup")}
+                onClick={() => navigate("/events")}
                 className="px-10 py-5 rounded-2xl bg-primary text-primary-foreground font-bold hover:scale-105 active:scale-95 transition-all flex items-center gap-3 group shadow-2xl shadow-primary/20"
               >
-                Get Started Now
+                View Events
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
               </button>
               <button className="px-10 py-5 rounded-2xl bg-card border border-border text-foreground font-bold hover:bg-secondary transition-all flex items-center gap-3 backdrop-blur-xl group">

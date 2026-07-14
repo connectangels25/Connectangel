@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
+import { toast } from "sonner";
 
 interface AgendaItem {
   time: string;
@@ -79,6 +80,70 @@ export default function EventDetails() {
   const [loading, setLoading] = useState(true);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [relatedEvents, setRelatedEvents] = useState<RelatedEvent[]>([]);
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    const savedIds = JSON.parse(localStorage.getItem("saved_events") || "[]");
+    setIsSaved(savedIds.includes(id));
+  }, [id]);
+
+  const handleSaveEvent = () => {
+    if (!id) return;
+    const savedIds: string[] = JSON.parse(localStorage.getItem("saved_events") || "[]");
+    let newSavedIds: string[];
+    if (savedIds.includes(id)) {
+      newSavedIds = savedIds.filter(x => x !== id);
+      setIsSaved(false);
+      toast.success("Event removed from saved list");
+    } else {
+      newSavedIds = [...savedIds, id];
+      setIsSaved(true);
+      toast.success("Event saved to My Events!");
+    }
+    localStorage.setItem("saved_events", JSON.stringify(newSavedIds));
+  };
+
+  const handleAddToCalendar = () => {
+    if (!event) return;
+    
+    // Standardize dates: Google template expects YYYYMMDDTHHMMSS
+    // start_date format: YYYY-MM-DD
+    let sDate = "20260524";
+    if (event.start_date) {
+      sDate = event.start_date.replace(/-/g, "");
+    }
+    
+    let sTime = "110000";
+    if (event.start_time) {
+      sTime = event.start_time.replace(/:/g, "");
+      if (sTime.length === 4) sTime += "00";
+    }
+
+    let eDate = sDate;
+    if (event.end_date) {
+      eDate = event.end_date.replace(/-/g, "");
+    }
+
+    let eTime = "130000";
+    if (event.end_time) {
+      eTime = event.end_time.replace(/:/g, "");
+      if (eTime.length === 4) eTime += "00";
+    } else if (event.start_time) {
+      // Default to +2 hours
+      const hour = parseInt(sTime.slice(0, 2)) + 2;
+      const hourStr = hour < 10 ? `0${hour}` : `${hour}`;
+      eTime = `${hourStr}${sTime.slice(2)}`;
+    }
+
+    const dates = `${sDate}T${sTime}/${eDate}T${eTime}`;
+    const text = encodeURIComponent(event.title);
+    const details = encodeURIComponent(event.short_summary || "");
+    const location = encodeURIComponent(event.venue_address || event.venue_name || "");
+
+    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${dates}&details=${details}&location=${location}`;
+    window.open(url, "_blank");
+  };
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -241,8 +306,16 @@ export default function EventDetails() {
                 Register Now
               </button>
             )}
-            <button className="flex items-center gap-2 px-6 py-3 rounded-lg border border-border text-foreground font-semibold hover:bg-secondary transition-colors">
-              <Bookmark className="h-4 w-4" /> Save Event
+            <button 
+              onClick={handleSaveEvent}
+              className={`flex items-center gap-2 px-6 py-3 rounded-lg border transition-colors font-semibold ${
+                isSaved 
+                  ? "bg-primary/10 border-primary text-primary hover:bg-primary/20" 
+                  : "border-border text-foreground hover:bg-secondary"
+              }`}
+            >
+              <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
+              {isSaved ? "Saved" : "Save Event"}
             </button>
           </div>
         </div>
@@ -432,7 +505,10 @@ export default function EventDetails() {
                 </button>
               )}
               <div className="flex gap-2">
-                <button className="flex-1 py-2.5 rounded-lg border border-border text-sm text-foreground hover:bg-secondary transition-colors flex items-center justify-center gap-1.5">
+                <button 
+                  onClick={handleAddToCalendar}
+                  className="flex-1 py-2.5 rounded-lg border border-border text-sm text-foreground hover:bg-secondary transition-colors flex items-center justify-center gap-1.5"
+                >
                   <Calendar className="h-3.5 w-3.5" /> Add to Calendar
                 </button>
                 <button className="py-2.5 px-3 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors">
