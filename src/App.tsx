@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
+import PendingPlanGate from "@/components/PendingPlanGate";
 import Index from "./pages/Index.tsx";
 import ChatPage from "./pages/ChatPage.tsx";
 import ComingSoonChat from "./pages/ComingSoonChat.tsx";
@@ -35,51 +36,49 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/events" element={<EventsPage />} />
-            <Route path="/shad" element={<ChatPage />} />
-            <Route path="/chat" element={<ComingSoonChat />} />
-            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/" element={<PendingPlanGate><Index /></PendingPlanGate>} />
+            <Route path="/events" element={<PendingPlanGate><EventsPage /></PendingPlanGate>} />
+            <Route path="/shad" element={<PendingPlanGate><ChatPage /></PendingPlanGate>} />
+            <Route path="/chat" element={<PendingPlanGate><ComingSoonChat /></PendingPlanGate>} />
+            <Route path="/blog" element={<PendingPlanGate><BlogPage /></PendingPlanGate>} />
             <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/hide" element={<HidPage />} />
-            <Route path="/event/:id" element={<EventDetails />} />
+            <Route path="/hide" element={<PendingPlanGate><HidPage /></PendingPlanGate>} />
+            <Route path="/event/:id" element={<PendingPlanGate><EventDetails /></PendingPlanGate>} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/admin" element={<AdminLoginPage />} />
             <Route path="/my-events" element={
               <ProtectedRoute>
-                <MyEventsPage />
+                <PendingPlanGate><MyEventsPage /></PendingPlanGate>
               </ProtectedRoute>
             } />
             <Route path="/create-event" element={
               <ProtectedRoute>
-                <CreateEventPage />
+                <PendingPlanGate><CreateEventPage /></PendingPlanGate>
               </ProtectedRoute>
             } />
             <Route path="/edit-event/:id" element={
               <ProtectedRoute>
-                <CreateEventPage />
+                <PendingPlanGate><CreateEventPage /></PendingPlanGate>
               </ProtectedRoute>
             } />
             <Route path="/admindashboard" element={
               <AdminProtectedRoute>
-                <AdminDashboard />
+                <PendingPlanGate><AdminDashboard /></PendingPlanGate>
               </AdminProtectedRoute>
             } />
             <Route path="/eventdashboard" element={
               <AdminProtectedRoute>
-                <EventDashboard />
+                <PendingPlanGate><EventDashboard /></PendingPlanGate>
               </AdminProtectedRoute>
             } />
             <Route path="/usermanagement" element={
               <AdminProtectedRoute>
-                <UserManagementDashboard />
+                <PendingPlanGate><UserManagementDashboard /></PendingPlanGate>
               </AdminProtectedRoute>
             } />
             <Route path="/potential" element={
-              <AdminProtectedRoute>
-                <PotentialPage />
-              </AdminProtectedRoute>
+              <PendingPlanGate><PotentialPage /></PendingPlanGate>
             } />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

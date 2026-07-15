@@ -9,6 +9,7 @@ import logo from "@/assets/logo.png";
 const NAV_LINKS = [
   { label: "Home", to: "/" },
   { label: "Events", to: "/events" },
+  { label: "Potential", to: "/potential" },
   { label: "Chat", to: "/chat" },
   { label: "Blog", to: "/blog" },
   { label: "My Events", to: "/my-events" },
@@ -17,7 +18,7 @@ const NAV_LINKS = [
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, daysRemaining, isTrialActive, hasPlan } = useAuth();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -345,6 +346,20 @@ export default function Navbar() {
               >
                 Add Event +
               </button>
+
+          {user && isTrialActive && (
+            <span className="text-xs font-medium text-amber-500 bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/20 whitespace-nowrap">
+              Free trial: {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left
+            </span>
+          )}
+
+              {user && isTrialActive && (
+                <div className="flex items-center justify-center px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 mt-2">
+                  <span className="text-xs font-medium text-amber-500">
+                    Free trial: {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left
+                  </span>
+                </div>
+              )}
 
               {loading ? null : user ? (
                 <>

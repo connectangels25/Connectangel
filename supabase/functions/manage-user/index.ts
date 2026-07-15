@@ -48,9 +48,16 @@ serve(async (req) => {
       });
     }
 
-    const { user_id } = await req.json();
-    if (!user_id) {
-      return new Response(JSON.stringify({ error: "Missing user_id" }), {
+    const { action, user_id } = await req.json();
+    if (!user_id || !action) {
+      return new Response(JSON.stringify({ error: "Missing user_id or action" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    if (action !== "ban" && action !== "unban") {
+      return new Response(JSON.stringify({ error: "Invalid action. Use 'ban' or 'unban'" }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
@@ -62,25 +69,33 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Fetch email before deleting
-    const { data: targetUser, error: fetchError } = await supabaseAdmin.auth.admin.getUserById(user_id);
-    if (fetchError) throw fetchError;
-    const targetEmail = targetUser?.user?.email;
+    if (action === "ban") {
+      const { error: banError } = await supabaseAdmin.auth.admin.updateUserById(
+        user_id,
+        { ban_duration: "876000h" }
+      );
+      if (banError) throw banError;
 
-    // Add to blocked_emails first so even if the OAuth flow races,
-    // the trigger on profiles will block re-creation
-    if (targetEmail) {
-      const { error: blockError } = await supabaseAdmin
-        .from("blocked_emails")
-        .insert({ email: targetEmail, reason: 'deleted_by_admin', deleted_by: user.id });
-      if (blockError) throw blockError;
+      const { error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .update({ is_banned: true })
+        .eq("id", user_id);
+      if (profileError) throw profileError;
+    } else {
+      const { error: unbanError } = await supabaseAdmin.auth.admin.updateUserById(
+        user_id,
+        { ban_duration: "none" }
+      );
+      if (unbanError) throw unbanError;
+
+      const { error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .update({ is_banned: false })
+        .eq("id", user_id);
+      if (profileError) throw profileError;
     }
 
-    // Delete from auth.users (cascades to profiles)
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user_id);
-    if (deleteError) throw deleteError;
-
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, action }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
