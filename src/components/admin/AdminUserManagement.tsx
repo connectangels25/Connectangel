@@ -1,5 +1,5 @@
 import React from "react";
-import { User, Trash2, MoreVertical, Mail, Loader2, ArrowRight, Ban, CheckCircle } from "lucide-react";
+import { User, Trash2, MoreVertical, Mail, Loader2, ArrowRight, Ban, CheckCircle, ShieldCheck, Crown } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -172,6 +172,7 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
                 <th className="pb-3 px-4 min-w-[160px] sm:min-w-[200px]">User</th>
                 <th className="pb-3 px-4 min-w-[70px] sm:min-w-[90px]">Status</th>
                 <th className="pb-3 px-4 min-w-[90px] sm:min-w-[120px]">Method</th>
+                <th className="pb-3 px-4 min-w-[70px] sm:min-w-[90px]">Trial</th>
                 <th className="pb-3 px-4 min-w-[70px] sm:min-w-[80px]">Events</th>
                 <th className="pb-3 px-4 min-w-[90px] sm:min-w-[120px]">Joined</th>
                 {!limitLatest && <th className="pb-3 px-4 text-right w-[100px]">Actions</th>}
@@ -209,6 +210,18 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
                         <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20">
                           <Ban className="w-3 h-3" /> Banned
                         </span>
+                      ) : (user as any).is_admin ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-500 bg-purple-500/10 px-2.5 py-1 rounded-full border border-purple-500/20">
+                          <ShieldCheck className="w-3 h-3" /> Admin
+                        </span>
+                      ) : (user as any).plan === 'pro' ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-500 bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/20">
+                          <Crown className="w-3 h-3" /> Pro Active
+                        </span>
+                      ) : (user as any).trial_started_at || (user as any).plan === 'free' ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-500 bg-green-500/10 px-2.5 py-1 rounded-full border border-green-500/20">
+                          <CheckCircle className="w-3 h-3" /> Free Active
+                        </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-500 bg-green-500/10 px-2.5 py-1 rounded-full border border-green-500/20">
                           <CheckCircle className="w-3 h-3" /> Active
@@ -220,6 +233,25 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
                         {method === "Google" ? <GoogleIcon /> : <Mail className="w-4 h-4 mr-2 text-muted-foreground" />}
                         {method}
                       </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      {(user as any).is_admin ? (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      ) : (user as any).trial_started_at ? (
+                        (() => {
+                          const elapsed = Math.floor((Date.now() - new Date((user as any).trial_started_at).getTime()) / (1000 * 60 * 60 * 24));
+                          const remaining = Math.max(0, 26 - elapsed);
+                          return remaining > 0 ? (
+                            <span className={`text-xs font-semibold ${remaining <= 3 ? 'text-amber-500' : 'text-green-500'}`}>
+                              {remaining}d left
+                            </span>
+                          ) : (
+                            <span className="text-xs font-semibold text-red-500">Expired</span>
+                          );
+                        })()
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
                     </td>
                     <td className="py-3 px-4">
                       <div className="py-1 px-3 bg-primary/10 text-primary text-xs font-bold rounded-lg border border-primary/20 inline-block">
