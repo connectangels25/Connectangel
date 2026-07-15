@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Mail, Lock, ArrowRight, Zap, ChevronRight, Phone, Loader2 } from "lucide-react";
+import { Mail, Lock, ArrowRight, Zap, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -11,10 +11,8 @@ import logo from "@/assets/logo.png";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [keepLoggedIn, setKeepLoggedIn] = useState(true);
-  const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,10 +28,6 @@ const LoginPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loginMethod === "phone") {
-      toast.error("Phone login is not yet supported. Please use email.");
-      return;
-    }
     if (!email || !password) {
       toast.error("Please fill in all fields.");
       return;
@@ -45,7 +39,7 @@ const LoginPage = () => {
       toast.error(error);
     } else {
       toast.success("Signed in successfully!");
-      navigate("/");
+      navigate("/pricing");
     }
   };
 
@@ -68,62 +62,21 @@ const LoginPage = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">Welcome back</h1>
             <p className="text-muted-foreground text-sm mb-6 sm:mb-8">Enter your credentials to access your dashboard.</p>
 
-            {/* Login Method Toggle */}
-            <div className="flex rounded-lg bg-secondary p-1 mb-6">
-              <button
-                type="button"
-                onClick={() => setLoginMethod("email")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                  loginMethod === "email" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Mail className="w-4 h-4" />
-                Email
-              </button>
-              <button
-                type="button"
-                onClick={() => setLoginMethod("phone")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                  loginMethod === "phone" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Phone className="w-4 h-4" />
-                Phone
-              </button>
-            </div>
-
             <form onSubmit={handleSubmit} className="space-y-5">
-              {loginMethod === "email" ? (
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Email Address</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      type="email"
-                      placeholder="name@company.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 bg-secondary border-border text-foreground placeholder:text-muted-foreground h-11"
-                      disabled={isLoading}
-                    />
-                  </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    placeholder="name@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 bg-secondary border-border text-foreground placeholder:text-muted-foreground h-11"
+                    disabled={isLoading}
+                  />
                 </div>
-              ) : (
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Phone Number</label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      type="tel"
-                      placeholder="+1 (555) 123-4567"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="pl-10 bg-secondary border-border text-foreground placeholder:text-muted-foreground h-11"
-                      disabled={isLoading}
-                    />
-                  </div>
-                </div>
-              )}
+              </div>
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
