@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { AdminSidebar } from "../components/admin/AdminSidebar";
@@ -6,6 +7,8 @@ import { ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function PotentialPage() {
+  const [searchParams] = useSearchParams();
+  const countryParam = searchParams.get("country") || "";
   const navigate = useNavigate();
   const { user, profile, daysRemaining, isTrialActive, hasPlan } = useAuth();
   const [iframeSrc, setIframeSrc] = useState<string>("/capacity/index.html");
@@ -32,8 +35,13 @@ export default function PotentialPage() {
   useEffect(() => {
     const initialTheme = document.documentElement.classList.contains("light") ? "light" : "dark";
     (window as any).__POTENTIAL_THEME = initialTheme;
-    setIframeSrc(`/capacity/index.html?t=${Date.now()}&theme=${initialTheme}`);
-  }, []);
+    
+    let url = `/capacity/index.html?t=${Date.now()}&theme=${initialTheme}`;
+    if (countryParam) {
+      url += `&country=${encodeURIComponent(countryParam)}`;
+    }
+    setIframeSrc(url);
+  }, [countryParam]);
 
   // Show popup if trial has expired (started trial but no days left and not pro)
   useEffect(() => {

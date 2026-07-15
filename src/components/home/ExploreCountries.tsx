@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const COUNTRIES = [
   { name: "Greece", flag: "🇬🇷", img: "https://flagcdn.com/w80/gr.png" },
@@ -18,9 +19,8 @@ const COUNTRIES = [
   { name: "France", flag: "🇫🇷", img: "https://flagcdn.com/w80/fr.png" },
   { name: "Japan", flag: "🇯🇵", img: "https://flagcdn.com/w80/jp.png" },
 ];
-
 export default function ExploreCountries() {
-  // Double the list for infinite scroll effect
+  const navigate = useNavigate();
   const displayCountries = [...COUNTRIES, ...COUNTRIES];
 
   return (
@@ -34,43 +34,52 @@ export default function ExploreCountries() {
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </button>
       </div>
-
       <div className="relative">
+        <style>{`
+          @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .animate-marquee {
+            animation: marquee 30s linear infinite;
+          }
+          .animate-marquee:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
         <div className="flex overflow-hidden">
-          <motion.div 
-            className="flex gap-4 px-4"
-            animate={{ x: ["0%", "-50%"] }}
-            transition={{ 
-              duration: 30, 
-              repeat: Infinity, 
-              ease: "linear" 
-            }}
-          >
-            {displayCountries.map((country, idx) => (
-              <div
-                key={idx}
-                className="flex-shrink-0 flex items-center gap-3 px-6 py-3 rounded-xl bg-card border border-border shadow-sm hover:border-primary/40 transition-all cursor-pointer min-w-[180px]"
-              >
-                <div className="w-10 h-10 rounded-full overflow-hidden border border-border flex-shrink-0">
-                  <img 
-                    src={country.img} 
-                    alt={country.name} 
-                    className="w-full h-full object-cover scale-150"
-                  />
+          <div className="flex gap-4 px-4 animate-marquee">
+            {displayCountries.map((country, idx) => {
+              const getSearchCountryName = (name: string) => {
+                if (name === "USA") return "United States";
+                if (name === "UK") return "United Kingdom";
+                if (name === "UAE") return "United Arab Emirates";
+                return name;
+              };
+              return (
+                <div
+                  key={idx}
+                  onClick={() => navigate(`/potential?country=${encodeURIComponent(getSearchCountryName(country.name))}`)}
+                  className="flex-shrink-0 flex items-center gap-3 px-6 py-3 rounded-xl bg-card border border-border shadow-sm hover:border-primary/40 transition-all cursor-pointer min-w-[180px]"
+                >
+                  <div className="w-10 h-10 rounded-full overflow-hidden border border-border flex-shrink-0">
+                    <img 
+                      src={country.img} 
+                      alt={country.name} 
+                      className="w-full h-full object-cover scale-150"
+                    />
+                  </div>
+                  <span className="text-base font-semibold text-foreground whitespace-nowrap">
+                    {country.name}
+                  </span>
                 </div>
-                <span className="text-base font-semibold text-foreground whitespace-nowrap">
-                  {country.name}
-                </span>
-              </div>
-            ))}
-          </motion.div>
+              );
+            })}
+          </div>
         </div>
-        
-        {/* Shadow Overlays */}
         <div className="absolute top-0 left-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
         <div className="absolute top-0 right-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
       </div>
-
       {/* Progress Dots (Visual only, to match screenshot) */}
       <div className="flex justify-center gap-1.5 mt-10">
         {Array.from({ length: 25 }).map((_, i) => (
