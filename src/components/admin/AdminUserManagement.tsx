@@ -1,5 +1,5 @@
 import React from "react";
-import { User, Trash2, MoreVertical, Mail, Loader2, ArrowRight } from "lucide-react";
+import { User, Trash2, MoreVertical, Mail, Loader2, ArrowRight, Ban, CheckCircle } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -26,20 +26,20 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState<{ id: string; name: string | null } | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [openMenuId, setOpenMenuId] = React.useState<string | null>(null);
+  const [actionLoading, setActionLoading] = React.useState<string | null>(null);
+  const menuRef = React.useRef<HTMLDivElement | null>(null);
 
   const { data: users, isLoading, error } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
-      // Fetch profiles
       const { data: profiles, error: profileError, count: profileCount } = await supabase
         .from("profiles")
         .select("*", { count: 'exact' })
         .order("created_at", { ascending: false });
       
-      console.log("[AdminUserManagement] Profiles query result:", { count: profileCount, profilesReturned: profiles?.length, profileError });
       if (profileError) throw profileError;
 
-      // Fetch event counts manually since relationship might be missing in schema cache
       const { data: events, error: eventError } = await supabase
         .from("events")
         .select("user_id")
@@ -47,13 +47,11 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
 
       if (eventError) throw eventError;
 
-      // Create a map of user_id to event count
       const eventCountMap = (events || []).reduce((acc: any, curr) => {
         acc[curr.user_id] = (acc[curr.user_id] || 0) + 1;
         return acc;
       }, {});
 
-      // Merge counts into profiles
       return (profiles || []).map(p => ({
         ...p,
         event_count: eventCountMap[p.id] || 0
@@ -63,14 +61,24 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
 
   const displayUsers = limitLatest && users ? users.slice(0, limitLatest) : users;
 
+  // Close dropdown on outside click
+  React.useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
   React.useEffect(() => {
     const channel = supabase
       .channel("admin_users_realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "profiles" },
-        (payload) => {
-          console.log("Realtime user change detected:", payload);
+        () => {
           queryClient.invalidateQueries({ queryKey: ["admin-users"] });
           queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
         }
@@ -83,21 +91,19 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
   }, [queryClient]);
 
   const handleDeleteClick = (id: string, name: string) => {
+    setOpenMenuId(null);
     setSelectedUser({ id, name });
     setDeleteModalOpen(true);
   };
 
   const handleConfirmDelete = async () => {
     if (!selectedUser) return;
-    
     setIsDeleting(true);
     try {
-      const { data, error: fnError } = await supabase.functions.invoke("delete-user", {
+      const { error: fnError } = await supabase.functions.invoke("delete-user", {
         body: { user_id: selectedUser.id },
       });
-
       if (fnError) throw fnError;
-      
       const displayName = selectedUser.name || "User";
       toast.success(`${displayName} has been removed from the platform.`);
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
@@ -108,6 +114,23 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
       toast.error(err?.message || "Failed to delete user profile");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleBanUnban = async (userId: string, name: string, action: "ban" | "unban") => {
+    setActionLoading(userId);
+    setOpenMenuId(null);
+    try {
+      const { error: fnError } = await supabase.functions.invoke("manage-user", {
+        body: { user_id: userId, action },
+      });
+      if (fnError) throw fnError;
+      toast.success(`${name || "User"} has been ${action === "ban" ? "banned" : "unbanned"}.`);
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    } catch (err: any) {
+      toast.error(err?.message || `Failed to ${action} user`);
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -147,19 +170,21 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
             <thead>
               <tr className="border-b border-border text-muted-foreground text-xs font-semibold">
                 <th className="pb-3 px-4 min-w-[160px] sm:min-w-[200px]">User</th>
+                <th className="pb-3 px-4 min-w-[70px] sm:min-w-[90px]">Status</th>
                 <th className="pb-3 px-4 min-w-[90px] sm:min-w-[120px]">Method</th>
-                <th className="pb-3 px-4 min-w-[90px] sm:min-w-[120px]">Total Events</th>
+                <th className="pb-3 px-4 min-w-[70px] sm:min-w-[80px]">Events</th>
                 <th className="pb-3 px-4 min-w-[90px] sm:min-w-[120px]">Joined</th>
-                {!limitLatest && <th className="pb-3 px-4 text-right">Actions</th>}
+                {!limitLatest && <th className="pb-3 px-4 text-right w-[100px]">Actions</th>}
               </tr>
             </thead>
             <tbody>
               {displayUsers.map((user) => {
                 const rawMethod = user.signup_method || "email";
                 const method = rawMethod.toLowerCase() === "google" ? "Google" : "Email";
+                const isBanned = !!(user as any).is_banned;
 
                 return (
-                  <tr key={user.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
+                  <tr key={user.id} className={`border-b border-border/50 hover:bg-secondary/30 transition-colors ${isBanned ? 'opacity-60' : ''}`}>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-secondary overflow-hidden shrink-0 flex items-center justify-center text-xs text-foreground border border-border">
@@ -180,6 +205,17 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
                       </div>
                     </td>
                     <td className="py-3 px-4">
+                      {isBanned ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-500 bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20">
+                          <Ban className="w-3 h-3" /> Banned
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-500 bg-green-500/10 px-2.5 py-1 rounded-full border border-green-500/20">
+                          <CheckCircle className="w-3 h-3" /> Active
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
                       <div className="flex items-center text-sm text-foreground">
                         {method === "Google" ? <GoogleIcon /> : <Mail className="w-4 h-4 mr-2 text-muted-foreground" />}
                         {method}
@@ -194,16 +230,54 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
                       {user.created_at ? format(new Date(user.created_at), "MMM d, yyyy") : "N/A"}
                     </td>
                     {!limitLatest && (
-                      <td className="py-3 px-4 text-right flex justify-end gap-3">
-                        <button className="p-1.5 text-muted-foreground hover:text-foreground transition-colors" title="View Profile"><User className="w-4 h-4" /></button>
-                        <button 
-                          onClick={() => handleDeleteClick(user.id, user.name)}
-                          className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
-                          title="Delete User"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                        <button className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"><MoreVertical className="w-4 h-4" /></button>
+                      <td className="py-3 px-4 text-right relative">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => handleDeleteClick(user.id, user.name)}
+                            className="p-2 text-muted-foreground hover:text-destructive transition-colors rounded-lg hover:bg-destructive/10"
+                            title="Delete User"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <div className="relative">
+                            <button
+                              onClick={() => setOpenMenuId(openMenuId === user.id ? null : user.id)}
+                              className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-secondary"
+                              title="More actions"
+                            >
+                              {actionLoading === user.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <MoreVertical className="w-4 h-4" />
+                              )}
+                            </button>
+                            {openMenuId === user.id && (
+                              <div
+                                ref={menuRef}
+                                className="absolute right-0 top-full mt-1 w-44 rounded-xl bg-card border border-border shadow-xl z-50 overflow-hidden"
+                              >
+                                {isBanned ? (
+                                  <button
+                                    onClick={() => handleBanUnban(user.id, user.name, "unban")}
+                                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-green-500 hover:bg-green-500/10 transition-colors text-left"
+                                  >
+                                    <CheckCircle className="w-4 h-4" />
+                                    Unban User
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleBanUnban(user.id, user.name, "ban")}
+                                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-amber-500 hover:bg-amber-500/10 transition-colors text-left"
+                                  >
+                                    <Ban className="w-4 h-4" />
+                                    Ban User
+                                  </button>
+                                )}
+
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </td>
                     )}
                   </tr>
@@ -211,7 +285,7 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
               })}
               {limitLatest && users && users.length > limitLatest && (
                 <tr>
-                  <td colSpan={limitLatest ? 4 : 5} className="py-4 px-4">
+                  <td colSpan={6} className="py-4 px-4">
                     <button
                       onClick={() => navigate("/usermanagement")}
                       className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-dashed border-border hover:bg-secondary/50 hover:border-primary/50 text-muted-foreground hover:text-primary text-sm font-medium transition-all group"
@@ -232,7 +306,7 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleConfirmDelete}
         title="Delete User Profile"
-        description="Are you sure you want to delete this user? This will remove their profile and access to the platform."
+        description="Are you sure you want to delete this user? This will permanently remove their profile and block their email from re-registering."
         itemName={selectedUser?.name}
         loading={isDeleting}
       />

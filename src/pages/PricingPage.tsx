@@ -11,13 +11,25 @@ const CheckIcon = () => (
 
 const PricingPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, startTrial, setPlan, hasPlan } = useAuth();
   const [isAnnual, setIsAnnual] = useState(false);
 
-  const handleCta = () => {
+  const handleTryFree = async () => {
     if (!user) {
       navigate("/login");
+      return;
     }
+    await startTrial();
+    navigate("/");
+  };
+
+  const handleSubscribe = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    await setPlan("pro");
+    navigate("/");
   };
 
   return (
@@ -95,7 +107,7 @@ const PricingPage = () => {
               </div>
             </div>
 
-            <button onClick={handleCta} className="mt-8 w-full py-3 rounded-lg border border-border bg-muted hover:bg-muted/80 text-foreground font-medium transition-colors">
+            <button onClick={handleTryFree} className="mt-8 w-full py-3 rounded-lg border border-border bg-muted hover:bg-muted/80 text-foreground font-medium transition-colors">
               Try for Free for 26 Days
             </button>
           </div>
@@ -146,7 +158,7 @@ const PricingPage = () => {
               </div>
             </div>
 
-            <button onClick={handleCta} className="mt-6 w-full py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
+            <button onClick={handleSubscribe} className="mt-6 w-full py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
               Subscribe Now
             </button>
           </div>
