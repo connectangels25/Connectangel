@@ -233,11 +233,14 @@ async function loadData() {
 
   const countrySelect = document.getElementById("filter-country");
   if (countrySelect) {
-    const countries = Array.from(new Set(allStartups.map(s => s.country))).filter(Boolean).sort();
+    const countries = Array.from(new Set(allStartups.map(s => s.country))).filter(Boolean);
     if (!countries.includes("United States")) {
       countries.push("United States");
-      countries.sort();
     }
+    if (!countries.includes("United Kingdom")) {
+      countries.push("United Kingdom");
+    }
+    countries.sort();
     countrySelect.innerHTML = '<option value="All">All Countries</option>';
     countries.forEach(c => {
       const opt = document.createElement("option");
@@ -259,6 +262,42 @@ async function loadData() {
   }
 
   _initSearchableSelects();
+
+  // Auto-search from URL param
+  const params = new URLSearchParams(window.location.search);
+  const countryParam = params.get("country");
+  if (countryParam && countrySelect) {
+    const matchCountry = (optionVal, searchParam) => {
+      const v = optionVal.toLowerCase().trim();
+      const p = searchParam.toLowerCase().trim();
+      if (v === p) return true;
+      const isUS_v = v === "usa" || v === "us" || v.includes("united states");
+      const isUS_p = p === "usa" || p === "us" || p.includes("united states");
+      if (isUS_v && isUS_p) return true;
+      const isUK_v = v === "uk" || v.includes("united kingdom");
+      const isUK_p = p === "uk" || p.includes("united kingdom");
+      if (isUK_v && isUK_p) return true;
+      const isUAE_v = v === "uae" || v.includes("united arab emirates");
+      const isUAE_p = p === "uae" || p.includes("united arab emirates");
+      if (isUAE_v && isUAE_p) return true;
+      if (v.includes(p) || p.includes(v)) return true;
+      return false;
+    };
+
+    let found = false;
+    for (let i = 0; i < countrySelect.options.length; i++) {
+      if (matchCountry(countrySelect.options[i].value, countryParam)) {
+        countrySelect.value = countrySelect.options[i].value;
+        found = true;
+        break;
+      }
+    }
+    if (found) {
+      if (_ssCo) _ssCo.refresh();
+      countrySelect.dispatchEvent(new Event("change"));
+      applyFilters();
+    }
+  }
 
   currentFilteredDomains = allDomains;
   currentFilteredStartups = allStartups;
@@ -2405,10 +2444,36 @@ class SearchableSelect {
     if (!this._open) this._open_();
     const lq = q.trim().toLowerCase();
     if (!lq) { this._renderList(this._opts); return; }
-    // Rank: starts-with first, then contains
-    const sw = this._opts.filter(o => o.value !== 'All' && o.label.toLowerCase().startsWith(lq));
-    const has = this._opts.filter(o => o.value !== 'All' && !o.label.toLowerCase().startsWith(lq) && o.label.toLowerCase().includes(lq));
-    this._renderList([...sw, ...has], lq);
+    
+    const matchesOpt = (opt) => {
+      const label = opt.label.toLowerCase().trim();
+      if (label.startsWith(lq) || label.includes(lq)) return true;
+      if (lq.startsWith(label) || lq.includes(label)) return true;
+      
+      const isUK_opt = label === "uk" || label.includes("united kingdom");
+      const isUK_query = lq === "uk" || lq.includes("united kingdom");
+      if (isUK_opt && isUK_query) return true;
+
+      const isUS_opt = label === "usa" || label === "us" || label.includes("united states");
+      const isUS_query = lq === "usa" || lq === "us" || lq.includes("united states");
+      if (isUS_opt && isUS_query) return true;
+
+      const isUAE_opt = label === "uae" || label.includes("united arab emirates");
+      const isUAE_query = lq === "uae" || lq.includes("united arab emirates");
+      if (isUAE_opt && isUAE_query) return true;
+
+      return false;
+    };
+
+    const results = this._opts.filter(o => o.value !== 'All' && matchesOpt(o));
+    // Sort results: startsWith first to keep it nice and ranked
+    results.sort((a, b) => {
+      const aStarts = a.label.toLowerCase().startsWith(lq) ? 1 : 0;
+      const bStarts = b.label.toLowerCase().startsWith(lq) ? 1 : 0;
+      return bStarts - aStarts;
+    });
+
+    this._renderList(results, lq);
   }
 
   _renderList(opts, hl = '') {

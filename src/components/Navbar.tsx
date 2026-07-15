@@ -6,7 +6,6 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
-
 const NAV_LINKS = [
   { label: "Home", to: "/" },
   { label: "Events", to: "/events" },

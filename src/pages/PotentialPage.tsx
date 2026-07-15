@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { AdminSidebar } from "../components/admin/AdminSidebar";
 import { ChevronLeft, ChevronRight, Menu } from "lucide-react";
 
 export default function PotentialPage() {
+  const [searchParams] = useSearchParams();
+  const countryParam = searchParams.get("country") || "";
   const [iframeSrc, setIframeSrc] = useState<string>("/capacity/index.html");
   const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
@@ -27,8 +30,13 @@ export default function PotentialPage() {
   useEffect(() => {
     const initialTheme = document.documentElement.classList.contains("light") ? "light" : "dark";
     (window as any).__POTENTIAL_THEME = initialTheme;
-    setIframeSrc(`/capacity/index.html?t=${Date.now()}&theme=${initialTheme}`);
-  }, []);
+    
+    let url = `/capacity/index.html?t=${Date.now()}&theme=${initialTheme}`;
+    if (countryParam) {
+      url += `&country=${encodeURIComponent(countryParam)}`;
+    }
+    setIframeSrc(url);
+  }, [countryParam]);
 
   // Watch <html> class changes via MutationObserver so we catch theme toggles
   // from any component (useTheme creates isolated state per component)
