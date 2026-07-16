@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Mail, Lock, ArrowRight, User, Building2, Users, CreditCard, ChevronDown, ChevronRight, Shield, Clock, Globe, Network, Phone, Loader2 } from "lucide-react";
+import { Mail, Lock, ArrowRight, User, Building2, Users, CreditCard, ChevronDown, ChevronRight, Shield, Clock, Globe, Network, Phone, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,6 +22,8 @@ const SignupPage = () => {
   const [showEnterprise, setShowEnterprise] = useState(false);
   const [signupMethod, setSignupMethod] = useState<"email" | "phone">("email");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { signUp, signInWithGoogle } = useAuth();
@@ -30,6 +32,10 @@ const SignupPage = () => {
     const params = new URLSearchParams(location.search);
     if (params.get("error") === "not_registered") {
       toast.error("This Google account is not registered. Please sign up first.");
+      window.history.replaceState({}, "", "/signup");
+    }
+    if (params.get("error") === "already_registered") {
+      toast.error("This email is already registered. Please sign in instead.");
       window.history.replaceState({}, "", "/signup");
     }
   }, []);
@@ -64,6 +70,7 @@ const SignupPage = () => {
   };
 
   const handleGoogleSignup = async () => {
+    localStorage.setItem('google_signup_intent', 'true');
     setIsLoading(true);
     const { error } = await signInWithGoogle();
     setIsLoading(false);
@@ -192,13 +199,20 @@ const SignupPage = () => {
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 bg-secondary border-border text-foreground placeholder:text-muted-foreground h-11"
+                      className="pl-10 pr-10 bg-secondary border-border text-foreground placeholder:text-muted-foreground h-11"
                       disabled={isLoading}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -206,13 +220,20 @@ const SignupPage = () => {
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                      type="password"
+                      type={showConfirmPassword ? "text" : "password"}
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pl-10 bg-secondary border-border text-foreground placeholder:text-muted-foreground h-11"
+                      className="pl-10 pr-10 bg-secondary border-border text-foreground placeholder:text-muted-foreground h-11"
                       disabled={isLoading}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
               </div>

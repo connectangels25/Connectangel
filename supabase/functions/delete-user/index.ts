@@ -67,12 +67,12 @@ serve(async (req) => {
     if (fetchError) throw fetchError;
     const targetEmail = targetUser?.user?.email;
 
-    // Add to blocked_emails first so even if the OAuth flow races,
+    // Add to deleted_emails first so even if the OAuth flow races,
     // the trigger on profiles will block re-creation
     if (targetEmail) {
       const { error: blockError } = await supabaseAdmin
-        .from("blocked_emails")
-        .insert({ email: targetEmail, reason: 'deleted_by_admin', deleted_by: user.id });
+        .from("deleted_emails")
+        .insert({ email: targetEmail });
       if (blockError) throw blockError;
     }
 

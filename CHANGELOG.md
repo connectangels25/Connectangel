@@ -1,5 +1,43 @@
-# date:- 13/07/2026
+# date:- 16/07/2026
 # Changelog
+
+## Pricing & Subscription
+
+- **Pro badge in Navbar** — Pro members now see a blue "Pro" badge with a crown icon in the top navigation bar (both desktop and mobile). Previously, paying users were still shown the free trial countdown message instead of a Pro badge.
+
+- **Trial days from registration date** — The 26-day free trial now starts counting from the day the user created their account, not from when they clicked the "Try Free" button on the pricing page. This also shows correct remaining days in the admin dashboard.
+
+- **Trial banner no longer shows for Pro users** — Fixed a bug where Pro subscribers were still seeing the "Free trial: X days left" message in the navbar. Now they only see their Pro badge.
+
+- **New users no longer forced to pricing page** — New users can now access the app immediately after signing up without being forced to visit the pricing page first.
+
+## Admin Dashboard
+
+- **Free Deactivated badge for expired users** — Admin panel now shows "Free Deactivated" (in amber with a ban icon) for free users whose 26-day trial has ended, instead of incorrectly showing them as "Free Active".
+
+## Expired Plan
+
+- **Full-screen notice when trial expires** — When a free user's trial ends, a full-screen overlay appears on every page load (including right after login) with a crown icon and two options: "Upgrade to Pro" or "Continue with limited access".
+
+- **Potential page locked with upgrade option** — Expired users who try to visit the Potential page now see a clear message saying their plan has expired along with an "Upgrade to Pro" button, instead of being silently sent back to the home page.
+
+- **Login/Signup pages hidden from logged-in users** — Users who are already logged in can no longer access the login, signup, or admin login pages. If they try, they are automatically redirected to the home page.
+
+## UI/UX
+
+- **Loading screen theme fix** — Fixed the loading screen so it correctly shows the user's selected dark or light theme right from the start, instead of briefly flashing the wrong theme.
+
+- **Password show/hide toggle** — Added an eye icon to all password fields so users can easily show or hide their password while typing (login, signup, admin login, and admin change credentials pages).
+
+## Bug Fixes
+
+- **Admin user deletion now works** — Fixed an error that occurred when admins tried to delete a user from the admin panel. The delete function was referencing a database table by the wrong name. Also improved the error messages so admins see the actual problem instead of a generic error.
+
+- **Google sign-up now works correctly** — New users can now successfully create an account using Google sign-up. Existing users who try to sign up again with Google are told "This email is already registered. Please sign in instead." instead of being silently logged in.
+
+---
+
+# date:- 13/07/2026
 
 ## Auth & Login
 
