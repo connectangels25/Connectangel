@@ -222,6 +222,18 @@ export default function Navbar() {
             Add Event +
           </button>
 
+          {user && isTrialActive && (
+            <span className="hidden lg:inline-flex items-center gap-2 text-xs font-medium text-amber-500 bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/20 whitespace-nowrap">
+              Free trial: {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left
+              <button
+                onClick={() => navigate("/pricing")}
+                className="text-[11px] font-bold text-primary bg-primary/10 hover:bg-primary/20 px-2 py-0.5 rounded-md transition-colors"
+              >
+                Upgrade
+              </button>
+            </span>
+          )}
+
           {loading ? null : user ? (
             <div className="relative">
               {/* Profile avatar button */}
@@ -347,17 +359,17 @@ export default function Navbar() {
                 Add Event +
               </button>
 
-          {user && isTrialActive && (
-            <span className="text-xs font-medium text-amber-500 bg-amber-500/10 px-3 py-1.5 rounded-full border border-amber-500/20 whitespace-nowrap">
-              Free trial: {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left
-            </span>
-          )}
-
               {user && isTrialActive && (
-                <div className="flex items-center justify-center px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 mt-2">
+                <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 mt-2">
                   <span className="text-xs font-medium text-amber-500">
                     Free trial: {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left
                   </span>
+                  <button
+                    onClick={() => { setMobileOpen(false); navigate("/pricing"); }}
+                    className="text-[11px] font-bold text-primary bg-primary/10 hover:bg-primary/20 px-2 py-1 rounded-md transition-colors"
+                  >
+                    Upgrade
+                  </button>
                 </div>
               )}
 
