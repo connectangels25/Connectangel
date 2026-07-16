@@ -2,17 +2,41 @@ import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import { X } from "lucide-react";
+import { Crown, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function PotentialPage() {
   const [searchParams] = useSearchParams();
   const countryParam = searchParams.get("country") || "";
   const navigate = useNavigate();
-  const { profile, isTrialActive } = useAuth();
+  const { isTrialExpired } = useAuth();
   const [iframeSrc, setIframeSrc] = useState<string>("/capacity/index.html");
-  const [showExpiredPopup, setShowExpiredPopup] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  if (isTrialExpired) {
+    return (
+      <div className="flex flex-col h-screen bg-background">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center px-6">
+          <div className="text-center max-w-md">
+            <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-600/10 flex items-center justify-center mb-6 border border-amber-500/20">
+              <Lock className="w-10 h-10 text-amber-500" />
+            </div>
+            <h1 className="text-2xl font-bold text-foreground mb-3">Plan Expired</h1>
+            <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
+              Your current plan has expired. To visit this page and access potential matching, please upgrade to Pro.
+            </p>
+            <button
+              onClick={() => navigate("/pricing")}
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity"
+            >
+              Upgrade to Pro
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const DASHBOARD_URL = "http://127.0.0.1:5000";
 
@@ -34,12 +58,6 @@ export default function PotentialPage() {
     }
     setIframeSrc(url);
   }, [countryParam]);
-
-  useEffect(() => {
-    if (profile?.trial_started_at && !isTrialActive && profile?.plan !== 'pro') {
-      setShowExpiredPopup(true);
-    }
-  }, [profile?.trial_started_at, isTrialActive, profile?.plan]);
 
   useEffect(() => {
     syncThemeToIframe.current = (theme: string) => {
@@ -70,36 +88,6 @@ export default function PotentialPage() {
           sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
         />
       </div>
-
-      {/* Trial Expired Popup */}
-      {showExpiredPopup && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowExpiredPopup(false)} />
-          <div className="relative w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl overflow-hidden z-10 p-6 text-center">
-            <button
-              onClick={() => setShowExpiredPopup(false)}
-              className="absolute top-3 right-3 h-7 w-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold text-foreground mb-2">Free Trial Ended</h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              Your 26-day free trial has expired. Upgrade to the Pro Plan to continue viewing potential opportunities and unlock all premium features.
-            </p>
-            <button
-              onClick={() => { setShowExpiredPopup(false); navigate("/pricing"); }}
-              className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
-            >
-              Upgrade to Pro
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

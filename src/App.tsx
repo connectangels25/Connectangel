@@ -25,6 +25,8 @@ import EventDashboard from "./pages/EventDashboard.tsx";
 import UserManagementDashboard from "./pages/UserManagementDashboard.tsx";
 import EventsPage from "./pages/EventsPage.tsx";
 import PotentialPage from "./pages/PotentialPage.tsx";
+import ExpiredPlanOverlay from "@/components/ExpiredPlanOverlay";
+import RedirectIfAuthenticated from "@/components/RedirectIfAuthenticated";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +37,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ExpiredPlanOverlay />
           <Routes>
             <Route path="/" element={<PendingPlanGate><Index /></PendingPlanGate>} />
             <Route path="/events" element={<PendingPlanGate><EventsPage /></PendingPlanGate>} />
@@ -44,9 +47,9 @@ const App = () => (
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/hide" element={<PendingPlanGate><HidPage /></PendingPlanGate>} />
             <Route path="/event/:id" element={<PendingPlanGate><EventDetails /></PendingPlanGate>} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/admin" element={<AdminLoginPage />} />
+            <Route path="/login" element={<RedirectIfAuthenticated><LoginPage /></RedirectIfAuthenticated>} />
+            <Route path="/signup" element={<RedirectIfAuthenticated><SignupPage /></RedirectIfAuthenticated>} />
+            <Route path="/admin" element={<RedirectIfAuthenticated><AdminLoginPage /></RedirectIfAuthenticated>} />
             <Route path="/my-events" element={
               <ProtectedRoute>
                 <PendingPlanGate><MyEventsPage /></PendingPlanGate>
@@ -78,7 +81,9 @@ const App = () => (
               </AdminProtectedRoute>
             } />
             <Route path="/potential" element={
-              <PendingPlanGate><PotentialPage /></PendingPlanGate>
+              <ProtectedRoute>
+                <PendingPlanGate><PotentialPage /></PendingPlanGate>
+              </ProtectedRoute>
             } />
 
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

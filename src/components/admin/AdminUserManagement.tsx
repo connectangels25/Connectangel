@@ -111,7 +111,15 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
       setDeleteModalOpen(false);
       setSelectedUser(null);
     } catch (err: any) {
-      toast.error(err?.message || "Failed to delete user profile");
+      let msg = err?.message || "Failed to delete user profile";
+      try {
+        if (err?.context?.text) {
+          const body = await err.context.text();
+          const parsed = JSON.parse(body);
+          if (parsed?.error) msg = parsed.error;
+        }
+      } catch (_) {}
+      toast.error(msg);
     } finally {
       setIsDeleting(false);
     }
@@ -183,6 +191,7 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
                 const rawMethod = user.signup_method || "email";
                 const method = rawMethod.toLowerCase() === "google" ? "Google" : "Email";
                 const isBanned = !!(user as any).is_banned;
+                const isFreeTrialExpired = !!(user as any).created_at && Math.floor((Date.now() - new Date((user as any).created_at).getTime()) / (1000 * 60 * 60 * 24)) >= 26;
 
                 return (
                   <tr key={user.id} className={`border-b border-border/50 hover:bg-secondary/30 transition-colors ${isBanned ? 'opacity-60' : ''}`}>
@@ -218,9 +227,13 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
                         <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-500 bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/20">
                           <Crown className="w-3 h-3" /> Pro Active
                         </span>
-                      ) : (user as any).trial_started_at || (user as any).plan === 'free' ? (
+                      ) : (user as any).plan === 'free' && !isFreeTrialExpired ? (
                         <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-500 bg-green-500/10 px-2.5 py-1 rounded-full border border-green-500/20">
                           <CheckCircle className="w-3 h-3" /> Free Active
+                        </span>
+                      ) : (user as any).plan === 'free' && isFreeTrialExpired ? (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+                          <Ban className="w-3 h-3" /> Free Deactivated
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-500 bg-green-500/10 px-2.5 py-1 rounded-full border border-green-500/20">
@@ -237,9 +250,9 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
                     <td className="py-3 px-4">
                       {(user as any).is_admin ? (
                         <span className="text-xs text-muted-foreground">—</span>
-                      ) : (user as any).trial_started_at ? (
+                      ) : (user as any).created_at ? (
                         (() => {
-                          const elapsed = Math.floor((Date.now() - new Date((user as any).trial_started_at).getTime()) / (1000 * 60 * 60 * 24));
+                          const elapsed = Math.floor((Date.now() - new Date((user as any).created_at).getTime()) / (1000 * 60 * 60 * 24));
                           const remaining = Math.max(0, 26 - elapsed);
                           return remaining > 0 ? (
                             <span className={`text-xs font-semibold ${remaining <= 3 ? 'text-amber-500' : 'text-green-500'}`}>

@@ -23,6 +23,7 @@ interface AuthContextType {
   profileLoading: boolean;
   daysRemaining: number;
   isTrialActive: boolean;
+  isTrialExpired: boolean;
   hasPlan: boolean;
   startTrial: () => Promise<void>;
   setPlan: (plan: string) => Promise<void>;
@@ -60,15 +61,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const daysRemaining = (() => {
-    if (!profile?.trial_started_at) return TRIAL_DAYS;
-    const start = new Date(profile.trial_started_at).getTime();
+    if (!user?.created_at) return TRIAL_DAYS;
+    const start = new Date(user.created_at).getTime();
     const elapsed = Date.now() - start;
     const remaining = Math.max(0, TRIAL_DAYS - Math.floor(elapsed / (1000 * 60 * 60 * 24)));
     return remaining;
   })();
 
-  const isTrialActive = !!profile?.trial_started_at && daysRemaining > 0;
-  const hasPlan = !profile ? true : !!profile.trial_started_at || profile.plan === 'pro' || profile.is_admin === true;
+  const isTrialActive = !!user && daysRemaining > 0 && profile?.plan !== 'pro';
+  const isTrialExpired = !!user && daysRemaining === 0 && profile?.plan !== 'pro' && !profile?.is_admin;
+  const hasPlan = !profile ? true : !!user || profile.plan === 'pro' || profile.is_admin === true;
 
   useEffect(() => {
     const handleSession = async (currentSession: Session | null) => {
@@ -79,15 +81,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const isGoogle = user.app_metadata?.provider === "google";
 
         if (isGoogle) {
-          const createdAt = new Date(user.created_at).getTime();
-          const now = Date.now();
-          const isNewAccount = now - createdAt < 5000;
+          const googleSignupIntent = localStorage.getItem('google_signup_intent') === 'true';
+          localStorage.removeItem('google_signup_intent');
 
-          if (isNewAccount) {
-            isRedirectingRef.current = true;
-            await supabase.auth.signOut();
-            window.location.href = "/signup?error=not_registered";
-            return;
+          if (googleSignupIntent) {
+            const { data: existingProfile } = await supabase
+              .from("profiles")
+              .select("id")
+              .eq("id", user.id)
+              .maybeSingle();
+
+            if (existingProfile) {
+              isRedirectingRef.current = true;
+              await supabase.auth.signOut();
+              window.location.href = "/signup?error=already_registered";
+              return;
+            }
+            // No profile = new user → let through (Google sign-up works)
           }
         }
       }
@@ -180,7 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, loading, profileLoading, daysRemaining, isTrialActive, hasPlan, startTrial, setPlan, signUp, signIn, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ session, user, profile, loading, profileLoading, daysRemaining, isTrialActive, isTrialExpired, hasPlan, startTrial, setPlan, signUp, signIn, signInWithGoogle, signOut }}>
       {loading ? (
         <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center">
           <div className="relative flex flex-col items-center gap-6">
