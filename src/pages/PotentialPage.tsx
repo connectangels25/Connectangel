@@ -4,12 +4,13 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Crown, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function PotentialPage() {
   const [searchParams] = useSearchParams();
   const countryParam = searchParams.get("country") || "";
   const navigate = useNavigate();
-  const { isTrialExpired } = useAuth();
+  const { isTrialExpired, user, profile, daysRemaining, refreshProfile } = useAuth();
   const [iframeSrc, setIframeSrc] = useState<string>("/capacity/index.html");
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -45,6 +46,55 @@ export default function PotentialPage() {
   useEffect(() => {
     (window as any).__POTENTIAL_API_URL = DASHBOARD_URL;
   }, [DASHBOARD_URL]);
+
+  useEffect(() => {
+    (window as any).__POTENTIAL_USER_STATE = {
+      plan: profile?.is_admin ? 'admin' : (profile?.plan || 'free'),
+      daysRemaining: daysRemaining,
+      clicksToday: profile?.potential_clicks_today || 0,
+      lastClickDate: profile?.last_potential_click_date || '',
+      isTrialExpired: isTrialExpired
+    };
+  }, [profile, daysRemaining, isTrialExpired]);
+
+  useEffect(() => {
+    (window as any).__RECORD_POTENTIAL_SEARCH_SUCCESS = async () => {
+      if (!user) return;
+      const todayStr = new Date().toLocaleDateString('en-CA');
+      const lastClickDate = profile?.last_potential_click_date || '';
+      const currentClicksToday = profile?.potential_clicks_today || 0;
+      const newClicksToday = (lastClickDate === todayStr) ? (currentClicksToday + 1) : 1;
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          potential_clicks_today: newClicksToday,
+          last_potential_click_date: todayStr
+        })
+        .eq("id", user.id);
+
+      if (error) {
+        console.error("Error updating potential click count:", error);
+      }
+      // Update window state synchronously for instant UI update inside iframe
+      if ((window as any).__POTENTIAL_USER_STATE) {
+        (window as any).__POTENTIAL_USER_STATE.clicksToday = newClicksToday;
+        (window as any).__POTENTIAL_USER_STATE.lastClickDate = todayStr;
+      }
+
+      await refreshProfile();
+    };
+  }, [user, profile, refreshProfile]);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === "navigate") {
+        navigate(event.data.url);
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [navigate]);
 
   const syncThemeToIframe = useRef<(theme: string) => void>();
 
