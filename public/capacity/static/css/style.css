@@ -2529,3 +2529,112 @@ body {
 .pd-impact-global .pd-name-chip--more {
   background: rgba(99,179,237,0.15) !important; border-color: rgba(99,179,237,0.25) !important; color: #63b3ed !important; font-weight: 700;
 }
+
+/* === Premium Potential Finder Sidebar Widget === */
+.pf-sidebar-widget {
+  margin: 16px;
+  padding: 18px 16px;
+  background: linear-gradient(135deg, rgba(140, 60, 221, 0.08) 0%, rgba(52, 196, 164, 0.03) 100%);
+  border: 1px solid rgba(140, 60, 221, 0.15);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.pf-sidebar-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: linear-gradient(135deg, #00f5a0 0%, #a55ef0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 6px;
+}
+
+.pf-sidebar-desc {
+  font-size: 0.74rem;
+  color: var(--text2);
+  line-height: 1.4;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.pf-sidebar-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  color: #fff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 0.86rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(140, 60, 221, 0.35);
+  transition: all 0.25s ease;
+}
+
+.pf-sidebar-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(140, 60, 221, 0.5);
+  filter: brightness(1.1);
+}
+
+.pf-sidebar-btn:active {
+  transform: translateY(0);
+}
+
+.pf-sidebar-badge {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.pf-sidebar-badge.pf-badge-success {
+  background: rgba(52, 196, 164, 0.08);
+  border: 1px solid rgba(52, 196, 164, 0.25);
+  color: var(--teal);
+}
+
+.pf-sidebar-badge.pf-badge-success .pf-pulse-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--teal);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--teal);
+  animation: pf-pulse 2s infinite;
+}
+
+.pf-sidebar-badge.pf-badge-danger {
+  background: rgba(224, 92, 69, 0.08);
+  border: 1px solid rgba(224, 92, 69, 0.25);
+  color: var(--rust);
+}
+
+.pf-sidebar-badge.pf-badge-danger .pf-static-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--rust);
+  border-radius: 50%;
+}
+
+@keyframes pf-pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 196, 164, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(52, 196, 164, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 196, 164, 0); }
+}

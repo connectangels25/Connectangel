@@ -897,62 +897,70 @@ function hideSubFlyout() {
 
 // ── 4. Render the Startup Details card ────────────────────────────────────────
 
-/**
- * Populate the Startup Details sidebar card with a given startup's data.
- *
- * @param {Object|null} startup - Startup object, or null to show empty state.
- */
+// Store last selected startup globally
+let _pfActiveStartup = null;
+let _pfIsGenerating = false;
+
+// Update remaining search count dynamically every second in real-time
+setInterval(() => {
+  const badge = document.querySelector('#startup-body .pf-sidebar-badge');
+  if (badge) {
+    const limitState = _pfGetLimitState();
+    const searchesRemainingText = limitState.plan === 'admin' 
+      ? 'Admin Access (Unlimited)' 
+      : `${limitState.remaining} search${limitState.remaining === 1 ? ' remains' : 's remain'} today`;
+    
+    // Update text span
+    const textSpan = badge.querySelector('span:nth-child(2)');
+    if (textSpan && textSpan.textContent !== searchesRemainingText) {
+      textSpan.textContent = searchesRemainingText;
+    }
+
+    // Update classes and dot based on limit exhaustion
+    const isExhausted = (limitState.plan !== 'admin' && limitState.remaining <= 0);
+    const dot = badge.querySelector('span:nth-child(1)');
+    if (isExhausted) {
+      if (!badge.classList.contains('pf-badge-danger')) {
+        badge.className = 'pf-sidebar-badge pf-badge-danger';
+        if (dot) dot.className = 'pf-static-dot';
+      }
+    } else {
+      if (!badge.classList.contains('pf-badge-success')) {
+        badge.className = 'pf-sidebar-badge pf-badge-success';
+        if (dot) dot.className = 'pf-pulse-dot';
+      }
+    }
+  }
+}, 1000);
+
 function renderStartupCard(startup) {
+  _pfActiveStartup = startup;
   const body = document.getElementById("startup-body");
 
-  if (!startup) {
-    body.innerHTML = `
-      <div class="startup-empty">No startup details available.</div>
-      <button class="btn-prob-stmt" style="margin:12px 16px 16px;width:calc(100% - 32px);" onclick="openPotentialFinder()">
-        🚀 Potential
-      </button>
-    `;
-    return;
-  }
+  const limitState = _pfGetLimitState();
+  const searchesRemainingText = limitState.plan === 'admin' 
+    ? 'Admin Access (Unlimited)' 
+    : `${limitState.remaining} search${limitState.remaining === 1 ? ' remains' : 's remain'} today`;
+
+  const isExhausted = (limitState.plan !== 'admin' && limitState.remaining <= 0);
+  const badgeClass = isExhausted ? 'pf-badge-danger' : 'pf-badge-success';
+  const dotClass = isExhausted ? 'pf-static-dot' : 'pf-pulse-dot';
 
   body.innerHTML = `
-    <div class="startup-avatar">${startup.initials}</div>
-    <div class="syne startup-name">${startup.name}</div>
-
-    <div class="startup-details">
-      <div class="startup-row">
-        <span class="startup-key">Focus</span>
-        <span class="startup-value">${startup.focus}</span>
-      </div>
-      <div class="startup-row">
-        <span class="startup-key">Country</span>
-        <span class="startup-value accent">${startup.country}</span>
-      </div>
-      <div class="startup-row">
-        <span class="startup-key">Domain</span>
-        <span class="startup-value">${startup.domain}</span>
-      </div>
-      <div class="startup-row">
-        <span class="startup-key">Contact</span>
-        <span class="startup-value" style="font-size:.75rem;word-break:break-all;">${startup.email}</span>
-      </div>
-      <div class="startup-row">
-        <span class="startup-key">Sectors Active</span>
-        <span class="startup-value green">${startup.domains_count} / 19</span>
+    <div class="pf-sidebar-widget">
+      <div class="pf-sidebar-title">Multimillion Opportunities</div>
+      <p class="pf-sidebar-desc">Identify regional multimillion-dollar startup ideas and detailed 7-phase business plans tailored to your filters.</p>
+      
+      <button class="pf-sidebar-btn" id="prob-stmt-btn" onclick="openPotentialFinder()">
+        🚀 Potential
+      </button>
+      
+      <div class="pf-sidebar-badge ${badgeClass}">
+        <span class="${dotClass}"></span>
+        <span>${searchesRemainingText}</span>
       </div>
     </div>
-
-    <button class="btn-briefing" id="briefing-btn">
-      ⚡ Generate Strategic Briefing
-    </button>
-    <button class="btn-prob-stmt" id="prob-stmt-btn" onclick="openPotentialFinder()">
-      🚀 Potential
-    </button>
   `;
-
-  document.getElementById("briefing-btn").addEventListener("click", () => {
-    openBriefingModal(startup);
-  });
 }
 
 
@@ -2773,12 +2781,133 @@ const _PF_LOCATIONS = {
   }
 };
 
-/** Show the problem statement /** Open the Potential Finder modal and directly generate problems. */
+// --- Clicks and Limits Helper Functions ---
+let _pfCountdownInterval = null;
+
+function _pfGetLimitState() {
+  const parentWin = window.parent;
+  if (!parentWin || !parentWin.__POTENTIAL_USER_STATE) {
+    return { plan: 'free', clicksUsed: 0, limit: 1, remaining: 1, daysRemaining: 26, isTrialExpired: false };
+  }
+  const state = parentWin.__POTENTIAL_USER_STATE;
+  const plan = state.plan || 'free';
+  const clicksToday = state.clicksToday || 0;
+  const lastClickDate = state.lastClickDate || '';
+  const daysRemaining = state.daysRemaining !== undefined ? state.daysRemaining : 26;
+  const isTrialExpired = !!state.isTrialExpired;
+
+  const todayStr = new Date().toLocaleDateString('en-CA');
+  const isToday = (lastClickDate === todayStr);
+
+  let limit = 1;
+  if (plan === 'pro') {
+    limit = 5;
+  } else if (plan === 'admin') {
+    limit = Infinity;
+  }
+
+  const clicksUsed = isToday ? clicksToday : 0;
+  const remaining = plan === 'admin' ? Infinity : Math.max(0, limit - clicksUsed);
+
+  return { plan, clicksUsed, limit, remaining, daysRemaining, isTrialExpired };
+}
+
+function _pfStartMidnightCountdown(elementId) {
+  if (_pfCountdownInterval) clearInterval(_pfCountdownInterval);
+
+  function update() {
+    const el = document.getElementById(elementId);
+    if (!el) {
+      clearInterval(_pfCountdownInterval);
+      return;
+    }
+    const now = new Date();
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+    const diffMs = tomorrow.getTime() - now.getTime();
+
+    if (diffMs <= 0) {
+      el.textContent = "00:00:00";
+      clearInterval(_pfCountdownInterval);
+      setTimeout(() => {
+        openPotentialFinder();
+      }, 1000);
+      return;
+    }
+
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+    const pad = (num) => String(num).padStart(2, '0');
+    el.textContent = `${pad(hours)}:${pad(mins)}:${pad(secs)}`;
+  }
+
+  update();
+  _pfCountdownInterval = setInterval(update, 1000);
+}
+
+/** Open the Potential Finder modal and directly generate problems. */
 function openPotentialFinder() {
   const overlay = document.getElementById('pf-overlay');
   if (!overlay) return;
 
   overlay.classList.remove('hidden');
+
+  const limitState = _pfGetLimitState();
+
+  // 1. Check if trial is expired
+  if (limitState.isTrialExpired) {
+    const body = document.getElementById('pf-body');
+    if (body) {
+      body.innerHTML = `
+        <div style="text-align:center;padding:40px 20px;">
+          <div style="font-size:3rem;margin-bottom:16px;">🔒</div>
+          <h2 style="font-family:'Space Grotesk',sans-serif;color:#e05c45;font-size:1.4rem;margin-bottom:12px;">Trial Plan Expired</h2>
+          <p style="color:#aaa;font-size:0.88rem;max-width:360px;margin:0 auto 24px;line-height:1.6;">
+            Your 26-day free trial has ended. Upgrade to Pro to unlock unlimited potential matching and advanced features.
+          </p>
+          <button class="pf-gen-btn" onclick="window.parent.postMessage({ type: 'navigate', url: '/pricing' }, '*')" style="max-width:240px;margin:0 auto;background:linear-gradient(135deg,#e53e3e 0%,#b83280 100%);border:none;box-shadow:0 4px 15px rgba(229,62,62,0.4);">
+            Upgrade to Pro
+          </button>
+        </div>
+      `;
+    }
+    return;
+  }
+
+  // 2. Check if daily searches are exhausted
+  if (limitState.remaining <= 0) {
+    const body = document.getElementById('pf-body');
+    if (body) {
+      const isFree = limitState.plan === 'free';
+      body.innerHTML = `
+        <div style="text-align:center;padding:40px 20px;">
+          <div style="font-size:3rem;margin-bottom:16px;">⏳</div>
+          <h2 style="font-family:'Space Grotesk',sans-serif;color:#fff;font-size:1.4rem;margin-bottom:12px;">Daily Limit Reached</h2>
+          <p style="color:#aaa;font-size:0.88rem;max-width:400px;margin:0 auto 20px;line-height:1.6;">
+            You have used your ${isFree ? '1 daily search' : '5 daily searches'} limit for today.
+          </p>
+          
+          <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:16px;max-width:280px;margin:0 auto 24px;">
+            <div style="font-size:0.75rem;color:#777;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Next Reset In</div>
+            <div id="pf-reset-timer" style="font-family:'Space Grotesk',sans-serif;font-size:1.8rem;font-weight:700;color:#f5a623;">00:00:00</div>
+          </div>
+
+          ${isFree ? `
+            <button class="pf-gen-btn" onclick="window.parent.postMessage({ type: 'navigate', url: '/pricing' }, '*')" style="max-width:240px;margin:0 auto;background:linear-gradient(135deg,#319795 0%,#3182ce 100%);border:none;box-shadow:0 4px 15px rgba(49,151,149,0.4);">
+              Upgrade to Pro (5 searches/day)
+            </button>
+          ` : `
+            <button class="pf-gen-btn" onclick="closePotentialFinder()" style="max-width:200px;margin:0 auto;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);">
+              Close
+            </button>
+          `}
+        </div>
+      `;
+      _pfStartMidnightCountdown('pf-reset-timer');
+    }
+    return;
+  }
 
   // Read current dashboard search filters
   const rawCountry  = document.getElementById('filter-country')?.value  || '';
@@ -2837,12 +2966,22 @@ async function _pfGenerateProblemsDirectly(ctx) {
   const body = document.getElementById('pf-body');
   if (!body) return;
 
+  const limitState = _pfGetLimitState();
+  const searchesRemainingText = limitState.plan === 'admin' 
+    ? 'Unlimited admin searches remaining' 
+    : `${limitState.remaining} search${limitState.remaining === 1 ? '' : 'es'} remaining today`;
+
   let msgIdx = 0;
   body.innerHTML = `
     <div class="pf-loading">
       <div class="pf-spinner"></div>
-      <div id="pf-loading-msg" class="pf-loading-msg">${_PF_LOADING_MSGS[0]}</div>
+      <div id="pf-loading-msg" class="pf-loading-msg" style="margin-bottom:8px;">${_PF_LOADING_MSGS[0]}</div>
+      <div style="font-size:0.75rem;color:#777;font-weight:500;">${searchesRemainingText}</div>
     </div>`;
+
+  _pfIsGenerating = true;
+  const closeBtn = document.querySelector('#pf-overlay .btn-close');
+  if (closeBtn) closeBtn.style.display = 'none';
 
   const interval = setInterval(() => {
     msgIdx = (msgIdx + 1) % _PF_LOADING_MSGS.length;
@@ -2866,8 +3005,22 @@ async function _pfGenerateProblemsDirectly(ctx) {
     const data = await res.json();
     clearInterval(interval);
     if (!res.ok) throw new Error(data.error || 'Generation failed');
+
+    // ONLY increment clicks count on successful search!
+    if (window.parent && window.parent.__RECORD_POTENTIAL_SEARCH_SUCCESS && limitState.plan !== 'admin') {
+      await window.parent.__RECORD_POTENTIAL_SEARCH_SUCCESS();
+      // Re-render the sidebar card to show updated remaining search count
+      if (typeof renderStartupCard === 'function') {
+        renderStartupCard(_pfActiveStartup);
+      }
+    }
+
     _pfRenderPhase2(data.problems, ctx);
   } catch (e) {
+    _pfIsGenerating = false;
+    const closeBtn = document.querySelector('#pf-overlay .btn-close');
+    if (closeBtn) closeBtn.style.display = 'block';
+
     clearInterval(interval);
     body.innerHTML = `
       <div style="text-align:center;padding:40px">
@@ -2877,12 +3030,11 @@ async function _pfGenerateProblemsDirectly(ctx) {
   }
 }
 
-/** Render the problem result cards (img2 interface) with a regenerate button. */
-// Store problems globally so the detail modal can access them
-let _pfCurrentProblems = [];
-let _pfCurrentCtx = {};
-
 function _pfRenderPhase2(problems, ctx) {
+  _pfIsGenerating = false;
+  const closeBtn = document.querySelector('#pf-overlay .btn-close');
+  if (closeBtn) closeBtn.style.display = 'block';
+
   _pfCurrentProblems = problems;
   _pfCurrentCtx = ctx;
 
@@ -2954,6 +3106,7 @@ function _pfRenderPhase2(problems, ctx) {
 
 /** Close the Potential Finder modal. */
 function closePotentialFinder() {
+  if (_pfIsGenerating) return;
   document.getElementById('pf-overlay')?.classList.add('hidden');
 }
 

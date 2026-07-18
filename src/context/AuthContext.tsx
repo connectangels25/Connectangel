@@ -11,6 +11,8 @@ interface Profile {
   is_admin: boolean | null;
   trial_started_at: string | null;
   plan: string | null;
+  potential_clicks_today: number | null;
+  last_potential_click_date: string | null;
 }
 
 const TRIAL_DAYS = 26;
@@ -31,6 +33,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,15 +52,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profileLoading, setProfileLoading] = useState(false);
   const isRedirectingRef = useRef(false);
 
-  const fetchProfile = async (userId: string) => {
-    setProfileLoading(true);
+  const fetchProfile = async (userId: string, showLoading = true) => {
+    if (showLoading) setProfileLoading(true);
     const { data } = await supabase
       .from("profiles")
-      .select("id, name, email, avatar_url, is_admin, trial_started_at, plan")
+      .select("id, name, email, avatar_url, is_admin, trial_started_at, plan, potential_clicks_today, last_potential_click_date")
       .eq("id", userId)
       .maybeSingle();
     setProfile(data as Profile | null);
-    setProfileLoading(false);
+    if (showLoading) setProfileLoading(false);
   };
 
   const daysRemaining = (() => {
@@ -189,8 +192,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await supabase.auth.signOut();
   };
 
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchProfile(user.id, false);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ session, user, profile, loading, profileLoading, daysRemaining, isTrialActive, isTrialExpired, hasPlan, startTrial, setPlan, signUp, signIn, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ session, user, profile, loading, profileLoading, daysRemaining, isTrialActive, isTrialExpired, hasPlan, startTrial, setPlan, signUp, signIn, signInWithGoogle, signOut, refreshProfile }}>
       {loading ? (
         <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center">
           <div className="relative flex flex-col items-center gap-6">
