@@ -1,5 +1,29 @@
-# date:- 16/07/2026
+# date:- 18/07/2026
 # Changelog
+
+## Subscription System Overhaul
+
+- **Completely separate Free & Pro plans** — Free (26-day trial) and Pro (30-day subscription) are now independent systems. Free plan logic only checks `plan='free'` and `trial_started_at`, Pro logic only checks `plan='pro'` and `pro_started_at`. No cross-dependency for security.
+
+- **Pro subscription tracking** — Added `pro_started_at` column to profiles. Clicking "Subscribe Now" records the timestamp and starts a 30-day countdown. Future payment integration can simply gate the `setPlan('pro')` call behind successful payment.
+
+- **Pro days remaining in admin** — Admin User Management table now shows `Pro: Xd left` for Pro users (from `pro_started_at`) and a "Pro Expired" status badge when the 30 days are up.
+
+- **Pricing page guard** — Pro users with an active subscription can no longer click the Subscribe button (shows "Already Active", disabled). Once Pro expires, the button changes to "Reactivate Pro". Free trial button also disabled for active Pro users.
+
+- **Backfill for existing Pro users** — Migration sets `pro_started_at = NOW()` for all existing Pro users who had `NULL`, giving them a full 30 days from today.
+
+- **Navbar badges** — Pro badge now shows remaining days (`Pro: Xd left`). Free trial badge and Pro badge display independently without interfering.
+
+- **Expired overlay** — Full-screen expiry overlay now only triggers for free trial expiry. Pro expiry is handled separately.
+
+- **Potential page** — Blocks access for both expired free AND expired Pro users, showing the upgrade prompt.
+
+- **Pending plan gate** — New users must explicitly start a trial or subscribe before accessing the app (redirected to `/pricing`).
+
+---
+
+# date:- 16/07/2026
 
 ## Pricing & Subscription
 
