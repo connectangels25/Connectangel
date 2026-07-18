@@ -11,14 +11,18 @@ const CheckIcon = () => (
 
 const PricingPage = () => {
   const navigate = useNavigate();
-  const { user, startTrial, setPlan, hasPlan } = useAuth();
+  const { user, startTrial, setPlan, hasPlan, isProActive, isProExpired } = useAuth();
   const [isAnnual, setIsAnnual] = useState(false);
+
+  const proAlreadyActive = isProActive;
+  const proCanSubscribe = !isProActive || isProExpired;
 
   const handleTryFree = async () => {
     if (!user) {
       navigate("/login");
       return;
     }
+    if (proAlreadyActive) return;
     await startTrial();
     navigate("/");
   };
@@ -28,6 +32,7 @@ const PricingPage = () => {
       navigate("/login");
       return;
     }
+    if (!proCanSubscribe) return;
     await setPlan("pro");
     navigate("/");
   };
@@ -107,8 +112,16 @@ const PricingPage = () => {
               </div>
             </div>
 
-            <button onClick={handleTryFree} className="mt-8 w-full py-3 rounded-lg border border-border bg-muted hover:bg-muted/80 text-foreground font-medium transition-colors">
-              Try for Free for 26 Days
+            <button
+              onClick={handleTryFree}
+              disabled={proAlreadyActive}
+              className={`mt-8 w-full py-3 rounded-lg border transition-colors font-medium ${
+                proAlreadyActive
+                  ? 'border-border/30 bg-muted/50 text-muted-foreground cursor-not-allowed'
+                  : 'border-border bg-muted hover:bg-muted/80 text-foreground'
+              }`}
+            >
+              {proAlreadyActive ? 'Already on Pro' : 'Try for Free for 26 Days'}
             </button>
           </div>
 
@@ -158,8 +171,16 @@ const PricingPage = () => {
               </div>
             </div>
 
-            <button onClick={handleSubscribe} className="mt-6 w-full py-3 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
-              Subscribe Now
+            <button
+              onClick={handleSubscribe}
+              disabled={!proCanSubscribe}
+              className={`mt-6 w-full py-3 rounded-lg font-medium transition-colors ${
+                !proCanSubscribe
+                  ? 'bg-primary/50 text-primary-foreground/60 cursor-not-allowed'
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+              }`}
+            >
+              {isProActive ? 'Already Active' : isProExpired ? 'Reactivate Pro' : 'Subscribe Now'}
             </button>
           </div>
         </div>

@@ -10,12 +10,14 @@ interface Profile {
   avatar_url: string | null;
   is_admin: boolean | null;
   trial_started_at: string | null;
+  pro_started_at: string | null;
   plan: string | null;
   potential_clicks_today: number | null;
   last_potential_click_date: string | null;
 }
 
-const TRIAL_DAYS = 26;
+const FREE_DAYS = 26;
+const PRO_DAYS = 30;
 
 interface AuthContextType {
   session: Session | null;
@@ -23,9 +25,14 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   profileLoading: boolean;
-  daysRemaining: number;
-  isTrialActive: boolean;
-  isTrialExpired: boolean;
+  freeDaysRemaining: number;
+  proDaysRemaining: number;
+  isFreeTrialActive: boolean;
+  isFreeTrialExpired: boolean;
+  isProActive: boolean;
+  isProExpired: boolean;
+  isPlanActive: boolean;
+  isPlanExpired: boolean;
   hasPlan: boolean;
   startTrial: () => Promise<void>;
   setPlan: (plan: string) => Promise<void>;
@@ -56,24 +63,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (showLoading) setProfileLoading(true);
     const { data } = await supabase
       .from("profiles")
-      .select("id, name, email, avatar_url, is_admin, trial_started_at, plan, potential_clicks_today, last_potential_click_date")
+      .select("id, name, email, avatar_url, is_admin, trial_started_at, pro_started_at, plan, potential_clicks_today, last_potential_click_date")
       .eq("id", userId)
       .maybeSingle();
     setProfile(data as Profile | null);
     if (showLoading) setProfileLoading(false);
   };
 
-  const daysRemaining = (() => {
-    if (!user?.created_at) return TRIAL_DAYS;
-    const start = new Date(user.created_at).getTime();
+  const freeDaysRemaining = (() => {
+    if (!profile?.trial_started_at) return FREE_DAYS;
+    const start = new Date(profile.trial_started_at).getTime();
     const elapsed = Date.now() - start;
-    const remaining = Math.max(0, TRIAL_DAYS - Math.floor(elapsed / (1000 * 60 * 60 * 24)));
-    return remaining;
+    return Math.max(0, FREE_DAYS - Math.floor(elapsed / (1000 * 60 * 60 * 24)));
   })();
 
-  const isTrialActive = !!user && daysRemaining > 0 && profile?.plan !== 'pro';
-  const isTrialExpired = !!user && daysRemaining === 0 && profile?.plan !== 'pro' && !profile?.is_admin;
-  const hasPlan = !profile ? true : !!user || profile.plan === 'pro' || profile.is_admin === true;
+  const isFreeTrialActive = !!user && freeDaysRemaining > 0 && profile?.plan === 'free' && !profile?.is_admin;
+  const isFreeTrialExpired = !!user && freeDaysRemaining === 0 && profile?.plan === 'free' && !profile?.is_admin;
+
+  const proDaysRemaining = (() => {
+    if (!profile?.pro_started_at) {
+      if (profile?.plan === 'pro') return PRO_DAYS;
+      return 0;
+    }
+    const start = new Date(profile.pro_started_at).getTime();
+    const elapsed = Date.now() - start;
+    return Math.max(0, PRO_DAYS - Math.floor(elapsed / (1000 * 60 * 60 * 24)));
+  })();
+
+  const isProActive = !!user && proDaysRemaining > 0 && profile?.plan === 'pro' && !profile?.is_admin;
+  const isProExpired = !!user && proDaysRemaining === 0 && profile?.plan === 'pro' && !profile?.is_admin;
+
+  const isPlanActive = isFreeTrialActive || isProActive || !!profile?.is_admin;
+  const isPlanExpired = isFreeTrialExpired || isProExpired;
+
+  const hasPlan = !profile ? true : (
+    profile.is_admin ||
+    profile.plan === 'pro' ||
+    (profile.plan === 'free' && !!profile.trial_started_at)
+  );
 
   useEffect(() => {
     const handleSession = async (currentSession: Session | null) => {
@@ -100,7 +127,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               window.location.href = "/signup?error=already_registered";
               return;
             }
-            // No profile = new user → let through (Google sign-up works)
           }
         }
       }
@@ -142,12 +168,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setPlan = async (plan: string) => {
     if (!user) return;
+    const updates: Record<string, string | null> = { plan };
+    if (plan === 'pro') {
+      updates.pro_started_at = new Date().toISOString();
+    }
     const { error } = await supabase
       .from("profiles")
-      .update({ plan })
+      .update(updates)
       .eq("id", user.id);
     if (!error) {
-      setProfile((prev) => prev ? { ...prev, plan } : prev);
+      setProfile((prev) => prev ? { ...prev, ...updates } : prev);
     }
   };
 
@@ -199,11 +229,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, loading, profileLoading, daysRemaining, isTrialActive, isTrialExpired, hasPlan, startTrial, setPlan, signUp, signIn, signInWithGoogle, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ session, user, profile, loading, profileLoading, freeDaysRemaining, proDaysRemaining, isFreeTrialActive, isFreeTrialExpired, isProActive, isProExpired, isPlanActive, isPlanExpired, hasPlan, startTrial, setPlan, signUp, signIn, signInWithGoogle, signOut, refreshProfile }}>
       {loading ? (
         <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center">
           <div className="relative flex flex-col items-center gap-6">
-            {/* Animated rings */}
             <div className="relative w-20 h-20">
               <div className="absolute inset-0 rounded-full border-2 border-primary/20" />
               <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary animate-spin" />

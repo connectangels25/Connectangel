@@ -10,11 +10,11 @@ export default function PotentialPage() {
   const [searchParams] = useSearchParams();
   const countryParam = searchParams.get("country") || "";
   const navigate = useNavigate();
-  const { isTrialExpired, user, profile, daysRemaining, refreshProfile } = useAuth();
+  const { isFreeTrialExpired, isProExpired, user, profile, freeDaysRemaining, refreshProfile } = useAuth();
   const [iframeSrc, setIframeSrc] = useState<string>("/capacity/index.html");
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  if (isTrialExpired) {
+  if (isFreeTrialExpired || isProExpired) {
     return (
       <div className="flex flex-col h-screen bg-background">
         <Navbar />
@@ -50,12 +50,12 @@ export default function PotentialPage() {
   useEffect(() => {
     (window as any).__POTENTIAL_USER_STATE = {
       plan: profile?.is_admin ? 'admin' : (profile?.plan || 'free'),
-      daysRemaining: daysRemaining,
+      daysRemaining: freeDaysRemaining,
       clicksToday: profile?.potential_clicks_today || 0,
       lastClickDate: profile?.last_potential_click_date || '',
-      isTrialExpired: isTrialExpired
+      isTrialExpired: isFreeTrialExpired
     };
-  }, [profile, daysRemaining, isTrialExpired]);
+  }, [profile, freeDaysRemaining, isFreeTrialExpired]);
 
   useEffect(() => {
     (window as any).__RECORD_POTENTIAL_SEARCH_SUCCESS = async () => {

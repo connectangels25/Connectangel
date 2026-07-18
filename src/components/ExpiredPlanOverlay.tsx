@@ -5,10 +5,10 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function ExpiredPlanOverlay() {
   const navigate = useNavigate();
-  const { isTrialExpired } = useAuth();
+  const { isFreeTrialExpired } = useAuth();
   const [dismissed, setDismissed] = useState(false);
 
-  if (!isTrialExpired || dismissed) return null;
+  if (!isFreeTrialExpired || dismissed) return null;
 
   const handleDismiss = () => setDismissed(true);
 
