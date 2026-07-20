@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import LoadingScreen from "./LoadingScreen";
 
 const AdminProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -23,11 +24,7 @@ const AdminProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }, [user]);
 
   if (loading || isAdmin === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <LoadingScreen message="Verifying access..." />;
   }
 
   if (!user) {

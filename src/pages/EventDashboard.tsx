@@ -3,6 +3,7 @@ import { AdminSidebar } from "../components/admin/AdminSidebar";
 import { EventFilters } from "../components/admin/event/EventFilters";
 import { EventCard, Event } from "../components/admin/event/EventCard";
 import { Inbox, Loader2, Menu, ChevronLeft, ChevronRight } from "lucide-react";
+import LoadingScreen from "@/components/LoadingScreen";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
@@ -256,10 +257,7 @@ const EventDashboard = () => {
 
             {/* Content Grid */}
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-32">
-                <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
-                <p className="text-muted-foreground font-medium">Loading events...</p>
-              </div>
+              <LoadingScreen message="Loading events..." fullScreen={false} />
             ) : filteredEvents.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-12">
                 {filteredEvents.map(event => (

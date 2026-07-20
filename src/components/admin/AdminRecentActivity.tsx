@@ -3,6 +3,7 @@ import { UserPlus, TrendingUp, ShieldAlert, DollarSign, Settings, CalendarPlus, 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
+import LoadingScreen from "@/components/LoadingScreen";
 
 export const AdminRecentActivity = () => {
   const { data: activities, isLoading, error } = useQuery({
@@ -53,9 +54,7 @@ export const AdminRecentActivity = () => {
       
       <div className="flex-1 overflow-auto pr-2 custom-scrollbar space-y-5 min-h-[200px]">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-            <Loader2 className="w-6 h-6 animate-spin mb-3 text-primary" />
-          </div>
+          <LoadingScreen message="Loading activity..." fullScreen={false} />
         ) : error ? (
            <div className="text-destructive text-sm text-center">Failed to load activity.</div>
         ) : !activities || activities.length === 0 ? (

@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import LoadingScreen from "./LoadingScreen";
 
 const FREE_NAV = ["/pricing", "/login", "/signup", "/admin"];
 
@@ -8,11 +9,7 @@ const PendingPlanGate = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <LoadingScreen message="Verifying your account..." />;
   }
 
   if (profileLoading) return null;

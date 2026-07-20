@@ -3,6 +3,7 @@ import { Calendar, Loader2, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import LoadingScreen from "@/components/LoadingScreen";
 
 export const AdminEventModeration = () => {
   const [events, setEvents] = useState<any[]>([]);
@@ -92,10 +93,7 @@ export const AdminEventModeration = () => {
 
       <div className="flex-1 space-y-3 min-h-[200px]">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm">
-            <Loader2 className="w-8 h-8 animate-spin mb-4 text-primary" />
-            <p>Loading...</p>
-          </div>
+          <LoadingScreen message="Loading..." fullScreen={false} />
         ) : events.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm border-2 border-dashed border-border rounded-2xl">
             <Check className="w-10 h-10 mb-3 opacity-20" />

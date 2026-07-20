@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import { Calendar, Plus, FileText, Globe, Trash2, Edit, Clock, Bookmark } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import LoadingScreen from "@/components/LoadingScreen";
 
 interface EventRow {
   id: string;
@@ -116,9 +117,7 @@ export default function MyEventsPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          </div>
+          <LoadingScreen message="Loading events..." fullScreen={false} />
         ) : (tab === "saved" ? savedEvents : tab === "published" ? approvedEvents : allEvents).length === 0 ? (
           <div className="text-center py-20">
             {tab === "saved" ? (

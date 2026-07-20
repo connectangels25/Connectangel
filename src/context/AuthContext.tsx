@@ -8,6 +8,7 @@ interface Profile {
   name: string | null;
   email: string | null;
   avatar_url: string | null;
+  created_at: string;
   is_admin: boolean | null;
   trial_started_at: string | null;
   pro_started_at: string | null;
@@ -63,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (showLoading) setProfileLoading(true);
     const { data } = await supabase
       .from("profiles")
-      .select("id, name, email, avatar_url, is_admin, trial_started_at, pro_started_at, plan, potential_clicks_today, last_potential_click_date")
+      .select("id, name, email, avatar_url, created_at, is_admin, trial_started_at, pro_started_at, plan, potential_clicks_today, last_potential_click_date")
       .eq("id", userId)
       .maybeSingle();
     setProfile(data as Profile | null);
@@ -71,8 +72,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const freeDaysRemaining = (() => {
-    if (!profile?.trial_started_at) return FREE_DAYS;
-    const start = new Date(profile.trial_started_at).getTime();
+    if (!profile?.created_at) return FREE_DAYS;
+    const start = new Date(profile.created_at).getTime();
     const elapsed = Date.now() - start;
     return Math.max(0, FREE_DAYS - Math.floor(elapsed / (1000 * 60 * 60 * 24)));
   })();
@@ -135,7 +136,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(currentSession?.user ?? null);
 
       if (currentSession?.user) {
-        await fetchProfile(currentSession.user.id);
+        const userId = currentSession.user.id;
+        await fetchProfile(userId);
+
+        const loggedInUser = currentSession.user;
+        const isGoogle = loggedInUser.app_metadata?.provider === "google";
+        if (isGoogle) {
+          const googleAvatar = loggedInUser.user_metadata?.avatar_url || loggedInUser.user_metadata?.picture || null;
+          if (googleAvatar) {
+            const { data: currentProfile } = await supabase
+              .from("profiles")
+              .select("avatar_url")
+              .eq("id", userId)
+              .maybeSingle();
+            if (currentProfile && !currentProfile.avatar_url) {
+              await supabase
+                .from("profiles")
+                .update({ avatar_url: googleAvatar })
+                .eq("id", userId);
+              setProfile((prev) => prev ? { ...prev, avatar_url: googleAvatar } : prev);
+            }
+          }
+        }
       } else {
         setProfile(null);
       }
@@ -156,13 +178,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const startTrial = async () => {
     if (!user) return;
-    const now = new Date().toISOString();
+    const trialStart = profile?.created_at || new Date().toISOString();
     const { error } = await supabase
       .from("profiles")
-      .update({ trial_started_at: now, plan: 'free' })
+      .update({ trial_started_at: trialStart, plan: 'free' })
       .eq("id", user.id);
     if (!error) {
-      setProfile((prev) => prev ? { ...prev, trial_started_at: now, plan: 'free' } : prev);
+      setProfile((prev) => prev ? { ...prev, trial_started_at: trialStart, plan: 'free' } : prev);
     }
   };
 

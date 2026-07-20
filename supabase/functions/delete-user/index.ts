@@ -67,18 +67,24 @@ serve(async (req) => {
     if (fetchError) throw fetchError;
     const targetEmail = targetUser?.user?.email;
 
-    // Add to deleted_emails first so even if the OAuth flow races,
-    // the trigger on profiles will block re-creation
+    // Delete profile first (in case FK cascade doesn't trigger via admin API)
+    const { error: profileDeleteError } = await supabaseAdmin
+      .from("profiles")
+      .delete()
+      .eq("id", user_id);
+    if (profileDeleteError) throw profileDeleteError;
+
+    // Delete from auth.users (cascades to profiles as fallback)
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user_id);
+    if (deleteError) throw deleteError;
+
+    // Add to deleted_emails after successful deletion to prevent re-registration
     if (targetEmail) {
       const { error: blockError } = await supabaseAdmin
         .from("deleted_emails")
-        .insert({ email: targetEmail });
+        .upsert({ email: targetEmail }, { onConflict: "email" });
       if (blockError) throw blockError;
     }
-
-    // Delete from auth.users (cascades to profiles)
-    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user_id);
-    if (deleteError) throw deleteError;
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
