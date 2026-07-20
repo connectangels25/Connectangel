@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { subMonths, format, startOfMonth } from "date-fns";
 import { Loader2 } from "lucide-react";
+import LoadingScreen from "@/components/LoadingScreen";
 
 export const AdminPlatformGrowthChart = () => {
   const { data, isLoading, error } = useQuery({
@@ -75,10 +76,7 @@ export const AdminPlatformGrowthChart = () => {
       
       <div className="flex-1 w-full min-h-[250px]">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-            <Loader2 className="w-8 h-8 animate-spin mb-4 text-primary" />
-            <p className="text-sm">Loading growth metrics...</p>
-          </div>
+          <LoadingScreen message="Loading growth metrics..." fullScreen={false} />
         ) : error ? (
            <div className="flex items-center justify-center h-full text-destructive text-sm">Failed to load chart data.</div>
         ) : (

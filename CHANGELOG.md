@@ -1,3 +1,28 @@
+# date:- 20/07/2026
+# Changelog
+
+## Admin Dashboard
+
+- **Delete user now works reliably** — Fixed `delete-user` edge function: profile is now explicitly deleted before auth user (FK cascade wasn't triggering), `deleted_emails` uses `upsert` instead of `insert` to prevent duplicate key errors on retry, and email is only blocked after successful deletion.
+
+## Auth & Login
+
+- **Google avatar auto-sync** — When a user logs in with Google, their Google profile picture is automatically saved to the `profiles` table. Navbar, AdminSidebar, AdminNavbar, and EventDashboardNavbar now read `profile?.avatar_url` as the primary source for avatars.
+
+- **Trial days from account creation** — Free trial remaining days now always calculated from `created_at` (join date) instead of `trial_started_at`. Both `AuthContext` and admin dashboard use `created_at` directly, so users who joined months ago correctly show "Expired" rather than "26d left".
+
+- **Login redirect improved** — After sign-in, users now go to `/` instead of always `/pricing`. `PendingPlanGate` handles the redirect: new users without a plan get sent to pricing, returning users with a plan go straight to homepage. PricingPage also redirects users who already have a plan.
+
+## Pricing Page
+
+- **Removed model names** — Free plan card no longer shows a model name. Pro plan now shows "Pro Model – Advanced AI model for deeper insights" instead of the raw model name.
+
+- **GST indicator** — Added "+ GST" after the price on the Pro plan card.
+
+## UI/UX
+
+- **Unified loading screen** — Created reusable `LoadingScreen` component with the custom ConnectAngel double-ring spinner + brand text. Applied to 10 loading states across the app (route guards, event details, admin sections, etc.). Fixed vertical centering with `flex-1` and `min-h-[400px]`.
+
 # date:- 18/07/2026
 # Changelog
 

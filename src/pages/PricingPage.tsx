@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
@@ -11,7 +11,14 @@ const CheckIcon = () => (
 
 const PricingPage = () => {
   const navigate = useNavigate();
-  const { user, startTrial, setPlan, hasPlan, isProActive, isProExpired } = useAuth();
+  const { user, startTrial, setPlan, hasPlan, isProActive, isProExpired, profile } = useAuth();
+
+  const alreadyHasPlan = !!profile && hasPlan && !profile.is_admin;
+  useEffect(() => {
+    if (alreadyHasPlan) {
+      navigate("/", { replace: true });
+    }
+  }, [alreadyHasPlan, navigate]);
   const [isAnnual, setIsAnnual] = useState(false);
 
   const proAlreadyActive = isProActive;
@@ -96,10 +103,6 @@ const PricingPage = () => {
             <div className="flex-1 space-y-4">
               <div className="flex items-start gap-3 text-sm text-foreground">
                 <CheckIcon />
-                <span><strong>Model:</strong> meta-llama/llama-4-scout-17b-16e-instruct</span>
-              </div>
-              <div className="flex items-start gap-3 text-sm text-foreground">
-                <CheckIcon />
                 <span><strong>Only 1 AI Opportunity Check per day</strong></span>
               </div>
               <div className="flex items-start gap-3 text-sm text-foreground">
@@ -115,11 +118,10 @@ const PricingPage = () => {
             <button
               onClick={handleTryFree}
               disabled={proAlreadyActive}
-              className={`mt-8 w-full py-3 rounded-lg border transition-colors font-medium ${
-                proAlreadyActive
+              className={`mt-8 w-full py-3 rounded-lg border transition-colors font-medium ${proAlreadyActive
                   ? 'border-border/30 bg-muted/50 text-muted-foreground cursor-not-allowed'
                   : 'border-border bg-muted hover:bg-muted/80 text-foreground'
-              }`}
+                }`}
             >
               {proAlreadyActive ? 'Already on Pro' : 'Try for Free for 26 Days'}
             </button>
@@ -138,7 +140,7 @@ const PricingPage = () => {
               </div>
               <div className="text-right">
                 <span className="text-3xl font-bold text-foreground">₹{isAnnual ? Math.round(149 * 0.8 * 12) : 149}</span>
-                <span className="text-sm text-muted-foreground font-normal">/{isAnnual ? 'yr' : 'mo'}</span>
+                <span className="text-sm text-muted-foreground font-normal">/{isAnnual ? 'yr' : 'mo'} + GST</span>
               </div>
             </div>
 
@@ -151,15 +153,11 @@ const PricingPage = () => {
               </div>
               <div className="flex items-start gap-3 text-sm text-foreground">
                 <CheckIcon />
-                <span><strong>Model:</strong> openai/gpt-oss-120b</span>
+                <span><strong>Pro Model</strong> – Advanced AI model for deeper insights</span>
               </div>
               <div className="flex items-start gap-3 text-sm text-foreground">
                 <CheckIcon />
                 <span><strong>Daily Calls:</strong> 5 calls per day per user</span>
-              </div>
-              <div className="flex items-start gap-3 text-sm text-foreground">
-                <CheckIcon />
-                <span><strong>Advanced Search:</strong> Deeper graph analysis & insights</span>
               </div>
               <div className="flex items-start gap-3 text-sm text-foreground">
                 <CheckIcon />
@@ -174,11 +172,10 @@ const PricingPage = () => {
             <button
               onClick={handleSubscribe}
               disabled={!proCanSubscribe}
-              className={`mt-6 w-full py-3 rounded-lg font-medium transition-colors ${
-                !proCanSubscribe
+              className={`mt-6 w-full py-3 rounded-lg font-medium transition-colors ${!proCanSubscribe
                   ? 'bg-primary/50 text-primary-foreground/60 cursor-not-allowed'
                   : 'bg-primary text-primary-foreground hover:bg-primary/90'
-              }`}
+                }`}
             >
               {isProActive ? 'Already Active' : isProExpired ? 'Reactivate Pro' : 'Subscribe Now'}
             </button>

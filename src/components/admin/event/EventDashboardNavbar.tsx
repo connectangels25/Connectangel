@@ -3,11 +3,11 @@ import { Bell, Settings2, Search, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export const EventDashboardNavbar = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   
   const name = user?.user_metadata?.name || user?.user_metadata?.full_name || "Sarah Jenkins";
   const role = "HEAD OF SAFETY"; // Following the design labels
-  const avatarUrl = user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
+  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
 
   return (
     <nav className="h-[80px] bg-[#131521] border-b border-[#2D314E] flex items-center justify-between px-8 text-white relative z-10">

@@ -24,13 +24,13 @@ interface AdminSidebarProps {
 
 export const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [credModalOpen, setCredModalOpen] = useState(false);
   const [pendingCount, setPendingCount] = useState<number>(0);
 
   const name = user?.user_metadata?.name || user?.user_metadata?.full_name || "Admin User";
   const email = user?.email || "Super Administrator";
-  const avatarUrl = user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
+  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`;
 
   const fetchPendingCount = async () => {
     try {

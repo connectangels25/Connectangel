@@ -61,6 +61,13 @@ export default function Navbar() {
       });
   }, [user]);
 
+  // Sync avatar from AuthContext profile (handles Google OAuth avatar sync)
+  useEffect(() => {
+    if (profile?.avatar_url) {
+      setProfileAvatarUrl(profile.avatar_url);
+    }
+  }, [profile?.avatar_url]);
+
   const userEmail = user?.email ?? "";
   const userInitials = profileName
     ? profileName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)

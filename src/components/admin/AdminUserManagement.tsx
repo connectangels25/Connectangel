@@ -3,6 +3,7 @@ import { User, Trash2, MoreVertical, Mail, Loader2, ArrowRight, Ban, CheckCircle
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import LoadingScreen from "@/components/LoadingScreen";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { AdminDeleteModal } from "./AdminDeleteModal";
@@ -161,10 +162,7 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
       
       <div className="overflow-x-auto min-h-[300px]">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
-            <Loader2 className="w-8 h-8 animate-spin mb-4 text-primary" />
-            <p className="text-sm">Loading users...</p>
-          </div>
+          <LoadingScreen message="Loading users..." fullScreen={false} />
         ) : error ? (
           <div className="flex items-center justify-center h-[300px] text-destructive text-sm">
             Failed to load users: {error?.message || "Unknown error"}
@@ -193,7 +191,7 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
                 const FREE_DAYS = 26;
                 const PRO_DAYS = 30;
                 const isBanned = !!(user as any).is_banned;
-                const trialStart = (user as any).trial_started_at;
+                const trialStart = (user as any).created_at;
                 const proStart = (user as any).pro_started_at;
                 const isFreeTrialExpired = !!(trialStart) && Math.floor((Date.now() - new Date(trialStart).getTime()) / (1000 * 60 * 60 * 24)) >= FREE_DAYS;
                 const isProExpired = !!(proStart) && Math.floor((Date.now() - new Date(proStart).getTime()) / (1000 * 60 * 60 * 24)) >= PRO_DAYS;
