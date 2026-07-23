@@ -2990,6 +2990,8 @@ async function _pfGenerateProblemsDirectly(ctx) {
   }, 2000);
 
   try {
+    const parentWin = window.parent;
+    const userPlan = (parentWin && parentWin.__POTENTIAL_USER_STATE && parentWin.__POTENTIAL_USER_STATE.plan) || 'free';
     const res = await fetch('/api/generate-problems', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2999,7 +3001,8 @@ async function _pfGenerateProblemsDirectly(ctx) {
         district: ctx.district, 
         region: ctx.region, 
         domain: ctx.domain, 
-        subDomain: ctx.subDomain 
+        subDomain: ctx.subDomain,
+        plan: userPlan
       }),
     });
     const data = await res.json();
@@ -3046,6 +3049,10 @@ function _pfRenderPhase2(problems, ctx) {
   const locParts = [ctx.district, ctx.state, ctx.country].filter(p => p && p.trim() && p.toLowerCase() !== 'all');
   const locStr = locParts.join(', ') || ctx.country;
 
+  // Determine if current user is free (no pro-only badge)
+  const _currentUserPlan = _pfGetLimitState().plan;
+  const _isFreeUser = (_currentUserPlan !== 'pro' && _currentUserPlan !== 'admin');
+
   body.innerHTML = `
     <div class="pf-phase2">
       <div class="pf-phase2-header">
@@ -3057,7 +3064,7 @@ function _pfRenderPhase2(problems, ctx) {
           🔄 Regenerate
         </button>
       </div>
-      <p style="font-size:0.78rem;color:#555;margin:-8px 0 16px;text-align:center;">💡 Click any card to see geographic impact analysis</p>
+      <p style="font-size:0.78rem;color:#555;margin:-8px 0 16px;text-align:center;">💡 Click any card to see more details</p>
       <div class="pf-problems">
         ${problems.map((p, i) => `
           <div class="pf-problem-card pf-problem-card--clickable" onclick="openProblemDetail(${i})" role="button" tabindex="0">
@@ -3070,19 +3077,20 @@ function _pfRenderPhase2(problems, ctx) {
                 <span class="pf-card-arrow">›</span>
               </div>
             </div>
-            ${p.millionDollarReason ? `
+            ${!_isFreeUser && p.millionDollarReason ? `
               <div class="pf-million-dollar-badge" style="margin: 12px 0; padding: 12px 14px; background: linear-gradient(135deg, rgba(0, 245, 160, 0.08) 0%, rgba(0, 245, 160, 0.02) 100%); border: 1px dashed rgba(0, 245, 160, 0.3); border-radius: 6px; display: flex; align-items: center; gap: 10px; box-shadow: 0 0 15px rgba(0, 245, 160, 0.03); transition: all 0.2s ease;">
                 <span style="font-size: 1.2rem; filter: drop-shadow(0 0 4px rgba(0, 245, 160, 0.5));">💎</span>
                 <div style="display: flex; flex-direction: column; gap: 2px;">
                   <span style="font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 700; color: #00F5A0; text-transform: uppercase; letter-spacing: 0.06em; line-height: 1.2;">Million-Dollar Idea</span>
-                  <span style="font-size: 0.72rem; color: #a0aec0; font-weight: 500;">Click to unlock full description & business plan</span>
+                  <span style="font-size: 0.72rem; color: #a0aec0; font-weight: 500;">Click to unlock full description &amp; business plan</span>
                 </div>
               </div>
             ` : `
-              <p class="pf-problem-reason">${p.reason}</p>
+              <p class="pf-problem-reason" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;">${p.reason}</p>
             `}
+            ${!_isFreeUser ? `
             <div class="pf-problem-meta">
-              <span><b style="color:#999">Target:</b> ${p.affectedGroup}</span>
+              <span><b style="color:#999">Target:</b> ${p.affectedGroup || ''}</span>
               ${p.impact ? (function() {
                 const dist = p.impact.districtImpact || {};
                 const stateImp = p.impact.stateImpact || {};
@@ -3094,6 +3102,7 @@ function _pfRenderPhase2(problems, ctx) {
                 return `<span class="pf-impact-hint">📊 ${parts.length > 0 ? parts.join(' · ') + ' affected' : 'Impact data available'}</span>`;
               })() : ''}
             </div>
+            ` : ''}
           </div>
         `).join('')}
       </div>
@@ -3103,6 +3112,7 @@ function _pfRenderPhase2(problems, ctx) {
     </div>
   `;
 }
+
 
 /** Close the Potential Finder modal. */
 function closePotentialFinder() {
@@ -3301,6 +3311,9 @@ function openProblemDetail(idx) {
     </div>
   `;
 
+  const _detailUserPlan = _pfGetLimitState().plan;
+  const _detailIsFreeUser = (_detailUserPlan !== 'pro' && _detailUserPlan !== 'admin');
+
   modal.innerHTML = `
     <div class="pd-header">
       <button class="pd-close-btn" onclick="closeProblemDetail()">✕</button>
@@ -3312,26 +3325,25 @@ function openProblemDetail(idx) {
       <p class="pd-domain-tag">${ctx.domain} › ${ctx.subDomain}</p>
       
       <div class="pd-nav-bar">
-        ${hasImpact ? `<button id="btn-nav-impact" class="pd-nav-item active" onclick="scrollToSection('pd-sec-impact')">Geographic Impact</button>` : ''}
-        <button id="btn-nav-desc" class="pd-nav-item ${!hasImpact ? 'active' : ''}" onclick="scrollToSection('pd-sec-desc')">Description</button>
-        <button id="btn-nav-affected" class="pd-nav-item" onclick="scrollToSection('pd-sec-affected')">Who is Affected</button>
-        ${p.millionDollarReason ? `<button id="btn-nav-million" class="pd-nav-item" onclick="scrollToSection('pd-sec-million')">Million-Dollar Idea</button>` : ''}
-        ${p.startupOpportunity ? `<button id="btn-nav-opportunity" class="pd-nav-item" onclick="scrollToSection('pd-sec-opportunity')">Opportunity</button>` : ''}
-        ${p.monetization ? `<button id="btn-nav-monetization" class="pd-nav-item" onclick="scrollToSection('pd-sec-monetization')">Monetization</button>` : ''}
-        ${p.subIdeas && p.subIdeas.length > 0 ? `<button id="btn-nav-subideas" class="pd-nav-item" onclick="scrollToSection('pd-sec-subideas')">Execution</button>` : ''}
+        ${!_detailIsFreeUser && hasImpact ? `<button id="btn-nav-impact" class="pd-nav-item active" onclick="scrollToSection('pd-sec-impact')">Geographic Impact</button>` : ''}
+        <button id="btn-nav-desc" class="pd-nav-item ${_detailIsFreeUser || !hasImpact ? 'active' : ''}" onclick="scrollToSection('pd-sec-desc')">Description</button>
+        ${!_detailIsFreeUser ? `<button id="btn-nav-affected" class="pd-nav-item" onclick="scrollToSection('pd-sec-affected')">Who is Affected</button>` : ''}
+        ${!_detailIsFreeUser && p.millionDollarReason ? `<button id="btn-nav-million" class="pd-nav-item" onclick="scrollToSection('pd-sec-million')">Million-Dollar Idea</button>` : ''}
+        ${!_detailIsFreeUser && p.startupOpportunity ? `<button id="btn-nav-opportunity" class="pd-nav-item" onclick="scrollToSection('pd-sec-opportunity')">Opportunity</button>` : ''}
+        ${!_detailIsFreeUser && p.monetization ? `<button id="btn-nav-monetization" class="pd-nav-item" onclick="scrollToSection('pd-sec-monetization')">Monetization</button>` : ''}
+        ${!_detailIsFreeUser && p.subIdeas && p.subIdeas.length > 0 ? `<button id="btn-nav-subideas" class="pd-nav-item" onclick="scrollToSection('pd-sec-subideas')">Execution</button>` : ''}
       </div>
     </div>
 
     <div class="pd-body">
-      <div id="pd-sec-impact">
-        ${impactHTML}
-      </div>
+      ${!_detailIsFreeUser ? `<div id="pd-sec-impact">${impactHTML}</div>` : ''}
 
       <div id="pd-sec-desc" class="pd-section">
         <h4 class="pd-section-title">📝 Problem Description</h4>
         <p class="pd-text">${p.reason}</p>
       </div>
 
+      ${!_detailIsFreeUser ? `
       <div id="pd-sec-affected" class="pd-section">
         <h4 class="pd-section-title">👥 Who Is Affected?</h4>
         <p class="pd-text">${p.affectedGroup}</p>
@@ -3357,8 +3369,8 @@ function openProblemDetail(idx) {
 
       ${p.subIdeas && p.subIdeas.length > 0 ? `
       <div id="pd-sec-subideas" class="pd-section">
-        <h4 class="pd-section-title">💡 Execution Sub-Ideas (7 Phases)</h4>
-        <p class="pd-section-sub" style="margin-bottom: 12px;">Click on any phase to view implementation details</p>
+        <h4 class="pd-section-title">💡 Execution Sub-Ideas (${p.subIdeas.length} Steps)</h4>
+        <p class="pd-section-sub" style="margin-bottom: 12px;">Click on any step to view implementation details</p>
         <div class="pd-subideas-list" style="display: flex; flex-direction: column; gap: 10px; margin-top: 12px;">
           ${p.subIdeas.map((sub, sIdx) => `
             <div class="pd-subidea-item" style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 6px; overflow: hidden; transition: all 0.2s;">
@@ -3373,6 +3385,7 @@ function openProblemDetail(idx) {
           `).join('')}
         </div>
       </div>` : ''}
+      ` : ''}
     </div>
   `;
 
