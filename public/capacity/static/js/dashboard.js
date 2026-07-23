@@ -351,12 +351,13 @@ async function loadData() {
  */
 async function checkBackendStatus() {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 2500);
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   let online = false;
   try {
     const response = await fetch("/api/domains", { signal: controller.signal });
-    online = response.ok;
+    const contentType = response.headers.get("content-type") || "";
+    online = response.ok && (contentType.includes("json") || contentType.includes("javascript"));
   } catch (err) {
     online = false;
   } finally {
