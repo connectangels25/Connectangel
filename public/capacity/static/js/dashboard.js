@@ -36,13 +36,16 @@ let API_BASE = resolveApiBase();
 
 const originalFetch = window.fetch.bind(window);
 window.fetch = function(url, options) {
-  if (typeof url === "string" && url.startsWith("/api/")) {
-    // Re-resolve every time in case parent set the URL after iframe loaded
+  options = options || {};
+  let urlStr = (typeof url === "string") ? url : (url && url.url ? url.url : "");
+
+  if (urlStr.startsWith("/api/")) {
     API_BASE = resolveApiBase();
-    url = API_BASE + url;
-    
-    // Inject header to bypass ngrok browser interstitial warning page
-    options = options || {};
+    urlStr = API_BASE + urlStr;
+    url = urlStr;
+  }
+
+  if (urlStr.includes("ngrok") || urlStr.includes("/api/")) {
     options.headers = options.headers || {};
     if (options.headers instanceof Headers) {
       options.headers.set("ngrok-skip-browser-warning", "true");
@@ -52,6 +55,7 @@ window.fetch = function(url, options) {
       options.headers["ngrok-skip-browser-warning"] = "true";
     }
   }
+
   return originalFetch(url, options);
 };
 
