@@ -22,11 +22,15 @@
 // Prepend API_BASE to all relative /api/ fetches
 // Check window itself, then window.parent (when inside iframe), fallback to localhost
 function resolveApiBase() {
-  if (window.__POTENTIAL_API_URL) return window.__POTENTIAL_API_URL;
-  try {
-    if (window.parent && window.parent.__POTENTIAL_API_URL) return window.parent.__POTENTIAL_API_URL;
-  } catch(e) {}
-  return "http://127.0.0.1:5000";
+  let url = "";
+  if (window.__POTENTIAL_API_URL) url = window.__POTENTIAL_API_URL;
+  else {
+    try {
+      if (window.parent && window.parent.__POTENTIAL_API_URL) url = window.parent.__POTENTIAL_API_URL;
+    } catch(e) {}
+  }
+  if (!url) url = "http://127.0.0.1:5000";
+  return url.replace(/\/+$/, "");
 }
 let API_BASE = resolveApiBase();
 
