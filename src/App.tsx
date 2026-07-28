@@ -25,6 +25,7 @@ import EventDashboard from "./pages/EventDashboard.tsx";
 import UserManagementDashboard from "./pages/UserManagementDashboard.tsx";
 import EventsPage from "./pages/EventsPage.tsx";
 import PotentialPage from "./pages/PotentialPage.tsx";
+import TestPage from "./pages/TestPage.tsx";
 import ExpiredPlanOverlay from "@/components/ExpiredPlanOverlay";
 import RedirectIfAuthenticated from "@/components/RedirectIfAuthenticated";
 
@@ -39,6 +40,7 @@ const App = () => (
         <BrowserRouter>
           <ExpiredPlanOverlay />
           <Routes>
+            <Route path="/test" element={<TestPage />} />
             <Route path="/" element={<PendingPlanGate><Index /></PendingPlanGate>} />
             <Route path="/events" element={<PendingPlanGate><EventsPage /></PendingPlanGate>} />
             <Route path="/shad" element={<PendingPlanGate><ChatPage /></PendingPlanGate>} />
