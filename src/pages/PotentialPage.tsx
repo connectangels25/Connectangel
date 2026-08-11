@@ -39,7 +39,7 @@ export default function PotentialPage() {
     );
   }
 
-  const DASHBOARD_URL = "http://127.0.0.1:5000";
+  const DASHBOARD_URL = "http://localhost:5000";
 
   (window as any).__POTENTIAL_API_URL = DASHBOARD_URL;
 

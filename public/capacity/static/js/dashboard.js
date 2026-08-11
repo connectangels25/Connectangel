@@ -34,7 +34,8 @@ function resolveApiBase() {
       if (window.parent && window.parent.__POTENTIAL_API_URL) url = window.parent.__POTENTIAL_API_URL;
     } catch(e) {}
   }
-  if (!url) url = "http://127.0.0.1:5000";
+  if (!url) url = "http://localhost:5000";
+
   return url.replace(/\/+$/, "");
 }
 let API_BASE = resolveApiBase();
