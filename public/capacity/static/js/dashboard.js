@@ -23,13 +23,19 @@
 // Check window itself, then window.parent (when inside iframe), fallback to localhost
 function resolveApiBase() {
   let url = "";
-  if (window.__POTENTIAL_API_URL) url = window.__POTENTIAL_API_URL;
-  else {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("apiUrl")) url = params.get("apiUrl");
+  } catch(e) {}
+
+  if (!url && window.__POTENTIAL_API_URL) url = window.__POTENTIAL_API_URL;
+  if (!url) {
     try {
       if (window.parent && window.parent.__POTENTIAL_API_URL) url = window.parent.__POTENTIAL_API_URL;
     } catch(e) {}
   }
-  if (!url) url = "http://127.0.0.1:5000";
+  if (!url) url = "http://localhost:5000";
+
   return url.replace(/\/+$/, "");
 }
 let API_BASE = resolveApiBase();
@@ -241,14 +247,21 @@ async function loadData() {
 
   const countrySelect = document.getElementById("filter-country");
   if (countrySelect) {
-    const countries = Array.from(new Set(allStartups.map(s => s.country))).filter(Boolean);
-    if (!countries.includes("United States")) {
-      countries.push("United States");
+    let countries = [];
+    try {
+      const cRes = await fetch("/api/countries");
+      if (cRes.ok) {
+        countries = await cRes.json();
+      }
+    } catch(e) {}
+
+    if (!Array.isArray(countries) || countries.length === 0) {
+      countries = Array.from(new Set(allStartups.map(s => s.country))).filter(Boolean);
+      if (!countries.includes("United States")) countries.push("United States");
+      if (!countries.includes("United Kingdom")) countries.push("United Kingdom");
     }
-    if (!countries.includes("United Kingdom")) {
-      countries.push("United Kingdom");
-    }
-    countries.sort();
+    countries = Array.from(new Set(countries)).sort();
+
     countrySelect.innerHTML = '<option value="All">All Countries</option>';
     countries.forEach(c => {
       const opt = document.createElement("option");
@@ -1104,8 +1117,17 @@ async function applyFilters() {
     const filteredDomains = await domainsRes.json();
     const filteredStartups = await startupsRes.json();
 
-    // Countries with dedicated API endpoints don't use Excel data — skip early return for them
-    const _DEDICATED_COUNTRIES = ["Saudi Arabia", "United Arab Emirates", "Oman", "Qatar"];
+    // Countries with dedicated API endpoints (real JSON dataset) — skip Excel early-return for them
+    const _DEDICATED_COUNTRIES = [
+      "Saudi Arabia", "United Arab Emirates", "Oman", "Qatar",
+      "Albania", "Algeria", "Azerbaijan", "Bangladesh", "Bosnia and Herzegovina",
+      "Brunei", "Burkina Faso", "Chad", "China", "Egypt", "Ethiopia", "Gambia",
+      "Guinea", "Indonesia", "Iran", "Iraq", "Jordan", "Kazakhstan", "Kosovo",
+      "Kuwait", "Kyrgyzstan", "Libya", "Malaysia", "Maldives", "Mali", "Mauritania",
+      "Morocco", "Niger", "Nigeria", "Pakistan", "Palestine", "Russia", "Senegal",
+      "Sierra Leone", "Somalia", "Sudan", "Syria", "Tajikistan", "Tanzania",
+      "Tunisia", "Turkey", "Turkmenistan", "UAE", "Uzbekistan", "Yemen"
+    ];
     if (!Array.isArray(filteredDomains) || filteredDomains.length === 0) {
       if (!_DEDICATED_COUNTRIES.includes(country)) {
         showToast("⚠️ No domain data found for this filter.", "warn");
@@ -1170,12 +1192,12 @@ async function applyFilters() {
           setStatCard("stat-startups", realTotal.toLocaleString());
           setStatCard("stat-potential", realPotential.toLocaleString());
           setStatCard("stat-unique", realGap.toLocaleString());
-          setStatCard("stat-domains", industries.length + " industries");
+          setStatCard("stat-domains", domain === "All" ? industries.length.toString() : "1");
 
-          _setStatLabel("stat-startups", "Actual (DPIIT 2024)");
+          _setStatLabel("stat-startups", domain === "All" ? "Actual (DPIIT 2024)" : `Actual (${domain.slice(0, 15)}...)`);
           _setStatLabel("stat-potential", "Total Potential");
           _setStatLabel("stat-unique", "Opportunity Gap");
-          _setStatLabel("stat-domains", "TOTAL INDUSTRIES");
+          _setStatLabel("stat-domains", domain === "All" ? "TOTAL INDUSTRIES" : "ACTIVE DOMAIN");
 
           // ── 2. Domain tab → Industry chart ───────────────────────────
           // Render industry data in the domain chart (Domain tab stays active)
@@ -1570,7 +1592,54 @@ async function applyFilters() {
       }
     }
 
-    // ── Normal toast for other countries ─────────────────────────────────────
+    // ── GENERIC 250-COUNTRY BLOCK: All countries route via /api/country-stats ───
+    if (country !== "India" && country !== "United Kingdom" && country !== "United States" && country !== "Saudi Arabia" && country !== "United Arab Emirates" && country !== "UAE" && country !== "Oman" && country !== "Qatar") {
+      try {
+        const [csIndRes, csStateRes] = await Promise.allSettled([
+          fetch(`/api/country-stats?country=${encodeURIComponent(country)}&state=${encodeURIComponent(state)}&domain=${encodeURIComponent(domain)}&view=industry`),
+          fetch(`/api/country-stats?country=${encodeURIComponent(country)}&state=${encodeURIComponent(state)}&domain=${encodeURIComponent(domain)}&view=state`)
+        ]);
+
+        const csIndData   = csIndRes.status   === "fulfilled" && csIndRes.value.ok   ? await csIndRes.value.json()   : { industries: [], grand_total: 0 };
+        const csStateData = csStateRes.status === "fulfilled" && csStateRes.value.ok ? await csStateRes.value.json() : { states: [], source: "" };
+
+        const industries    = csIndData.industries || [];
+        const realTotal     = csIndData.grand_total || 0;
+        const realPotential = industries.reduce((sum, d) => sum + (d.total || 0), 0);
+        const realGap       = industries.reduce((sum, d) => sum + (d.gap   || 0), 0);
+
+        if (industries.length === 0) {
+          showToast(`⚠️ No data found for ${country}.`, "warn");
+        } else {
+          setStatCard("stat-startups",  realTotal.toLocaleString());
+          setStatCard("stat-potential", realPotential.toLocaleString());
+          setStatCard("stat-unique",    realGap.toLocaleString());
+          setStatCard("stat-domains",   domain === "All" ? industries.length.toString() : "1");
+          _setStatLabel("stat-startups",  `Actual (${country} 2024)`);
+          _setStatLabel("stat-potential", "Total Potential");
+          _setStatLabel("stat-unique",    "Opportunity Gap");
+          _setStatLabel("stat-domains",   "TOTAL SECTORS");
+
+          _cachedIndiaStates = csStateData.states || [];
+          _cachedIndiaSource = csStateData.source || `ConnectAngels Dataset — ${country} 2024`;
+
+          _renderIndiaIndustryChart(industries);
+          _renderIndiaIndustryTable(industries, csIndData.source || `ConnectAngels Real Dataset — ${country} 2024`);
+          renderStartupCard(null);
+
+          showToast(`✅ ${country} (${state === "All" ? "All Regions" : state}): ${realTotal.toLocaleString()} startups`, "success");
+          saveSearch(
+            { country, state, district, domain, subdomain: activeSubDomain ? activeSubDomain.sub : "" },
+            { domains: industries.length, countries: 1, total_startups: realTotal, total_potential: realPotential, unique_startups: realGap }
+          );
+          return;
+        }
+      } catch (csErr) {
+        console.warn(`[applyFilters] ${country} real-data fetch failed:`, csErr);
+      }
+    }
+
+    // ── Normal toast for other countries (fallback) ───────────────────────────
     if (filteredStartups.length > 0) {
       showToast(`✅ Found ${filteredStartups.length} startup(s) for the selected filter.`, "success");
     } else {
@@ -1882,8 +1951,22 @@ function setupTabs() {
             .then(r => r.json())
             .then(d => { if (d.industries) { _renderIndiaIndustryChart(d.industries); _renderIndiaIndustryTable(d.industries, d.source); } })
             .finally(() => hideGlobalLoader());
+        } else if (_cachedIndiaStates !== null && [
+            "Albania","Algeria","Azerbaijan","Bangladesh","Bosnia and Herzegovina",
+            "Brunei","Burkina Faso","Chad","China","Egypt","Ethiopia","Gambia",
+            "Guinea","Indonesia","Iran","Iraq","Jordan","Kazakhstan","Kosovo",
+            "Kuwait","Kyrgyzstan","Libya","Malaysia","Maldives","Mali","Mauritania",
+            "Morocco","Niger","Nigeria","Pakistan","Palestine","Russia","Senegal",
+            "Sierra Leone","Somalia","Sudan","Syria","Tajikistan","Tanzania",
+            "Tunisia","Turkey","Turkmenistan","UAE","Uzbekistan","Yemen"
+          ].includes(country)) {
+          showGlobalLoader();
+          fetch(`/api/country-stats?country=${encodeURIComponent(country)}&state=${encodeURIComponent(state)}&domain=${encodeURIComponent(domain)}&view=industry`)
+            .then(r => r.json())
+            .then(d => { if (d.industries) { _renderIndiaIndustryChart(d.industries); _renderIndiaIndustryTable(d.industries, d.source); } })
+            .finally(() => hideGlobalLoader());
         } else {
-          // Non-India: restore standard domain chart
+          // Non-dedicated: restore standard domain chart
           const thead = document.querySelector(".domain-table thead tr");
           if (thead) {
             thead.innerHTML = `
@@ -1901,7 +1984,7 @@ function setupTabs() {
 
       } else if (tabName === "State") {
         const country = document.getElementById("filter-country").value;
-        if ((country === "India" || country === "United Kingdom" || country === "United States" || country === "Saudi Arabia" || country === "United Arab Emirates" || country === "Oman" || country === "Qatar") && _cachedIndiaStates && _cachedIndiaStates.length) {
+        if (_cachedIndiaStates && _cachedIndiaStates.length) {
           // Use pre-fetched state/region data — instant render, no extra API call
           _activateTab("State");
           _renderStateTable(_cachedIndiaStates, country, _cachedIndiaSource);
@@ -1981,8 +2064,53 @@ function setupTabs() {
 
         } else if (country === "India" && (!state || state === "All")) {
           showToast("ℹ️ Please select a State first to see district data.", "warn");
+        } else if (state && state !== "All" && [
+            "Albania","Algeria","Azerbaijan","Bangladesh","Bosnia and Herzegovina",
+            "Brunei","Burkina Faso","Chad","China","Egypt","Ethiopia","Gambia",
+            "Guinea","Indonesia","Iran","Iraq","Jordan","Kazakhstan","Kosovo",
+            "Kuwait","Kyrgyzstan","Libya","Malaysia","Maldives","Mali","Mauritania",
+            "Morocco","Niger","Nigeria","Pakistan","Palestine","Russia","Senegal",
+            "Sierra Leone","Somalia","Sudan","Syria","Tajikistan","Tanzania",
+            "Tunisia","Turkey","Turkmenistan","UAE","Uzbekistan","Yemen",
+            "Saudi Arabia","United Arab Emirates","Oman","Qatar"
+          ].includes(country)) {
+          // Real district data from /api/country-district-stats
+          showGlobalLoader();
+          fetch(`/api/country-district-stats?country=${encodeURIComponent(country)}&state=${encodeURIComponent(state)}&district=${encodeURIComponent(district)}&domain=${encodeURIComponent(domain)}`)
+            .then(r => r.json())
+            .then(data => {
+              const districts = data.districts || [];
+              if (!districts.length) {
+                showToast(`⚠️ No district data for ${state}, ${country}.`, "warn");
+                return;
+              }
+              _activateTab("District");
+              const top = districts;
+              currentChartDataConfig = {
+                labels: top.map(d => d.district.length > 16 ? d.district.slice(0, 15) + "…" : d.district),
+                fullNames: top.map(d => d.district),
+                existing: top.map(d => d.actual),
+                gaps: top.map(d => d.gap),
+                fillRates: top.map(d => d.fill_pct)
+              };
+              drawUniversalChart();
+              _renderDistrictTable(districts, data.source, state);
+              const distTotal     = districts.reduce((s, d) => s + d.actual,    0);
+              const distPotential = districts.reduce((s, d) => s + d.potential, 0);
+              const distGap       = districts.reduce((s, d) => s + d.gap,       0);
+              setStatCard("stat-startups",  distTotal.toLocaleString());
+              setStatCard("stat-potential", distPotential.toLocaleString());
+              setStatCard("stat-unique",    distGap.toLocaleString());
+              setStatCard("stat-domains",   districts.length.toString());
+              setStatCard("stat-countries", "1");
+              showToast(`✅ ${state}, ${country}: ${districts.length} districts | ${distTotal.toLocaleString()} startups`, "success");
+            })
+            .catch(() => showToast("❌ Failed to load district data.", "error"))
+            .finally(() => hideGlobalLoader());
+        } else if (!state || state === "All") {
+          showToast("ℹ️ Please select a State first to see district data.", "warn");
         } else {
-          showToast("ℹ️ District breakdown is available for India only.", "warn");
+          showToast("ℹ️ District breakdown is not available for this country.", "warn");
         }
       }
 
