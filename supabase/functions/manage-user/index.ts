@@ -49,15 +49,15 @@ serve(async (req) => {
     }
 
     const { action, user_id } = await req.json();
-    if (!user_id || !action) {
-      return new Response(JSON.stringify({ error: "Missing user_id or action" }), {
+    if (!action) {
+      return new Response(JSON.stringify({ error: "Missing action" }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    if (action !== "ban" && action !== "unban") {
-      return new Response(JSON.stringify({ error: "Invalid action. Use 'ban' or 'unban'" }), {
+    if (action !== "ban" && action !== "unban" && action !== "reset_all_plans_to_free") {
+      return new Response(JSON.stringify({ error: "Invalid action" }), {
         status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
@@ -68,6 +68,20 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
+
+    if (action === "reset_all_plans_to_free") {
+      const { error: resetError } = await supabaseAdmin
+        .from("profiles")
+        .update({ plan: "free", pro_started_at: null })
+        .or("is_admin.is.null,is_admin.eq.false");
+
+      if (resetError) throw resetError;
+
+      return new Response(JSON.stringify({ success: true, message: "All non-admin users reset to free plan" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
     if (action === "ban") {
       const { error: banError } = await supabaseAdmin.auth.admin.updateUserById(

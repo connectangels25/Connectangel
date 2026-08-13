@@ -1,6 +1,7 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Calendar, Clock, MapPin, Users, Trophy, Mail, ChevronDown, ChevronRight, Download, Bookmark, Share2, MessageCircle, Globe, ExternalLink, Eye, Ticket, User, Info, Building2 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
@@ -248,7 +249,12 @@ export default function EventDetails() {
   const minPrice = tickets.length > 0 ? Math.min(...tickets.map(t => parseFloat(t.price) || 0)) : null;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="min-h-screen bg-background text-foreground"
+    >
       <Navbar />
 
       {/* Breadcrumb */}
@@ -667,6 +673,6 @@ export default function EventDetails() {
       >
         <MessageCircle className="h-6 w-6" />
       </button>
-    </div>
+    </motion.div>
   );
 }

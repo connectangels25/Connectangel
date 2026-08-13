@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, Menu, X, LogOut, Pencil, Camera, Check, Loader2 } from "lucide-react";
+import { Search, Menu, X, LogOut, Pencil, Camera, Check, Loader2, CalendarDays, Sparkles, ShieldCheck, MailWarning } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import ThemeToggle from "@/components/ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,12 +18,13 @@ const NAV_LINKS = [
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loading, signOut, freeDaysRemaining, isFreeTrialActive, isProActive, proDaysRemaining, hasPlan, profile } = useAuth();
+  const { user, loading, signOut, freeDaysRemaining, isFreeTrialActive, isProActive, proDaysRemaining, hasPlan, profile, isEmailVerified, resendVerification } = useAuth();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [logoClicks, setLogoClicks] = useState(0);
+  const [resendingVerification, setResendingVerification] = useState(false);
 
   // Profile data from DB
   const [profileName, setProfileName] = useState<string>("");
@@ -84,6 +85,17 @@ export default function Navbar() {
     setProfileOpen(false);
     await signOut();
     navigate("/login");
+  };
+
+  const handleResendVerification = async () => {
+    setResendingVerification(true);
+    const { error } = await resendVerification();
+    setResendingVerification(false);
+    if (error) {
+      toast.error(error);
+    } else {
+      toast.success("Verification email sent! Check your inbox.");
+    }
   };
 
   // ── Edit modal helpers ─────────────────────────────────────────
@@ -286,6 +298,73 @@ export default function Navbar() {
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                     </div>
+                    <div className="h-px bg-border" />
+                    {/* Email verification status */}
+                    {!isEmailVerified ? (
+                      <button
+                        onClick={handleResendVerification}
+                        disabled={resendingVerification}
+                        className="w-full flex items-center gap-2 px-5 py-3 text-sm font-medium text-amber-500 hover:bg-amber-500/10 transition-colors disabled:opacity-60"
+                      >
+                        <MailWarning className="w-4 h-4" />
+                        {resendingVerification ? "Sending…" : "Verify email"}
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2 px-5 py-3 text-sm font-medium text-emerald-500">
+                        <Check className="w-4 h-4" />
+                        Email verified
+                      </div>
+                    )}
+                    {/* Plan badge */}
+                    {isAdmin ? (
+                      <div className="px-5 py-3 flex items-center gap-2 text-xs font-semibold text-primary bg-primary/10">
+                        <ShieldCheck className="w-4 h-4" />
+                        Admin
+                      </div>
+                    ) : isProActive ? (
+                      <div className="px-5 py-3 flex items-center gap-2 text-xs font-semibold text-blue-500 bg-blue-500/10">
+                        <Sparkles className="w-4 h-4" />
+                        Pro{proDaysRemaining > 0 ? ` · ${proDaysRemaining} days left` : ""}
+                      </div>
+                    ) : isFreeTrialActive ? (
+                      <div className="px-5 py-3 flex items-center justify-between text-xs font-semibold text-amber-500 bg-amber-500/10">
+                        <span className="flex items-center gap-2">
+                          <Sparkles className="w-4 h-4" />
+                          Free trial · {freeDaysRemaining} day{freeDaysRemaining !== 1 ? "s" : ""} left
+                        </span>
+                        <button
+                          onClick={() => { setProfileOpen(false); navigate("/pricing"); }}
+                          className="text-[11px] font-bold text-primary bg-primary/10 hover:bg-primary/20 px-2 py-0.5 rounded-md transition-colors"
+                        >
+                          Upgrade
+                        </button>
+                      </div>
+                    ) : null}
+                    <div className="h-px bg-border" />
+                    {/* Quick links */}
+                    <button
+                      onClick={() => { setProfileOpen(false); navigate("/my-events"); }}
+                      className="w-full flex items-center gap-2 px-5 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                    >
+                      <CalendarDays className="w-4 h-4" />
+                      My Events
+                    </button>
+                    <button
+                      onClick={() => { setProfileOpen(false); navigate("/pricing"); }}
+                      className="w-full flex items-center gap-2 px-5 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      Pricing & Upgrade
+                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => { setProfileOpen(false); navigate("/admindashboard"); }}
+                        className="w-full flex items-center gap-2 px-5 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                      >
+                        <ShieldCheck className="w-4 h-4" />
+                        Admin Dashboard
+                      </button>
+                    )}
                     <div className="h-px bg-border" />
                     {/* Logout */}
                     <button

@@ -10,6 +10,7 @@ import PendingPlanGate from "@/components/PendingPlanGate";
 import Index from "./pages/Index.tsx";
 import ChatPage from "./pages/ChatPage.tsx";
 import ComingSoonChat from "./pages/ComingSoonChat.tsx";
+import ComingSoonMarketAnalysis from "./pages/ComingSoonMarketAnalysis.tsx";
 import BlogPage from "./pages/BlogPage.tsx";
 import PricingPage from "./pages/PricingPage.tsx";
 import HidPage from "./pages/HidPage.tsx";
@@ -25,6 +26,7 @@ import EventDashboard from "./pages/EventDashboard.tsx";
 import UserManagementDashboard from "./pages/UserManagementDashboard.tsx";
 import EventsPage from "./pages/EventsPage.tsx";
 import PotentialPage from "./pages/PotentialPage.tsx";
+import VerifyEmailPage from "./pages/VerifyEmailPage.tsx";
 import TestPage from "./pages/TestPage.tsx";
 import ExpiredPlanOverlay from "@/components/ExpiredPlanOverlay";
 import RedirectIfAuthenticated from "@/components/RedirectIfAuthenticated";
@@ -45,12 +47,14 @@ const App = () => (
             <Route path="/events" element={<PendingPlanGate><EventsPage /></PendingPlanGate>} />
             <Route path="/shad" element={<PendingPlanGate><ChatPage /></PendingPlanGate>} />
             <Route path="/chat" element={<PendingPlanGate><ComingSoonChat /></PendingPlanGate>} />
+            <Route path="/market-analysis" element={<PendingPlanGate><ComingSoonMarketAnalysis /></PendingPlanGate>} />
             <Route path="/blog" element={<PendingPlanGate><BlogPage /></PendingPlanGate>} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/hide" element={<PendingPlanGate><HidPage /></PendingPlanGate>} />
             <Route path="/event/:id" element={<PendingPlanGate><EventDetails /></PendingPlanGate>} />
             <Route path="/login" element={<RedirectIfAuthenticated><LoginPage /></RedirectIfAuthenticated>} />
             <Route path="/signup" element={<RedirectIfAuthenticated><SignupPage /></RedirectIfAuthenticated>} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/admin" element={<RedirectIfAuthenticated><AdminLoginPage /></RedirectIfAuthenticated>} />
             <Route path="/my-events" element={
               <ProtectedRoute>

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { TrendingUp } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const TRENDING = [
   {
@@ -26,6 +27,8 @@ const TRENDING = [
 ];
 
 export default function TrendingIndustries() {
+  const navigate = useNavigate();
+
   return (
     <section className="py-8 bg-background">
       <div className="container mx-auto px-6 lg:px-12 xl:px-20">
@@ -76,7 +79,7 @@ export default function TrendingIndustries() {
         </div>
 
         <div className="mt-10 text-center">
-          <button className="px-12 py-4 rounded-full bg-primary text-primary-foreground font-bold hover:scale-105 transition-transform">
+          <button onClick={() => navigate("/market-analysis")} className="px-12 py-4 rounded-full bg-primary text-primary-foreground font-bold hover:scale-105 transition-transform">
             See Market Analysis
           </button>
         </div>
