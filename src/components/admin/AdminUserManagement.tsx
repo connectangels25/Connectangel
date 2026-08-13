@@ -29,6 +29,7 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [openMenuId, setOpenMenuId] = React.useState<string | null>(null);
   const [actionLoading, setActionLoading] = React.useState<string | null>(null);
+  const [isResettingPlans, setIsResettingPlans] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement | null>(null);
 
   const { data: users, isLoading, error } = useQuery({
@@ -143,6 +144,36 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
     }
   };
 
+  const handleResetAllPlans = async () => {
+    if (!window.confirm("Are you sure you want to move all non-admin members to the Free Plan?")) {
+      return;
+    }
+    setIsResettingPlans(true);
+    try {
+      // 1. Try Direct Database update via Supabase client
+      const { error: dbError } = await supabase
+        .from("profiles")
+        .update({ plan: "free", pro_started_at: null })
+        .or("is_admin.is.null,is_admin.eq.false");
+
+      if (dbError) {
+        // 2. Fallback to Edge Function if direct update hits RLS limit
+        const { error: fnError } = await supabase.functions.invoke("manage-user", {
+          body: { action: "reset_all_plans_to_free" },
+        });
+        if (fnError) throw fnError;
+      }
+
+      toast.success("All non-admin members have been moved to the Free Plan!");
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to reset member plans. Run the migration SQL in Supabase Dashboard.");
+    } finally {
+      setIsResettingPlans(false);
+    }
+  };
+
   return (
     <div className="bg-card rounded-3xl p-6 border border-border mt-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -150,7 +181,16 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
           <h3 className="text-foreground text-lg font-semibold">User Management</h3>
           <p className="text-muted-foreground text-xs mt-1">Audit and manage platform participants</p>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <button 
+            onClick={handleResetAllPlans}
+            disabled={isResettingPlans}
+            className="flex-1 sm:flex-none px-3 md:px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-lg text-xs md:text-sm font-semibold transition-colors border border-amber-500/30 flex items-center justify-center gap-1.5"
+            title="Move all paid members to free plan (excluding admins)"
+          >
+            {isResettingPlans && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            Reset All to Free Plan
+          </button>
           <button className="flex-1 sm:flex-none px-3 md:px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-foreground text-xs md:text-sm font-medium transition-colors border border-border">
             Filters
           </button>
@@ -179,6 +219,7 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
                 <th className="pb-3 px-4 min-w-[70px] sm:min-w-[90px]">Status</th>
                 <th className="pb-3 px-4 min-w-[90px] sm:min-w-[120px]">Method</th>
                 <th className="pb-3 px-4 min-w-[70px] sm:min-w-[90px]">Trial</th>
+                <th className="pb-3 px-4 min-w-[100px] sm:min-w-[130px]">AI Clicks (F/P)</th>
                 <th className="pb-3 px-4 min-w-[70px] sm:min-w-[80px]">Events</th>
                 <th className="pb-3 px-4 min-w-[90px] sm:min-w-[120px]">Joined</th>
                 {!limitLatest && <th className="pb-3 px-4 text-right w-[100px]">Actions</th>}
@@ -286,6 +327,12 @@ export const AdminUserManagement = ({ limitLatest }: AdminUserManagementProps) =
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex flex-col text-xs">
+                        <span className="font-bold text-foreground">{(user as any).total_clicks || 0} total</span>
+                        <span className="text-muted-foreground text-[10px]">{(user as any).free_clicks_used || 0} free • {(user as any).pro_clicks_used || 0} pro</span>
+                      </div>
                     </td>
                     <td className="py-3 px-4">
                       <div className="py-1 px-3 bg-primary/10 text-primary text-xs font-bold rounded-lg border border-primary/20 inline-block">

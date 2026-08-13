@@ -64,8 +64,8 @@ const SignupPage = () => {
     if (error) {
       toast.error(error);
     } else {
-      toast.success("Account created! Check your email to verify your account.");
-      navigate("/login");
+      toast.success("Account created! We've sent a verification link to your email.");
+      navigate("/");
     }
   };
 

@@ -1,13 +1,13 @@
 import { motion } from "framer-motion";
-import { MessageSquare } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 
-export default function ComingSoonChat() {
+export default function ComingSoonMarketAnalysis() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Navbar />
       <div className="relative flex-1 flex items-center justify-center">
-        {/* Blurred background to mimic chat UI */}
+        {/* Blurred background to mimic chart UI */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-card via-secondary to-background opacity-60 blur-xl" />
           <div className="absolute left-0 top-0 w-[320px] h-full bg-card/30 blur-md" />
@@ -22,7 +22,7 @@ export default function ComingSoonChat() {
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             className="h-16 w-16 rounded-full bg-secondary border border-border flex items-center justify-center mb-6"
           >
-            <MessageSquare className="h-7 w-7 text-primary" />
+            <BarChart3 className="h-7 w-7 text-primary" />
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 12 }}
@@ -30,7 +30,7 @@ export default function ComingSoonChat() {
             transition={{ duration: 0.6 }}
             className="text-4xl font-bold text-foreground mb-3"
           >
-            Chat Coming Soon
+            Market Analysis Coming Soon
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 12 }}

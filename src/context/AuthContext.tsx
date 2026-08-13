@@ -10,11 +10,15 @@ interface Profile {
   avatar_url: string | null;
   created_at: string;
   is_admin: boolean | null;
+  email_verified: boolean | null;
   trial_started_at: string | null;
   pro_started_at: string | null;
   plan: string | null;
   potential_clicks_today: number | null;
   last_potential_click_date: string | null;
+  total_clicks: number | null;
+  free_clicks_used: number | null;
+  pro_clicks_used: number | null;
 }
 
 const FREE_DAYS = 26;
@@ -26,6 +30,7 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   profileLoading: boolean;
+  isEmailVerified: boolean;
   freeDaysRemaining: number;
   proDaysRemaining: number;
   isFreeTrialActive: boolean;
@@ -42,6 +47,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  resendVerification: () => Promise<{ error: string | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -64,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (showLoading) setProfileLoading(true);
     const { data } = await supabase
       .from("profiles")
-      .select("id, name, email, avatar_url, created_at, is_admin, trial_started_at, pro_started_at, plan, potential_clicks_today, last_potential_click_date")
+      .select("id, name, email, avatar_url, created_at, is_admin, email_verified, trial_started_at, pro_started_at, plan, potential_clicks_today, last_potential_click_date, total_clicks, free_clicks_used, pro_clicks_used")
       .eq("id", userId)
       .maybeSingle();
     setProfile(data as Profile | null);
@@ -80,6 +86,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isFreeTrialActive = !!user && freeDaysRemaining > 0 && profile?.plan === 'free' && !profile?.is_admin;
   const isFreeTrialExpired = !!user && freeDaysRemaining === 0 && profile?.plan === 'free' && !profile?.is_admin;
+
+  // Google OAuth users are always considered verified (Google already verified the email).
+  // Email/password users are verified once they click the magic-link sent by our edge function.
+  const isEmailVerified = !!user && (
+    user.app_metadata?.provider === "google" ||
+    profile?.email_verified === true
+  );
 
   const proDaysRemaining = (() => {
     if (!profile?.pro_started_at) {
@@ -218,6 +231,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (data?.user?.identities?.length === 0) {
       return { error: "This email is already registered. Please sign in." };
     }
+    // With "Confirm email" OFF, the user is auto-logged-in. Send the verification
+    // email via our edge function so email_verified stays pending until they click.
+    if (data?.user) {
+      try {
+        await supabase.functions.invoke("send-verification-email", { body: {} });
+      } catch {
+        // Non-blocking: user can resend from profile dropdown / Potential page
+      }
+    }
     return { error: null };
   };
 
@@ -244,6 +266,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await supabase.auth.signOut();
   };
 
+  const resendVerification = async () => {
+    if (!user?.email) return { error: "No email on file." };
+    try {
+      const { error } = await supabase.functions.invoke("send-verification-email", {
+        body: {},
+      });
+      if (error) {
+        const context = (error as { context?: string | { message?: string; error?: string } })?.context;
+        let msg: string | undefined;
+        if (typeof context === "string") {
+          msg = context;
+        } else if (context && typeof context === "object") {
+          msg = context.error ?? context.message;
+        }
+        return { error: msg || "Failed to send verification email" };
+      }
+      return { error: null };
+    } catch (err: unknown) {
+      return { error: (err as Error)?.message ?? "Failed to send verification email" };
+    }
+  };
+
   const refreshProfile = async () => {
     if (user) {
       await fetchProfile(user.id, false);
@@ -251,7 +295,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, loading, profileLoading, freeDaysRemaining, proDaysRemaining, isFreeTrialActive, isFreeTrialExpired, isProActive, isProExpired, isPlanActive, isPlanExpired, hasPlan, startTrial, setPlan, signUp, signIn, signInWithGoogle, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ session, user, profile, loading, profileLoading, isEmailVerified, freeDaysRemaining, proDaysRemaining, isFreeTrialActive, isFreeTrialExpired, isProActive, isProExpired, isPlanActive, isPlanExpired, hasPlan, startTrial, setPlan, signUp, signIn, signInWithGoogle, signOut, refreshProfile, resendVerification }}>
       {loading ? (
         <div className="fixed inset-0 z-[9999] bg-background flex flex-col items-center justify-center">
           <div className="relative flex flex-col items-center gap-6">

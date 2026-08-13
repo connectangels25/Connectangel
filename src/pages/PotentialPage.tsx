@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import { Crown, Lock } from "lucide-react";
+import { Lock, MailCheck, Loader2, MailWarning } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -10,9 +10,68 @@ export default function PotentialPage() {
   const [searchParams] = useSearchParams();
   const countryParam = searchParams.get("country") || "";
   const navigate = useNavigate();
-  const { isFreeTrialExpired, isProExpired, user, profile, freeDaysRemaining, refreshProfile } = useAuth();
+  const { isFreeTrialExpired, isProExpired, user, profile, freeDaysRemaining, refreshProfile, isEmailVerified, resendVerification } = useAuth();
   const [iframeSrc, setIframeSrc] = useState<string>("/capacity/index.html");
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [resending, setResending] = useState(false);
+  const [verifyBanner, setVerifyBanner] = useState<string | null>(null);
+
+  const handleResend = async () => {
+    setResending(true);
+    setVerifyBanner(null);
+    const { error } = await resendVerification();
+    setResending(false);
+    if (error) {
+      setVerifyBanner(error);
+    } else {
+      setVerifyBanner("Verification email sent! Please check your inbox.");
+    }
+  };
+
+  if (user && !isEmailVerified && !profile?.is_admin) {
+    return (
+      <div className="flex flex-col h-screen bg-background">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          {/* Modal popup */}
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div className="relative w-full max-w-sm rounded-2xl bg-card border border-border shadow-2xl overflow-hidden z-10 p-8 text-center">
+              <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center mb-5 border border-primary/20">
+                <MailWarning className="w-8 h-8 text-primary" />
+              </div>
+              <h1 className="text-xl font-bold text-foreground mb-2">Verify your email first</h1>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                To access the <strong className="text-foreground">Potential</strong> page, please confirm
+                your email address first. We'll send a verification link to your inbox.
+              </p>
+
+              {verifyBanner && (
+                <p className={`text-sm mb-4 px-4 py-2.5 rounded-lg ${verifyBanner.includes("sent") ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"}`}>
+                  {verifyBanner}
+                </p>
+              )}
+
+              <button
+                onClick={handleResend}
+                disabled={resending}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-primary to-[hsl(240,70%,60%)] text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                {resending ? <Loader2 className="w-4 h-4 animate-spin" /> : <MailCheck className="w-4 h-4" />}
+                {resending ? "Sending…" : "Resend verification email"}
+              </button>
+              <button
+                onClick={() => navigate("/")}
+                className="mt-3 w-full py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+              >
+                Back to Home
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isFreeTrialExpired || isProExpired) {
     return (
@@ -65,11 +124,23 @@ export default function PotentialPage() {
       const currentClicksToday = profile?.potential_clicks_today || 0;
       const newClicksToday = (lastClickDate === todayStr) ? (currentClicksToday + 1) : 1;
 
+      const currentTotalClicks = profile?.total_clicks || 0;
+      const currentFreeClicks = profile?.free_clicks_used || 0;
+      const currentProClicks = profile?.pro_clicks_used || 0;
+      const currentPlan = profile?.plan || 'free';
+
+      const newTotalClicks = currentTotalClicks + 1;
+      const newFreeClicks = currentPlan === 'free' ? currentFreeClicks + 1 : currentFreeClicks;
+      const newProClicks = currentPlan === 'pro' ? currentProClicks + 1 : currentProClicks;
+
       const { error } = await supabase
         .from("profiles")
         .update({
           potential_clicks_today: newClicksToday,
-          last_potential_click_date: todayStr
+          last_potential_click_date: todayStr,
+          total_clicks: newTotalClicks,
+          free_clicks_used: newFreeClicks,
+          pro_clicks_used: newProClicks
         })
         .eq("id", user.id);
 
