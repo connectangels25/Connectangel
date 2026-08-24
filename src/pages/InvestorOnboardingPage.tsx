@@ -45,6 +45,7 @@ interface FormData {
   currency: string;
   minInvestment: string;
   maxInvestment: string;
+  totalInvestedTillNow: string;
   domains: string[];
   geography: string[];
   fundingTypes: string[];
@@ -85,6 +86,7 @@ const INITIAL_FORM_DATA: FormData = {
   currency: "USD ($)",
   minInvestment: "",
   maxInvestment: "",
+  totalInvestedTillNow: "",
   domains: [],
   geography: [],
   fundingTypes: [],
@@ -674,6 +676,25 @@ export default function InvestorOnboardingPage() {
                           onChange={(e) => updateField("maxInvestment", e.target.value)}
                           placeholder="Max"
                           className="w-full bg-[#141722] border border-slate-800 focus:border-purple-500 rounded-xl px-3.5 py-3 text-sm text-slate-100 outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Total Capital Invested Till Now */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-slate-300">
+                        Total Capital Invested Till Now
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <div className="bg-[#141722] border border-slate-800 text-xs font-medium text-purple-400 rounded-xl px-3 py-3 select-none">
+                          {formData.currency || "USD ($)"}
+                        </div>
+                        <input
+                          type="text"
+                          value={formData.totalInvestedTillNow}
+                          onChange={(e) => updateField("totalInvestedTillNow", e.target.value)}
+                          placeholder="e.g. 500,000 or 2M+"
+                          className="w-full bg-[#141722] border border-slate-800 focus:border-purple-500 rounded-xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 outline-none"
                         />
                       </div>
                     </div>
