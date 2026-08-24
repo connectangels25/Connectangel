@@ -19,6 +19,9 @@ const SignupPage = () => {
   const [teamSize, setTeamSize] = useState("");
   const [creditPack, setCreditPack] = useState("");
   const [agreed, setAgreed] = useState(false);
+  const [isInvestor, setIsInvestor] = useState<"yes" | "no" | null>(null);
+  const [showInvestorError, setShowInvestorError] = useState(false);
+  const [showTermsError, setShowTermsError] = useState(false);
   const [showEnterprise, setShowEnterprise] = useState(false);
   const [signupMethod, setSignupMethod] = useState<"email" | "phone">("email");
   const [isLoading, setIsLoading] = useState(false);
@@ -40,8 +43,29 @@ const SignupPage = () => {
     }
   }, []);
 
+  const validateSelection = () => {
+    let valid = true;
+    if (isInvestor === null) {
+      setShowInvestorError(true);
+      valid = false;
+    } else {
+      setShowInvestorError(false);
+    }
+    if (!agreed) {
+      setShowTermsError(true);
+      valid = false;
+    } else {
+      setShowTermsError(false);
+    }
+    if (!valid) {
+      toast.error("Please complete the required selections outlined in red.");
+    }
+    return valid;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateSelection()) return;
     if (signupMethod === "phone") {
       toast.error("Phone signup is not yet supported. Please use email.");
       return;
@@ -54,22 +78,27 @@ const SignupPage = () => {
       toast.error("Passwords do not match.");
       return;
     }
-    if (!agreed) {
-      toast.error("Please agree to the Terms of Service.");
-      return;
-    }
     setIsLoading(true);
     const { error } = await signUp(email, password, fullName);
     setIsLoading(false);
     if (error) {
       toast.error(error);
     } else {
-      toast.success("Account created! We've sent a verification link to your email.");
-      navigate("/");
+      toast.success("Account created!");
+      if (isInvestor === "yes") {
+        navigate("/investor-onboarding");
+      } else {
+        navigate("/");
+      }
     }
   };
 
   const handleGoogleSignup = async () => {
+    if (!validateSelection()) return;
+    if (isInvestor === "yes") {
+      navigate("/investor-onboarding");
+      return;
+    }
     localStorage.setItem('google_signup_intent', 'true');
     setIsLoading(true);
     const { error } = await signInWithGoogle();
@@ -313,21 +342,69 @@ const SignupPage = () => {
                 </div>
               </div>
 
+              {/* Are you an investor? Box */}
+              <div className={`p-4 rounded-xl border transition-all flex items-center justify-between gap-3 ${
+                showInvestorError
+                  ? "border-red-500 bg-red-950/20 ring-1 ring-red-500"
+                  : "border-border bg-secondary/50"
+              }`}>
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-purple-500/80 border border-purple-400" />
+                  <span className="text-sm font-semibold text-foreground">Are you an investor?</span>
+                  {showInvestorError && <span className="text-xs text-red-500 font-bold ml-1">* Required</span>}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setIsInvestor("yes"); setShowInvestorError(false); }}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      isInvestor === "yes"
+                        ? "bg-purple-600 text-white shadow-lg shadow-purple-600/40 ring-2 ring-purple-400"
+                        : "bg-background/80 text-muted-foreground hover:text-foreground border border-border"
+                    }`}
+                  >
+                    ✓ Yes
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setIsInvestor("no"); setShowInvestorError(false); }}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      isInvestor === "no"
+                        ? "bg-slate-700 text-white ring-2 ring-slate-400"
+                        : "bg-background/80 text-muted-foreground hover:text-foreground border border-border"
+                    }`}
+                  >
+                    ✕ No
+                  </button>
+                </div>
+              </div>
+
               {/* Consent */}
-              <div className="flex items-start gap-2">
-                <Checkbox
-                  id="agree-terms"
-                  checked={agreed}
-                  onCheckedChange={(v) => setAgreed(!!v)}
-                  className="border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary mt-0.5"
-                />
-                <label htmlFor="agree-terms" className="text-sm text-muted-foreground cursor-pointer leading-snug">
-                  I agree to the{" "}
-                  <a href="#" className="text-primary hover:underline font-medium">Terms of Service</a>
-                  {" "}and{" "}
-                  <a href="#" className="text-primary hover:underline font-medium">Privacy Policy</a>
-                  . I understand that my data will be used to enhance my experience.
-                </label>
+              <div className={`p-3 rounded-xl border transition-all ${
+                showTermsError ? "border-red-500 bg-red-950/20 ring-1 ring-red-500" : "border-transparent"
+              }`}>
+                <div className="flex items-start gap-2">
+                  <Checkbox
+                    id="agree-terms"
+                    checked={agreed}
+                    onCheckedChange={(v) => { setAgreed(!!v); if (v) setShowTermsError(false); }}
+                    className="border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary mt-0.5"
+                  />
+                  <label htmlFor="agree-terms" className="text-sm text-muted-foreground cursor-pointer leading-snug">
+                    I agree to the{" "}
+                    <a href="#" className="text-primary hover:underline font-medium">Terms of Service</a>
+                    {" "}and{" "}
+                    <a href="#" className="text-primary hover:underline font-medium">Privacy Policy</a>
+                    . I understand that my data will be used to enhance my experience.
+                  </label>
+                </div>
+                {showTermsError && (
+                  <p className="text-xs text-red-500 font-semibold mt-1.5 ml-6">
+                    * You must agree to the Terms of Service before signing up.
+                  </p>
+                )}
               </div>
 
               {/* Submit */}
