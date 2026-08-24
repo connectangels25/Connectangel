@@ -28,6 +28,7 @@ import EventsPage from "./pages/EventsPage.tsx";
 import PotentialPage from "./pages/PotentialPage.tsx";
 import VerifyEmailPage from "./pages/VerifyEmailPage.tsx";
 import TestPage from "./pages/TestPage.tsx";
+import InvestorOnboardingPage from "./pages/InvestorOnboardingPage.tsx";
 import ExpiredPlanOverlay from "@/components/ExpiredPlanOverlay";
 import RedirectIfAuthenticated from "@/components/RedirectIfAuthenticated";
 
@@ -43,6 +44,7 @@ const App = () => (
           <ExpiredPlanOverlay />
           <Routes>
             <Route path="/test" element={<TestPage />} />
+            <Route path="/investor-onboarding" element={<InvestorOnboardingPage />} />
             <Route path="/" element={<PendingPlanGate><Index /></PendingPlanGate>} />
             <Route path="/events" element={<PendingPlanGate><EventsPage /></PendingPlanGate>} />
             <Route path="/shad" element={<PendingPlanGate><ChatPage /></PendingPlanGate>} />
