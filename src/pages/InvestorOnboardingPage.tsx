@@ -262,7 +262,7 @@ export default function InvestorOnboardingPage() {
       }
       toast.success("Investor Profile Published Successfully!");
       setTimeout(() => {
-        navigate("/");
+        navigate("/investor-dashboard");
       }, 1500);
     }
   };
