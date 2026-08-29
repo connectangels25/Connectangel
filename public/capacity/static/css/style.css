@@ -229,6 +229,25 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  transition: margin-left 0.3s ease, width 0.3s ease, padding 0.3s ease;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Smooth fluid layout scaling when sidebar is active */
+body.has-sidebar .main-wrapper,
+.main-wrapper.sidebar-active {
+  margin-left: var(--sidebar-width, 230px);
+  width: calc(100% - var(--sidebar-width, 230px));
+}
+
+@media (max-width: 1024px) {
+  body.has-sidebar .main-wrapper,
+  .main-wrapper.sidebar-active {
+    margin-left: 0;
+    width: 100%;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════ */
