@@ -178,7 +178,7 @@ export default function InvestorDashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#17141F] text-[#E4DFF0] flex flex-col font-sans selection:bg-[#8C3CDD]/40 selection:text-white">
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-[#8C3CDD]/40 selection:text-foreground">
       
       {/* WEBSITE MAIN NAVBAR */}
       <Navbar />
@@ -190,7 +190,7 @@ export default function InvestorDashboardPage() {
         <aside
           className={`${
             isSidebarOpen ? "w-56" : "w-16"
-          } bg-[#17141F] border-r border-purple-900/30 flex flex-col justify-between py-5 transition-all duration-300 shrink-0 z-40`}
+          } bg-background border-r border-border flex flex-col justify-between py-5 transition-all duration-300 shrink-0 z-40`}
         >
           <div className="flex flex-col gap-4 w-full px-3">
             {/* Sidebar Header Title & Toggle */}
@@ -202,7 +202,7 @@ export default function InvestorDashboardPage() {
               ) : (
                 <button
                   onClick={() => setIsSidebarOpen(true)}
-                  className="p-1.5 rounded-lg text-purple-300 hover:bg-[#26212F] mx-auto hover:text-white transition-colors"
+                  className="p-1.5 rounded-lg text-purple-300 hover:bg-secondary mx-auto hover:text-foreground transition-colors"
                   title="Expand Sidebar"
                 >
                   <ChevronRight className="w-5 h-5" />
@@ -211,7 +211,7 @@ export default function InvestorDashboardPage() {
               {isSidebarOpen && (
                 <button
                   onClick={() => setIsSidebarOpen(false)}
-                  className="p-1 rounded-lg text-[#9B92AD] hover:text-white hover:bg-[#26212F] transition-colors"
+                  className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                   title="Collapse Sidebar"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -239,8 +239,8 @@ export default function InvestorDashboardPage() {
                   title={item.label}
                   className={`flex items-center gap-3.5 px-3 py-2.5 rounded-xl transition-all ${
                     isActive
-                      ? "bg-[#8C3CDD] text-white shadow-lg shadow-purple-900/50 font-semibold"
-                      : "text-[#9B92AD] hover:text-white hover:bg-[#26212F]"
+                      ? "bg-[#8C3CDD] text-foreground shadow-lg shadow-purple-900/50 font-semibold"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                   }`}
                 >
                   <Icon className="w-5 h-5 shrink-0" />
@@ -254,7 +254,7 @@ export default function InvestorDashboardPage() {
           <div className="px-3">
             <button
               title="Logout"
-              className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-[#9B92AD] hover:text-rose-400 hover:bg-[#26212F] transition-all"
+              className="w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-muted-foreground hover:text-rose-400 hover:bg-secondary transition-all"
             >
               <LogOut className="w-5 h-5 shrink-0" />
               {isSidebarOpen && <span className="text-xs truncate font-medium">Logout</span>}
@@ -268,44 +268,44 @@ export default function InvestorDashboardPage() {
           {/* TOP ROW: KPI CARDS & UPCOMING CALLS */}
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
             <div className="xl:col-span-8 space-y-3">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-[#9B92AD]">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Investor KPI Overview Cards
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                <div className="bg-[#26212F] border border-teal-500/30 rounded-xl p-3.5 relative overflow-hidden group hover:border-teal-500/60 transition-all">
+                <div className="bg-secondary border border-teal-500/30 rounded-xl p-3.5 relative overflow-hidden group hover:border-teal-500/60 transition-all">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-medium text-[#E4DFF0]">Total Capital Invested</span>
+                    <span className="text-[11px] font-medium text-foreground">Total Capital Invested</span>
                     <div className="w-6 h-6 rounded-md bg-teal-500/15 text-[#34C4A4] flex items-center justify-center">
                       <DollarSign className="w-3.5 h-3.5" />
                     </div>
                   </div>
-                  <div className="text-lg font-extrabold text-white tracking-tight">$150,000</div>
+                  <div className="text-lg font-extrabold text-foreground tracking-tight">$150,000</div>
                   <div className="text-[10px] text-[#34C4A4] font-medium mt-0.5">6 Startups</div>
                 </div>
 
-                <div className="bg-[#26212F] border border-purple-500/40 rounded-xl p-3.5 relative overflow-hidden group hover:border-purple-500/70 transition-all">
+                <div className="bg-secondary border border-purple-500/40 rounded-xl p-3.5 relative overflow-hidden group hover:border-purple-500/70 transition-all">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-medium text-[#E4DFF0]">Portfolio Valuation</span>
+                    <span className="text-[11px] font-medium text-foreground">Portfolio Valuation</span>
                     <div className="w-6 h-6 rounded-md bg-purple-500/20 text-purple-300 flex items-center justify-center">
                       <TrendingUp className="w-3.5 h-3.5" />
                     </div>
                   </div>
-                  <div className="text-lg font-extrabold text-white tracking-tight">$750,000</div>
+                  <div className="text-lg font-extrabold text-foreground tracking-tight">$750,000</div>
                   <div className="text-[10px] text-purple-300 font-medium mt-0.5">5x MOIC</div>
                 </div>
 
-                <div className="bg-[#26212F] border border-purple-900/40 rounded-xl p-3.5 relative overflow-hidden group hover:border-purple-600 transition-all">
+                <div className="bg-secondary border border-border rounded-xl p-3.5 relative overflow-hidden group hover:border-purple-600 transition-all">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-medium text-[#E4DFF0]">Active Deal Flow</span>
+                    <span className="text-[11px] font-medium text-foreground">Active Deal Flow</span>
                     <div className="w-6 h-6 rounded-md bg-sky-500/15 text-sky-400 flex items-center justify-center">
                       <Clock className="w-3.5 h-3.5" />
                     </div>
                   </div>
-                  <div className="text-base font-extrabold text-white tracking-tight">24 New Deals</div>
-                  <div className="text-[10px] text-[#9B92AD] font-medium mt-0.5">Pending Review</div>
+                  <div className="text-base font-extrabold text-foreground tracking-tight">24 New Deals</div>
+                  <div className="text-[10px] text-muted-foreground font-medium mt-0.5">Pending Review</div>
                 </div>
 
-                <div className="bg-[#26212F] border border-amber-500/30 rounded-xl p-3.5 relative overflow-hidden group hover:border-amber-500/60 transition-all">
+                <div className="bg-secondary border border-amber-500/30 rounded-xl p-3.5 relative overflow-hidden group hover:border-amber-500/60 transition-all">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-medium text-amber-200">Committed Capital</span>
                     <div className="w-6 h-6 rounded-md bg-amber-500/15 text-[#D4A84B] flex items-center justify-center">
@@ -316,14 +316,14 @@ export default function InvestorDashboardPage() {
                   <div className="text-[10px] text-[#D4A84B] font-medium mt-0.5">Pending Transfer</div>
                 </div>
 
-                <div className="bg-[#26212F] border border-indigo-500/30 rounded-xl p-3.5 relative overflow-hidden group hover:border-indigo-500/60 transition-all">
+                <div className="bg-secondary border border-indigo-500/30 rounded-xl p-3.5 relative overflow-hidden group hover:border-indigo-500/60 transition-all">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-medium text-[#E4DFF0]">Upcoming Calls</span>
+                    <span className="text-[11px] font-medium text-foreground">Upcoming Calls</span>
                     <div className="w-6 h-6 rounded-md bg-indigo-500/15 text-indigo-300 flex items-center justify-center">
                       <Phone className="w-3.5 h-3.5" />
                     </div>
                   </div>
-                  <div className="text-lg font-extrabold text-white tracking-tight">3 Today</div>
+                  <div className="text-lg font-extrabold text-foreground tracking-tight">3 Today</div>
                   <div className="text-[10px] text-indigo-300 font-medium mt-0.5">2 Founder Calls</div>
                 </div>
               </div>
@@ -331,12 +331,12 @@ export default function InvestorDashboardPage() {
 
             <div className="xl:col-span-4 space-y-3">
               <div className="flex items-center justify-between">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[#9B92AD]">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Upcoming Calls Calendar
                 </h2>
                 <div className="flex items-center gap-2">
-                  <button className="px-2.5 py-1 text-[11px] bg-[#26212F] border border-purple-900/40 text-[#E4DFF0] rounded-lg flex items-center gap-1 hover:border-[#8C3CDD] transition-colors">
-                    <Calendar className="w-3 h-3 text-[#9B92AD]" />
+                  <button className="px-2.5 py-1 text-[11px] bg-secondary border border-border text-foreground rounded-lg flex items-center gap-1 hover:border-[#8C3CDD] transition-colors">
+                    <Calendar className="w-3 h-3 text-muted-foreground" />
                     Show Today 13
                   </button>
                   <button className="px-2 py-1 text-[11px] bg-[#8C3CDD]/15 border border-[#8C3CDD]/40 text-purple-300 rounded-lg hover:bg-[#8C3CDD]/30 transition-colors">
@@ -345,30 +345,30 @@ export default function InvestorDashboardPage() {
                 </div>
               </div>
 
-              <div className="bg-[#26212F] border border-purple-900/40 rounded-xl p-3 flex items-center justify-between hover:border-[#8C3CDD] transition-colors cursor-pointer group">
+              <div className="bg-secondary border border-border rounded-xl p-3 flex items-center justify-between hover:border-[#8C3CDD] transition-colors cursor-pointer group">
                 <div className="flex items-center gap-3">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#34C4A4] animate-pulse" />
-                  <span className="text-xs font-semibold text-[#E4DFF0] group-hover:text-purple-300 transition-colors">
+                  <span className="text-xs font-semibold text-foreground group-hover:text-purple-300 transition-colors">
                     Today, 2 Founder Calls
                   </span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-[#9B92AD] group-hover:text-purple-300 transition-colors" />
+                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-purple-300 transition-colors" />
               </div>
             </div>
           </div>
 
           {/* SECOND ROW: AI RECOMMENDED DEALS & PORTFOLIO GROWTH */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            <div className="lg:col-span-7 bg-[#26212F] border border-purple-900/30 rounded-xl p-4 space-y-4">
+            <div className="lg:col-span-7 bg-secondary border border-border rounded-xl p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-[#A55EF0]" />
-                    <h3 className="text-sm font-bold text-white">AI Recommended Deals</h3>
+                    <h3 className="text-sm font-bold text-foreground">AI Recommended Deals</h3>
                   </div>
-                  <p className="text-[11px] text-[#9B92AD] mt-0.5">Dynamic startup quick cards for connect companies</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">Dynamic startup quick cards for connect companies</p>
                 </div>
-                <button className="px-2.5 py-1 text-[11px] bg-[#2D2838] border border-purple-900/40 rounded-lg text-[#E4DFF0] flex items-center gap-1 hover:border-[#8C3CDD]">
+                <button className="px-2.5 py-1 text-[11px] bg-card border border-border rounded-lg text-foreground flex items-center gap-1 hover:border-[#8C3CDD]">
                   <TrendingUp className="w-3 h-3 text-purple-300" />
                   Portfolio charts
                 </button>
@@ -379,7 +379,7 @@ export default function InvestorDashboardPage() {
                 {recommendedDeals.map((deal) => (
                   <div
                     key={deal.id}
-                    className="bg-[#2D2838] border border-purple-900/40 rounded-xl p-3.5 flex flex-col justify-between hover:border-[#8C3CDD] transition-all space-y-3"
+                    className="bg-card border border-border rounded-xl p-3.5 flex flex-col justify-between hover:border-[#8C3CDD] transition-all space-y-3"
                   >
                     <div className="space-y-2.5">
                       <div className="flex items-center justify-between">
@@ -388,8 +388,8 @@ export default function InvestorDashboardPage() {
                             {deal.name[0]}
                           </div>
                           <div>
-                            <h4 className="text-xs font-bold text-white leading-tight">{deal.name}</h4>
-                            <span className="text-[10px] text-[#9B92AD]">{deal.category}</span>
+                            <h4 className="text-xs font-bold text-foreground leading-tight">{deal.name}</h4>
+                            <span className="text-[10px] text-muted-foreground">{deal.category}</span>
                           </div>
                         </div>
                         <span className={`text-[9px] px-1.5 py-0.5 rounded border font-semibold ${deal.badgeColor}`}>
@@ -397,14 +397,14 @@ export default function InvestorDashboardPage() {
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1 flex-wrap text-[10px] text-[#E4DFF0] font-mono">
-                        <span className="bg-[#1F1B28] px-1.5 py-0.5 rounded border border-purple-900/40">{deal.stage}</span>
-                        <span className="bg-[#1F1B28] px-1.5 py-0.5 rounded border border-purple-900/40">{deal.raise}</span>
-                        <span className="bg-[#1F1B28] px-1.5 py-0.5 rounded border border-purple-900/40">{deal.minInvest}</span>
+                      <div className="flex items-center gap-1 flex-wrap text-[10px] text-foreground font-mono">
+                        <span className="bg-secondary px-1.5 py-0.5 rounded border border-border">{deal.stage}</span>
+                        <span className="bg-secondary px-1.5 py-0.5 rounded border border-border">{deal.raise}</span>
+                        <span className="bg-secondary px-1.5 py-0.5 rounded border border-border">{deal.minInvest}</span>
                       </div>
 
                       {/* AI Analysis Highlights Box */}
-                      <div className="p-2 rounded-lg bg-[#1F1B28]/80 border border-purple-900/40 flex items-center gap-1.5">
+                      <div className="p-2 rounded-lg bg-secondary/80 border border-border flex items-center gap-1.5">
                         <Sparkles className="w-3.5 h-3.5 text-[#A55EF0] shrink-0" />
                         <span className="text-[10px] font-semibold text-purple-200 truncate">
                           {deal.aiHighlights}
@@ -416,13 +416,13 @@ export default function InvestorDashboardPage() {
                     <div className="flex items-center gap-1.5 pt-1">
                       <button
                         onClick={() => toast.info(`Passed ${deal.name}`)}
-                        className="px-2 py-1.5 text-[11px] font-medium bg-[#1F1B28] text-[#9B92AD] hover:text-white rounded-lg border border-purple-900/40 transition-colors"
+                        className="px-2 py-1.5 text-[11px] font-medium bg-secondary text-muted-foreground hover:text-foreground rounded-lg border border-border transition-colors"
                       >
                         Pass
                       </button>
                       <button
                         onClick={() => toast.success(`Saved ${deal.name}`)}
-                        className="px-2 py-1.5 text-[11px] font-medium bg-[#1F1B28] text-[#9B92AD] hover:text-white rounded-lg border border-purple-900/40 transition-colors flex items-center gap-1"
+                        className="px-2 py-1.5 text-[11px] font-medium bg-secondary text-muted-foreground hover:text-foreground rounded-lg border border-border transition-colors flex items-center gap-1"
                       >
                         <Bookmark className="w-3 h-3 text-purple-300" />
                         Save
@@ -439,8 +439,8 @@ export default function InvestorDashboardPage() {
               </div>
             </div>
 
-            <div className="lg:col-span-5 bg-[#26212F] border border-purple-900/30 rounded-xl p-4 space-y-3">
-              <h3 className="text-sm font-bold text-white">Portfolio Growth</h3>
+            <div className="lg:col-span-5 bg-secondary border border-border rounded-xl p-4 space-y-3">
+              <h3 className="text-sm font-bold text-foreground">Portfolio Growth</h3>
               <div className="h-44 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={portfolioGrowthData}>
@@ -453,7 +453,7 @@ export default function InvestorDashboardPage() {
                     <XAxis dataKey="year" stroke="#9B92AD" fontSize={10} tickLine={false} />
                     <YAxis stroke="#9B92AD" fontSize={10} tickLine={false} tickFormatter={(val) => `$${val}M`} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: "#17141F", borderColor: "#8C3CDD", borderRadius: "8px", fontSize: "11px", color: "#E4DFF0" }}
+                      contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "#8C3CDD", borderRadius: "8px", fontSize: "11px", color: "hsl(var(--foreground))" }}
                       itemStyle={{ color: "#A55EF0" }}
                     />
                     <Area type="monotone" dataKey="value" stroke="#A55EF0" strokeWidth={2.5} fillOpacity={1} fill="url(#growthGrad)" />
@@ -467,21 +467,21 @@ export default function InvestorDashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
             
             {/* PORTFOLIO MANAGEMENT TABLE (7 Cols) */}
-            <div className="lg:col-span-7 bg-[#26212F] border border-purple-900/30 rounded-xl p-4 space-y-4 relative">
+            <div className="lg:col-span-7 bg-secondary border border-border rounded-xl p-4 space-y-4 relative">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <h3 className="text-sm font-bold text-white">Portfolio Management</h3>
+                <h3 className="text-sm font-bold text-foreground">Portfolio Management</h3>
                 <div className="flex items-center gap-2">
                   <div className="relative">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#9B92AD]" />
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <input
                       type="text"
                       placeholder="Search"
                       value={tableSearch}
                       onChange={(e) => setTableSearch(e.target.value)}
-                      className="bg-[#2D2838] border border-purple-900/40 rounded-lg pl-8 pr-3 py-1 text-[11px] text-[#E4DFF0] placeholder-[#9B92AD] focus:outline-none focus:border-[#8C3CDD]"
+                      className="bg-card border border-border rounded-lg pl-8 pr-3 py-1 text-[11px] text-foreground placeholder-[#9B92AD] focus:outline-none focus:border-[#8C3CDD]"
                     />
                   </div>
-                  <button className="p-1.5 bg-[#2D2838] border border-purple-900/40 rounded-lg text-[#9B92AD] hover:text-white">
+                  <button className="p-1.5 bg-card border border-border rounded-lg text-muted-foreground hover:text-foreground">
                     <Filter className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -491,7 +491,7 @@ export default function InvestorDashboardPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-purple-900/40 text-[#9B92AD] font-semibold text-[11px]">
+                    <tr className="border-b border-border text-muted-foreground font-semibold text-[11px]">
                       <th className="py-2 px-3">Company</th>
                       <th className="py-2 px-3">Sector</th>
                       <th className="py-2 px-3">Investments</th>
@@ -500,18 +500,18 @@ export default function InvestorDashboardPage() {
                       <th className="py-2 px-3 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-purple-900/30">
+                  <tbody className="divide-y divide-border">
                     {filteredPortfolio.map((item) => (
-                      <tr key={item.id} className="hover:bg-[#2D2838]/60 transition-colors">
-                        <td className="py-2.5 px-3 font-semibold text-white flex items-center gap-2">
+                      <tr key={item.id} className="hover:bg-secondary/60 transition-colors">
+                        <td className="py-2.5 px-3 font-semibold text-foreground flex items-center gap-2">
                           <div className="w-5 h-5 rounded bg-[#8C3CDD]/20 text-purple-300 flex items-center justify-center text-[10px]">
                             {item.company[0]}
                           </div>
                           {item.company}
                         </td>
-                        <td className="py-2.5 px-3 text-[#E4DFF0]">{item.sector}</td>
-                        <td className="py-2.5 px-3 font-mono font-medium text-white">{item.investment}</td>
-                        <td className="py-2.5 px-3 font-mono text-[#E4DFF0]">{item.ownership}</td>
+                        <td className="py-2.5 px-3 text-foreground">{item.sector}</td>
+                        <td className="py-2.5 px-3 font-mono font-medium text-foreground">{item.investment}</td>
+                        <td className="py-2.5 px-3 font-mono text-foreground">{item.ownership}</td>
                         <td className="py-2.5 px-3">
                           <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${item.statusColor}`}>
                             {item.status}
@@ -520,14 +520,14 @@ export default function InvestorDashboardPage() {
                         <td className="py-2.5 px-3 text-right relative">
                           <button
                             onClick={() => setOpenMenuId(openMenuId === item.id ? null : item.id)}
-                            className="p-1 rounded bg-[#1F1B28] hover:bg-[#8C3CDD]/30 border border-purple-900/40 text-purple-300 transition-colors"
+                            className="p-1 rounded bg-secondary hover:bg-[#8C3CDD]/30 border border-border text-purple-300 transition-colors"
                           >
                             <MoreVertical className="w-4 h-4" />
                           </button>
 
                           {/* Popover Dropdown Menu */}
                           {openMenuId === item.id && (
-                            <div className="absolute right-3 top-10 w-44 bg-[#1F1B28] border border-purple-900/80 rounded-xl shadow-2xl p-1.5 z-30 text-left space-y-1">
+                            <div className="absolute right-3 top-10 w-44 bg-secondary border border-border rounded-xl shadow-2xl p-1.5 z-30 text-left space-y-1">
                               <button
                                 onClick={() => {
                                   setSelectedCompany(item.company);
@@ -549,8 +549,8 @@ export default function InvestorDashboardPage() {
             </div>
 
             {/* SECTOR ALLOCATION PIE CHART (5 Cols) */}
-            <div className="lg:col-span-5 bg-[#26212F] border border-purple-900/30 rounded-xl p-4 space-y-3">
-              <h3 className="text-sm font-bold text-white">Sector Allocation</h3>
+            <div className="lg:col-span-5 bg-secondary border border-border rounded-xl p-4 space-y-3">
+              <h3 className="text-sm font-bold text-foreground">Sector Allocation</h3>
               <div className="flex items-center justify-around py-2">
                 <div className="w-40 h-40">
                   <ResponsiveContainer width="100%" height="100%">
@@ -576,12 +576,12 @@ export default function InvestorDashboardPage() {
                   {sectorData.map((s) => (
                     <div key={s.name} className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />
-                      <span className="text-[#E4DFF0] font-medium">{s.name} ({s.value}%)</span>
+                      <span className="text-foreground font-medium">{s.name} ({s.value}%)</span>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="text-[10px] text-center text-[#9B92AD] pt-2 border-t border-purple-900/30">
+              <div className="text-[10px] text-center text-muted-foreground pt-2 border-t border-border">
                 Portfolio Growth • Sector Allocation
               </div>
             </div>
@@ -594,21 +594,21 @@ export default function InvestorDashboardPage() {
       {/* ================= REQUEST PDF MODAL DIALOG ================= */}
       {selectedCompany && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#211D2A] border border-purple-900/80 rounded-2xl w-full max-w-md p-5 space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-purple-900/40 pb-3">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-md p-5 space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-[#34C4A4]" />
-                <h3 className="text-sm font-bold text-white">Select PDF for {selectedCompany}</h3>
+                <h3 className="text-sm font-bold text-foreground">Select PDF for {selectedCompany}</h3>
               </div>
               <button
                 onClick={() => setSelectedCompany(null)}
-                className="p-1 rounded-lg text-[#9B92AD] hover:text-white hover:bg-purple-900/40"
+                className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-purple-900/40"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-[#9B92AD]">
+            <p className="text-xs text-muted-foreground">
               Choose the document type you want to generate or download:
             </p>
 
@@ -620,14 +620,14 @@ export default function InvestorDashboardPage() {
                 return (
                   <div
                     key={pdf.id}
-                    className="p-3 rounded-xl bg-[#17141F] border border-purple-900/40 flex items-center justify-between transition-all"
+                    className="p-3 rounded-xl bg-background border border-border flex items-center justify-between transition-all"
                   >
                     <div>
-                      <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
                         {pdf.title}
                         {isReady && <span className="text-[9px] px-1.5 py-0.2 rounded bg-teal-500/20 text-[#34C4A4]">Ready</span>}
                       </h4>
-                      <p className="text-[10px] text-[#9B92AD]">{pdf.desc}</p>
+                      <p className="text-[10px] text-muted-foreground">{pdf.desc}</p>
                     </div>
 
                     <button
@@ -637,8 +637,8 @@ export default function InvestorDashboardPage() {
                         isReady
                           ? "bg-teal-500/20 border border-teal-500/40 text-[#34C4A4] hover:bg-teal-500/30"
                           : isGenerating
-                          ? "bg-purple-900/30 text-purple-400 border border-purple-900/40 cursor-not-allowed"
-                          : "bg-[#26212F] text-slate-500 border border-purple-900/30 hover:text-purple-300 hover:border-purple-600"
+                          ? "bg-purple-900/30 text-purple-400 border border-border cursor-not-allowed"
+                          : "bg-secondary text-slate-500 border border-border hover:text-purple-300 hover:border-purple-600"
                       }`}
                     >
                       {isGenerating ? (

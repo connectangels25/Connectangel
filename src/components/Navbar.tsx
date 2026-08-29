@@ -178,7 +178,11 @@ export default function Navbar() {
     );
   };
 
-  const visibleLinks = NAV_LINKS;
+  const isSimplifiedNavRoute =
+    location.pathname.startsWith("/create-event") ||
+    location.pathname.startsWith("/investor-onboarding") ||
+    location.pathname.startsWith("/investor-dashboard");
+  const visibleLinks = isSimplifiedNavRoute ? [] : NAV_LINKS;
 
   return (
     <>
@@ -202,25 +206,27 @@ export default function Navbar() {
             <img src={logo} alt="ConnectAngels" className="h-10 sm:h-12 w-auto" />
           </Link>
           {/* Desktop nav links */}
-          <div className="hidden md:flex items-center gap-6">
-            {visibleLinks.map((link) => (
-              <button
-                key={link.label}
-                onClick={() => handleNavClick(link)}
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {link.label}
-              </button>
-            ))}
-            {isAdmin && (
-              <button
-                onClick={() => navigate("/admindashboard")}
-                className="text-sm font-bold text-primary hover:opacity-80 transition-all flex items-center gap-2"
-              >
-                Admin Dashboard
-              </button>
-            )}
-          </div>
+          {!isSimplifiedNavRoute && (
+            <div className="hidden md:flex items-center gap-6">
+              {visibleLinks.map((link) => (
+                <button
+                  key={link.label}
+                  onClick={() => handleNavClick(link)}
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {link.label}
+                </button>
+              ))}
+              {isAdmin && (
+                <button
+                  onClick={() => navigate("/admindashboard")}
+                  className="text-sm font-bold text-primary hover:opacity-80 transition-all flex items-center gap-2"
+                >
+                  Admin Dashboard
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Desktop right section */}
@@ -234,12 +240,14 @@ export default function Navbar() {
               className="pl-9 pr-4 py-2 rounded-full bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 w-40 xl:w-48"
             />
           </div>
-          <button
-            onClick={() => navigate("/create-event")}
-            className="px-4 lg:px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity whitespace-nowrap"
-          >
-            Add Event +
-          </button>
+          {!isSimplifiedNavRoute && (
+            <button
+              onClick={() => navigate("/create-event")}
+              className="px-4 lg:px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity whitespace-nowrap"
+            >
+              Add Event +
+            </button>
+          )}
 
           {user && isProActive && (
             <span className="hidden lg:inline-flex items-center gap-1.5 text-xs font-semibold text-blue-500 bg-blue-500/10 px-3 py-1.5 rounded-full border border-blue-500/20 whitespace-nowrap">
@@ -427,7 +435,7 @@ export default function Navbar() {
                   {link.label}
                 </button>
               ))}
-              {isAdmin && (
+              {!isSimplifiedNavRoute && isAdmin && (
                 <button
                   onClick={() => { setMobileOpen(false); navigate("/admindashboard"); }}
                   className="text-left text-sm font-bold text-primary py-3 px-3 rounded-lg hover:bg-secondary transition-colors"
@@ -444,12 +452,14 @@ export default function Navbar() {
                 />
               </div>
               <div className="h-px bg-border my-2" />
-              <button
-                onClick={() => { setMobileOpen(false); navigate("/create-event"); }}
-                className="text-left text-sm font-semibold text-primary py-3 px-3 rounded-lg hover:bg-secondary transition-colors"
-              >
-                Add Event +
-              </button>
+              {!isSimplifiedNavRoute && (
+                <button
+                  onClick={() => { setMobileOpen(false); navigate("/create-event"); }}
+                  className="text-left text-sm font-semibold text-primary py-3 px-3 rounded-lg hover:bg-secondary transition-colors"
+                >
+                  Add Event +
+                </button>
+              )}
 
               {user && isProActive && (
                 <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 mt-2">

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useImageUpload } from "@/hooks/useImageUpload";
 import logo from "@/assets/logo.png";
+import Navbar from "@/components/Navbar";
 import {
   Type,
   Globe,
@@ -407,80 +408,54 @@ export default function CreateEventPage() {
     : user?.email?.[0]?.toUpperCase() || "CA";
 
   return (
-    <div className="min-h-screen bg-[#0a0812] text-[#c7c2dd] font-sans antialiased relative selection:bg-[#a855f7]/30 pb-20">
+    <div className="min-h-screen bg-background text-foreground font-sans antialiased relative selection:bg-primary/30 pb-20">
       {/* Background gradients */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute -top-[10%] left-[10%] w-[1000px] h-[500px] bg-[#8b5cf6]/15 rounded-full blur-[120px]" />
-        <div className="absolute top-0 right-0 w-[800px] h-[450px] bg-[#e9c46a]/5 rounded-full blur-[140px]" />
+        <div className="absolute -top-[10%] left-[10%] w-[1000px] h-[500px] bg-primary/10 rounded-full blur-[120px]" />
+        <div className="absolute top-0 right-0 w-[800px] h-[450px] bg-amber-500/5 rounded-full blur-[140px]" />
       </div>
 
-      {/* Top Navigation */}
-      <header className="sticky top-0 z-50 flex items-center justify-between px-6 sm:px-11 py-4 border-b border-[#221d3a] bg-[#0a0812]/80 backdrop-blur-md">
-        <div
-          className="flex items-center gap-3 cursor-pointer select-none"
-          onClick={() => navigate("/")}
-        >
-          <img src={logo} alt="ConnectAngels" className="w-9 h-9 object-contain" />
-          <span className="font-bold text-[19px] tracking-tight bg-gradient-to-r from-[#d8b4fe] via-[#a855f7] to-[#e9c46a] bg-clip-text text-transparent">
-            ConnectAngels
-          </span>
-        </div>
-        <div className="flex items-center gap-6 sm:gap-8">
-          <button
-            onClick={() => navigate("/")}
-            className="text-[14.5px] text-[#8d87a8] font-medium hover:text-[#f5f3fa] transition-colors hidden sm:block"
-          >
-            Explore Events
-          </button>
-          <button
-            onClick={() => navigate("/my-events")}
-            className="text-[14.5px] text-[#8d87a8] font-medium hover:text-[#f5f3fa] transition-colors"
-          >
-            My Drafts
-          </button>
-          <div className="w-[36px] h-[36px] rounded-full bg-gradient-to-br from-[#a855f7] to-[#6d28d9] flex items-center justify-center font-bold text-[13px] text-white shadow-[0_0_0_1px_rgba(168,85,247,0.15),0_10px_40px_-12px_rgba(139,92,246,0.35)]">
-            {userInitials}
-          </div>
-        </div>
-      </header>
+      {/* Website Navbar */}
+      <div className="relative z-50">
+        <Navbar />
+      </div>
 
       {/* Stepper Navigation */}
       <div className="relative z-10 px-4 sm:px-11 pt-8">
-        <div className="flex items-center justify-between sm:justify-center overflow-x-auto no-scrollbar bg-[#161228] border border-[#221d3a] rounded-full py-1.5 px-3 sm:px-6 max-w-[1080px] mx-auto shadow-[0_8px_30px_-10px_rgba(0,0,0,0.55)]">
-          {STEP_LABELS.map((label, idx) => {
-            const isActive = step === idx;
-            const isDone = step > idx;
-            return (
-              <div key={label} className="flex items-center flex-shrink-0">
+        <div className="max-w-[1000px] mx-auto bg-card/80 backdrop-blur-md border border-border rounded-2xl p-1.5 sm:p-2 shadow-sm">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2">
+            {STEP_LABELS.map((label, idx) => {
+              const isActive = step === idx;
+              const isDone = step > idx;
+              return (
                 <button
+                  key={label}
+                  type="button"
                   onClick={() => setStep(idx)}
-                  className={`flex items-center gap-2 px-3 sm:px-5 py-2.5 rounded-full text-[13.5px] font-semibold transition-all duration-200 whitespace-nowrap ${
+                  className={`flex items-center justify-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] sm:text-[13.5px] font-medium transition-all duration-200 text-center ${
                     isActive
-                      ? "bg-gradient-to-r from-[#a855f7] to-[#7c3aed] text-white shadow-[0_6px_18px_-6px_rgba(139,92,246,0.55)]"
+                      ? "bg-primary text-primary-foreground font-semibold shadow-md shadow-primary/25 ring-1 ring-primary/30"
                       : isDone
-                      ? "text-[#c7c2dd] hover:text-[#f5f3fa]"
-                      : "text-[#615c7d] hover:text-[#8d87a8]"
+                      ? "bg-secondary/60 text-foreground hover:bg-secondary border border-border/50"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
                   }`}
                 >
                   <span
-                    className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors ${
+                    className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 transition-colors ${
                       isActive
-                        ? "bg-white/20 text-white"
+                        ? "bg-white/25 text-white"
                         : isDone
-                        ? "bg-[#34d399] text-[#062b1e]"
-                        : "bg-[#1b1630] text-[#615c7d]"
+                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                        : "bg-muted text-muted-foreground"
                     }`}
                   >
                     {isDone ? <Check className="w-3 h-3 stroke-[3]" /> : idx + 1}
                   </span>
-                  <span>{label}</span>
+                  <span className="truncate">{label}</span>
                 </button>
-                {idx < STEP_LABELS.length - 1 && (
-                  <div className="w-5 sm:w-10 h-[1px] bg-[#221d3a] mx-1 sm:mx-2 hidden xs:block" />
-                )}
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -492,32 +467,32 @@ export default function CreateEventPage() {
           {step === 0 && (
             <div className="space-y-6 animate-in fade-in duration-300">
               <div className="mb-8">
-                <h1 className="text-3xl sm:text-[34px] font-extrabold text-[#f5f3fa] tracking-tight">
+                <h1 className="text-3xl sm:text-[34px] font-extrabold text-foreground tracking-tight">
                   Create Your Event
                 </h1>
-                <p className="text-[#8d87a8] text-[15px] mt-1.5">
+                <p className="text-muted-foreground text-[15px] mt-1.5">
                   Start by providing the essential details for your upcoming experience.
                 </p>
               </div>
 
               {/* Event Identity Card */}
-              <div className="relative rounded-[20px] bg-gradient-to-b from-[#161228] to-[#161228]/70 border border-[#221d3a] p-6 sm:p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.55)] overflow-hidden">
+              <div className="relative rounded-[20px] bg-card border border-border p-6 sm:p-8 shadow-sm overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#a855f7]/40 to-transparent" />
                 <div className="flex items-center gap-3 mb-1">
                   <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-gradient-to-br from-[#a855f7]/20 to-[#8b5cf6]/10 border border-[#a855f7]/25 text-[#c084fc]">
                     <Type className="w-5 h-5" />
                   </div>
-                  <h2 className="text-[19px] font-bold text-[#f5f3fa] tracking-tight">
+                  <h2 className="text-[19px] font-bold text-foreground tracking-tight">
                     Event Identity
                   </h2>
                 </div>
-                <p className="text-[13.5px] text-[#8d87a8] mb-6 ml-12">
+                <p className="text-[13.5px] text-muted-foreground mb-6 ml-12">
                   Give your event a name and let attendees know who's hosting.
                 </p>
 
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                    <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                       Event Title <span className="text-[#c084fc]">*</span>
                     </label>
                     <input
@@ -525,14 +500,14 @@ export default function CreateEventPage() {
                       value={eventTitle}
                       onChange={(e) => setEventTitle(e.target.value)}
                       placeholder="e.g. Global Tech Summit 2024"
-                      className={`w-full bg-[#080610]/55 border ${
-                        errors.eventTitle ? "border-red-500" : "border-[#2a2444]"
-                      } text-[#f5f3fa] text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-[#615c7d]`}
+                      className={`w-full bg-background border ${
+                        errors.eventTitle ? "border-red-500" : "border-input"
+                      } text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-muted-foreground`}
                     />
                     {errors.eventTitle ? (
                       <p className="text-xs text-red-400 mt-1.5">{errors.eventTitle}</p>
                     ) : (
-                      <p className="text-xs text-[#615c7d] mt-1.5">
+                      <p className="text-xs text-muted-foreground mt-1.5">
                         Try to make it catchy and descriptive (max 100 characters).
                       </p>
                     )}
@@ -540,7 +515,7 @@ export default function CreateEventPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                      <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                         Organizer Name <span className="text-[#c084fc]">*</span>
                       </label>
                       <input
@@ -548,9 +523,9 @@ export default function CreateEventPage() {
                         value={organizerName}
                         onChange={(e) => setOrganizerName(e.target.value)}
                         placeholder="e.g. InnovateX Solutions"
-                        className={`w-full bg-[#080610]/55 border ${
-                          errors.organizerName ? "border-red-500" : "border-[#2a2444]"
-                        } text-[#f5f3fa] text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-[#615c7d]`}
+                        className={`w-full bg-background border ${
+                          errors.organizerName ? "border-red-500" : "border-input"
+                        } text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-muted-foreground`}
                       />
                       {errors.organizerName && (
                         <p className="text-xs text-red-400 mt-1.5">{errors.organizerName}</p>
@@ -558,7 +533,7 @@ export default function CreateEventPage() {
                     </div>
 
                     <div>
-                      <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                      <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                         Organizer Logo
                       </label>
                       <input
@@ -572,30 +547,30 @@ export default function CreateEventPage() {
                         }
                       />
                       {organizerLogoUrl ? (
-                        <div className="relative border border-[#2a2444] bg-[#1b1630] rounded-[14px] p-3 flex items-center justify-between">
+                        <div className="relative border border-input bg-secondary rounded-[14px] p-3 flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <img
                               src={organizerLogoUrl}
                               alt="Logo"
-                              className="w-12 h-12 rounded-lg object-contain bg-black/30 border border-[#2a2444]"
+                              className="w-12 h-12 rounded-lg object-contain bg-black/30 border border-input"
                             />
                             <div>
-                              <p className="text-xs font-semibold text-[#f5f3fa]">Logo uploaded</p>
-                              <p className="text-[11px] text-[#8d87a8]">Ready for event cards</p>
+                              <p className="text-xs font-semibold text-foreground">Logo uploaded</p>
+                              <p className="text-[11px] text-muted-foreground">Ready for event cards</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-1">
                             <button
                               type="button"
                               onClick={() => logoInputRef.current?.click()}
-                              className="p-2 rounded-lg hover:bg-white/5 text-[#8d87a8] hover:text-white"
+                              className="p-2 rounded-lg hover:bg-white/5 text-muted-foreground hover:text-white"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
                               type="button"
                               onClick={() => setOrganizerLogoUrl("")}
-                              className="p-2 rounded-lg hover:bg-red-500/10 text-[#8d87a8] hover:text-red-400"
+                              className="p-2 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-400"
                             >
                               <X className="w-4 h-4" />
                             </button>
@@ -604,13 +579,13 @@ export default function CreateEventPage() {
                       ) : (
                         <div
                           onClick={() => logoInputRef.current?.click()}
-                          className="border-[1.5px] border-dashed border-[#2a2444] rounded-[14px] p-4 flex flex-col items-center justify-center text-center cursor-pointer bg-[#8b5cf6]/[0.02] hover:bg-[#8b5cf6]/[0.06] hover:border-[#a855f7] transition-all"
+                          className="border-[1.5px] border-dashed border-input rounded-[14px] p-4 flex flex-col items-center justify-center text-center cursor-pointer bg-[#8b5cf6]/[0.02] hover:bg-[#8b5cf6]/[0.06] hover:border-[#a855f7] transition-all"
                         >
-                          <div className="w-8 h-8 rounded-full bg-[#1b1630] border border-[#2a2444] flex items-center justify-center text-[#c084fc] mb-1.5">
+                          <div className="w-8 h-8 rounded-full bg-secondary border border-input flex items-center justify-center text-[#c084fc] mb-1.5">
                             <Upload className="w-4 h-4" />
                           </div>
-                          <strong className="text-xs text-[#f5f3fa]">Upload Logo</strong>
-                          <span className="text-[11px] text-[#615c7d]">PNG, JPG (1:1) Max 2MB</span>
+                          <strong className="text-xs text-foreground">Upload Logo</strong>
+                          <span className="text-[11px] text-muted-foreground">PNG, JPG (1:1) Max 2MB</span>
                         </div>
                       )}
                     </div>
@@ -619,32 +594,32 @@ export default function CreateEventPage() {
               </div>
 
               {/* Classification Card */}
-              <div className="relative rounded-[20px] bg-gradient-to-b from-[#161228] to-[#161228]/70 border border-[#221d3a] p-6 sm:p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.55)] overflow-hidden">
+              <div className="relative rounded-[20px] bg-card border border-border p-6 sm:p-8 shadow-sm overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#a855f7]/40 to-transparent" />
                 <div className="flex items-center gap-3 mb-1">
                   <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-gradient-to-br from-[#a855f7]/20 to-[#8b5cf6]/10 border border-[#a855f7]/25 text-[#c084fc]">
                     <Globe className="w-5 h-5" />
                   </div>
-                  <h2 className="text-[19px] font-bold text-[#f5f3fa] tracking-tight">
+                  <h2 className="text-[19px] font-bold text-foreground tracking-tight">
                     Classification
                   </h2>
                 </div>
-                <p className="text-[13.5px] text-[#8d87a8] mb-6 ml-12">
+                <p className="text-[13.5px] text-muted-foreground mb-6 ml-12">
                   Help attendees discover your event in the right category.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                    <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                       Event Category <span className="text-[#c084fc]">*</span>
                     </label>
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full bg-[#080610]/55 border border-[#2a2444] text-[#f5f3fa] text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all"
+                      className="w-full bg-background border border-input text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all"
                     >
                       {CATEGORIES.map((c) => (
-                        <option key={c} value={c} className="bg-[#161228] text-[#f5f3fa]">
+                        <option key={c} value={c} className="bg-card text-foreground">
                           {c}
                         </option>
                       ))}
@@ -652,10 +627,10 @@ export default function CreateEventPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
-                      Tags <span className="text-[#615c7d] font-normal">(Optional)</span>
+                    <label className="block text-[13.5px] font-semibold text-foreground mb-2">
+                      Tags <span className="text-muted-foreground font-normal">(Optional)</span>
                     </label>
-                    <div className="flex flex-wrap items-center gap-2 bg-[#080610]/55 border border-[#2a2444] rounded-[10px] px-3 py-2 focus-within:border-[#a855f7] focus-within:ring-4 focus-within:ring-[#8b5cf6]/15 transition-all">
+                    <div className="flex flex-wrap items-center gap-2 bg-background border border-input rounded-[10px] px-3 py-2 focus-within:border-[#a855f7] focus-within:ring-4 focus-within:ring-[#8b5cf6]/15 transition-all">
                       {tags.map((t) => (
                         <span
                           key={t}
@@ -682,7 +657,7 @@ export default function CreateEventPage() {
                           }
                         }}
                         placeholder={tags.length === 0 ? "Type tag & hit Enter..." : "Add tag..."}
-                        className="bg-transparent border-none outline-none text-[#f5f3fa] text-xs py-1 px-1 flex-1 min-w-[100px] placeholder:text-[#615c7d]"
+                        className="bg-transparent border-none outline-none text-foreground text-xs py-1 px-1 flex-1 min-w-[100px] placeholder:text-muted-foreground"
                       />
                     </div>
                   </div>
@@ -690,23 +665,23 @@ export default function CreateEventPage() {
               </div>
 
               {/* About Event Card */}
-              <div className="relative rounded-[20px] bg-gradient-to-b from-[#161228] to-[#161228]/70 border border-[#221d3a] p-6 sm:p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.55)] overflow-hidden">
+              <div className="relative rounded-[20px] bg-card border border-border p-6 sm:p-8 shadow-sm overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#a855f7]/40 to-transparent" />
                 <div className="flex items-center gap-3 mb-1">
                   <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-gradient-to-br from-[#a855f7]/20 to-[#8b5cf6]/10 border border-[#a855f7]/25 text-[#c084fc]">
                     <FileText className="w-5 h-5" />
                   </div>
-                  <h2 className="text-[19px] font-bold text-[#f5f3fa] tracking-tight">
+                  <h2 className="text-[19px] font-bold text-foreground tracking-tight">
                     About the Event
                   </h2>
                 </div>
-                <p className="text-[13.5px] text-[#8d87a8] mb-6 ml-12">
+                <p className="text-[13.5px] text-muted-foreground mb-6 ml-12">
                   This is your chance to sell the experience to attendees.
                 </p>
 
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                    <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                       Short Summary <span className="text-[#c084fc]">*</span>
                     </label>
                     <textarea
@@ -714,22 +689,22 @@ export default function CreateEventPage() {
                       onChange={(e) => setShortSummary(e.target.value.slice(0, 250))}
                       placeholder="Briefly describe what makes this event unique..."
                       rows={3}
-                      className={`w-full bg-[#080610]/55 border ${
-                        errors.shortSummary ? "border-red-500" : "border-[#2a2444]"
-                      } text-[#f5f3fa] text-[14.5px] p-3.5 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all resize-none placeholder:text-[#615c7d]`}
+                      className={`w-full bg-background border ${
+                        errors.shortSummary ? "border-red-500" : "border-input"
+                      } text-foreground text-[14.5px] p-3.5 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all resize-none placeholder:text-muted-foreground`}
                     />
-                    <div className="flex justify-between items-center text-xs text-[#615c7d] mt-1.5">
+                    <div className="flex justify-between items-center text-xs text-muted-foreground mt-1.5">
                       <span>{errors.shortSummary || "This will be shown on event discovery cards"}</span>
                       <span>{shortSummary.length} / 250</span>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                    <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                       Event Link / Registration URL <span className="text-[#c084fc]">*</span>
                     </label>
                     <div className="relative">
-                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#615c7d]">
+                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground">
                         <Link2 className="w-4 h-4" />
                       </div>
                       <input
@@ -737,9 +712,9 @@ export default function CreateEventPage() {
                         value={eventLink}
                         onChange={(e) => setEventLink(e.target.value)}
                         placeholder="https://event.link or meeting link"
-                        className={`w-full bg-[#080610]/55 border ${
-                          errors.eventLink ? "border-red-500" : "border-[#2a2444]"
-                        } text-[#f5f3fa] text-[14.5px] pl-10 pr-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-[#615c7d]`}
+                        className={`w-full bg-background border ${
+                          errors.eventLink ? "border-red-500" : "border-input"
+                        } text-foreground text-[14.5px] pl-10 pr-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-muted-foreground`}
                       />
                     </div>
                     {errors.eventLink && (
@@ -750,22 +725,22 @@ export default function CreateEventPage() {
               </div>
 
               {/* Event Branding Card */}
-              <div className="relative rounded-[20px] bg-gradient-to-b from-[#161228] to-[#161228]/70 border border-[#221d3a] p-6 sm:p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.55)] overflow-hidden">
+              <div className="relative rounded-[20px] bg-card border border-border p-6 sm:p-8 shadow-sm overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#a855f7]/40 to-transparent" />
                 <div className="flex items-center gap-3 mb-1">
                   <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-gradient-to-br from-[#a855f7]/20 to-[#8b5cf6]/10 border border-[#a855f7]/25 text-[#c084fc]">
                     <ImageIcon className="w-5 h-5" />
                   </div>
-                  <h2 className="text-[19px] font-bold text-[#f5f3fa] tracking-tight">
+                  <h2 className="text-[19px] font-bold text-foreground tracking-tight">
                     Event Branding
                   </h2>
                 </div>
-                <p className="text-[13.5px] text-[#8d87a8] mb-6 ml-12">
+                <p className="text-[13.5px] text-muted-foreground mb-6 ml-12">
                   A strong banner drives clicks from the explore page.
                 </p>
 
                 <div>
-                  <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                  <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                     Event Banner <span className="text-[#c084fc]">*</span>
                   </label>
                   <input
@@ -780,7 +755,7 @@ export default function CreateEventPage() {
                   />
 
                   {bannerUrl ? (
-                    <div className="relative rounded-[14px] border border-[#2a2444] overflow-hidden group">
+                    <div className="relative rounded-[14px] border border-input overflow-hidden group">
                       <img
                         src={bannerUrl}
                         alt="Banner Preview"
@@ -807,16 +782,16 @@ export default function CreateEventPage() {
                     <div
                       onClick={() => bannerInputRef.current?.click()}
                       className={`border-[1.5px] border-dashed ${
-                        errors.bannerUrl ? "border-red-500" : "border-[#2a2444]"
+                        errors.bannerUrl ? "border-red-500" : "border-input"
                       } rounded-[14px] p-8 sm:p-10 flex flex-col items-center justify-center text-center cursor-pointer bg-[#8b5cf6]/[0.02] hover:bg-[#8b5cf6]/[0.06] hover:border-[#a855f7] transition-all`}
                     >
-                      <div className="w-12 h-12 rounded-full bg-[#1b1630] border border-[#2a2444] flex items-center justify-center text-[#c084fc] mb-3">
+                      <div className="w-12 h-12 rounded-full bg-secondary border border-input flex items-center justify-center text-[#c084fc] mb-3">
                         <Upload className="w-5 h-5" />
                       </div>
-                      <strong className="text-sm font-semibold text-[#f5f3fa]">
+                      <strong className="text-sm font-semibold text-foreground">
                         Drop image here or click to upload
                       </strong>
-                      <span className="text-xs text-[#615c7d] mt-1">
+                      <span className="text-xs text-muted-foreground mt-1">
                         Recommended: 1920×1080px (16:9) · PNG, JPG, WEBP up to 5MB
                       </span>
                     </div>
@@ -832,7 +807,7 @@ export default function CreateEventPage() {
                 <button
                   type="button"
                   onClick={() => navigate("/")}
-                  className="flex items-center gap-2 px-5 py-3 rounded-[12px] text-[14px] font-bold text-[#c7c2dd] border border-[#2a2444] bg-transparent hover:border-[#463b78] hover:text-white transition-all"
+                  className="flex items-center gap-2 px-5 py-3 rounded-[12px] text-[14px] font-bold text-foreground border border-input bg-transparent hover:border-primary hover:text-white transition-all"
                 >
                   <ArrowLeft className="w-4 h-4" /> Back
                 </button>
@@ -841,7 +816,7 @@ export default function CreateEventPage() {
                     type="button"
                     onClick={handleSaveDraft}
                     disabled={isSubmitting}
-                    className="flex items-center gap-2 px-5 py-3 rounded-[12px] text-[14px] font-bold text-[#c7c2dd] border border-[#2a2444] bg-[#1b1630] hover:bg-[#201a3a] hover:text-white transition-all disabled:opacity-50"
+                    className="flex items-center gap-2 px-5 py-3 rounded-[12px] text-[14px] font-bold text-foreground border border-input bg-secondary hover:bg-secondary/80 hover:text-white transition-all disabled:opacity-50"
                   >
                     <Save className="w-4 h-4" /> Save Draft
                   </button>
@@ -861,58 +836,58 @@ export default function CreateEventPage() {
           {step === 1 && (
             <div className="space-y-6 animate-in fade-in duration-300">
               <div className="mb-8">
-                <h1 className="text-3xl sm:text-[34px] font-extrabold text-[#f5f3fa] tracking-tight">
+                <h1 className="text-3xl sm:text-[34px] font-extrabold text-foreground tracking-tight">
                   Schedule &amp; Venue
                 </h1>
-                <p className="text-[#8d87a8] text-[15px] mt-1.5">
+                <p className="text-muted-foreground text-[15px] mt-1.5">
                   Tell attendees exactly when and where to show up.
                 </p>
               </div>
 
               {/* Date & Time Card */}
-              <div className="relative rounded-[20px] bg-gradient-to-b from-[#161228] to-[#161228]/70 border border-[#221d3a] p-6 sm:p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.55)] overflow-hidden">
+              <div className="relative rounded-[20px] bg-card border border-border p-6 sm:p-8 shadow-sm overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#a855f7]/40 to-transparent" />
                 <div className="flex items-center gap-3 mb-1">
                   <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-gradient-to-br from-[#a855f7]/20 to-[#8b5cf6]/10 border border-[#a855f7]/25 text-[#c084fc]">
                     <Clock className="w-5 h-5" />
                   </div>
-                  <h2 className="text-[19px] font-bold text-[#f5f3fa] tracking-tight">
+                  <h2 className="text-[19px] font-bold text-foreground tracking-tight">
                     Date &amp; Time
                   </h2>
                 </div>
-                <p className="text-[13.5px] text-[#8d87a8] mb-6 ml-12">
+                <p className="text-[13.5px] text-muted-foreground mb-6 ml-12">
                   Set the schedule attendees will plan around.
                 </p>
 
                 <div className="space-y-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                      <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                         Start Date <span className="text-[#c084fc]">*</span>
                       </label>
                       <input
                         type="date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className={`w-full bg-[#080610]/55 border ${
-                          errors.startDate ? "border-red-500" : "border-[#2a2444]"
-                        } text-[#f5f3fa] text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all`}
+                        className={`w-full bg-background border ${
+                          errors.startDate ? "border-red-500" : "border-input"
+                        } text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all`}
                       />
                       {errors.startDate && (
                         <p className="text-xs text-red-400 mt-1.5">{errors.startDate}</p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                      <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                         Start Time <span className="text-[#c084fc]">*</span>
                       </label>
                       <input
                         type="time"
                         value={startTime}
                         onChange={(e) => setStartTime(e.target.value)}
-                        className={`w-full bg-[#080610]/55 border ${
-                          errors.startTime ? "border-red-500" : "border-[#2a2444]"
-                        } text-[#f5f3fa] text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all`}
+                        className={`w-full bg-background border ${
+                          errors.startTime ? "border-red-500" : "border-input"
+                        } text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all`}
                       />
                       {errors.startTime && (
                         <p className="text-xs text-red-400 mt-1.5">{errors.startTime}</p>
@@ -922,32 +897,32 @@ export default function CreateEventPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                      <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                         End Date <span className="text-[#c084fc]">*</span>
                       </label>
                       <input
                         type="date"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        className={`w-full bg-[#080610]/55 border ${
-                          errors.endDate ? "border-red-500" : "border-[#2a2444]"
-                        } text-[#f5f3fa] text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all`}
+                        className={`w-full bg-background border ${
+                          errors.endDate ? "border-red-500" : "border-input"
+                        } text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all`}
                       />
                       {errors.endDate && (
                         <p className="text-xs text-red-400 mt-1.5">{errors.endDate}</p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                      <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                         End Time <span className="text-[#c084fc]">*</span>
                       </label>
                       <input
                         type="time"
                         value={endTime}
                         onChange={(e) => setEndTime(e.target.value)}
-                        className={`w-full bg-[#080610]/55 border ${
-                          errors.endTime ? "border-red-500" : "border-[#2a2444]"
-                        } text-[#f5f3fa] text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all`}
+                        className={`w-full bg-background border ${
+                          errors.endTime ? "border-red-500" : "border-input"
+                        } text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all`}
                       />
                       {errors.endTime && (
                         <p className="text-xs text-red-400 mt-1.5">{errors.endTime}</p>
@@ -963,7 +938,7 @@ export default function CreateEventPage() {
                       onChange={(e) => setShowTimezone(e.target.checked)}
                       className="w-4 h-4 rounded accent-[#a855f7] cursor-pointer"
                     />
-                    <label htmlFor="showTimezone" className="text-[13.5px] text-[#c7c2dd] cursor-pointer">
+                    <label htmlFor="showTimezone" className="text-[13.5px] text-foreground cursor-pointer">
                       Display timezone on event page (Recommended for global audience)
                     </label>
                   </div>
@@ -971,21 +946,21 @@ export default function CreateEventPage() {
               </div>
 
               {/* Venue Card */}
-              <div className="relative rounded-[20px] bg-gradient-to-b from-[#161228] to-[#161228]/70 border border-[#221d3a] p-6 sm:p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.55)] overflow-hidden">
+              <div className="relative rounded-[20px] bg-card border border-border p-6 sm:p-8 shadow-sm overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#a855f7]/40 to-transparent" />
                 <div className="flex items-center gap-3 mb-1">
                   <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-gradient-to-br from-[#a855f7]/20 to-[#8b5cf6]/10 border border-[#a855f7]/25 text-[#c084fc]">
                     <MapPin className="w-5 h-5" />
                   </div>
-                  <h2 className="text-[19px] font-bold text-[#f5f3fa] tracking-tight">Venue & Location</h2>
+                  <h2 className="text-[19px] font-bold text-foreground tracking-tight">Venue & Location</h2>
                 </div>
-                <p className="text-[13.5px] text-[#8d87a8] mb-6 ml-12">
+                <p className="text-[13.5px] text-muted-foreground mb-6 ml-12">
                   Choose how attendees will join.
                 </p>
 
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                    <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                       Venue Mode <span className="text-[#c084fc]">*</span>
                     </label>
                     <div className="flex flex-wrap gap-2.5">
@@ -1007,10 +982,10 @@ export default function CreateEventPage() {
                             className={`flex items-center gap-2 px-4 py-3 rounded-[12px] border text-[13.5px] font-semibold transition-all ${
                               isSel
                                 ? "border-[#a855f7] bg-gradient-to-r from-[#8b5cf6]/30 to-[#7c3aed]/15 text-white shadow-[0_4px_16px_-6px_rgba(139,92,246,0.5)]"
-                                : "border-[#2a2444] bg-white/[0.02] text-[#8d87a8] hover:border-[#463b78] hover:text-[#f5f3fa]"
+                                : "border-input bg-white/[0.02] text-muted-foreground hover:border-primary hover:text-foreground"
                             }`}
                           >
-                            <Icon className={`w-4 h-4 ${isSel ? "text-[#c084fc]" : "text-[#615c7d]"}`} />
+                            <Icon className={`w-4 h-4 ${isSel ? "text-[#c084fc]" : "text-muted-foreground"}`} />
                             {item.label}
                           </button>
                         );
@@ -1020,37 +995,37 @@ export default function CreateEventPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                      <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                         Event Location Type <span className="text-[#c084fc]">*</span>
                       </label>
                       <select
                         value={locationType}
                         onChange={(e) => setLocationType(e.target.value)}
-                        className="w-full bg-[#080610]/55 border border-[#2a2444] text-[#f5f3fa] text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all"
+                        className="w-full bg-background border border-input text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all"
                       >
                         {LOCATION_TYPES.map((lt) => (
-                          <option key={lt} value={lt} className="bg-[#161228] text-[#f5f3fa]">
+                          <option key={lt} value={lt} className="bg-card text-foreground">
                             {lt}
                           </option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
-                        Venue Name <span className="text-[#615c7d] font-normal">(Optional)</span>
+                      <label className="block text-[13.5px] font-semibold text-foreground mb-2">
+                        Venue Name <span className="text-muted-foreground font-normal">(Optional)</span>
                       </label>
                       <input
                         type="text"
                         value={venueName}
                         onChange={(e) => setVenueName(e.target.value)}
                         placeholder="e.g. Jio World Convention Centre"
-                        className="w-full bg-[#080610]/55 border border-[#2a2444] text-[#f5f3fa] text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-[#615c7d]"
+                        className="w-full bg-background border border-input text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-muted-foreground"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                    <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                       Venue Address {eventMode !== "Virtual" && <span className="text-[#c084fc]">*</span>}
                     </label>
                     <input
@@ -1058,9 +1033,9 @@ export default function CreateEventPage() {
                       value={venueAddress}
                       onChange={(e) => setVenueAddress(e.target.value)}
                       placeholder="Street, area, city or physical location"
-                      className={`w-full bg-[#080610]/55 border ${
-                        errors.venueAddress ? "border-red-500" : "border-[#2a2444]"
-                      } text-[#f5f3fa] text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-[#615c7d]`}
+                      className={`w-full bg-background border ${
+                        errors.venueAddress ? "border-red-500" : "border-input"
+                      } text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-muted-foreground`}
                     />
                     {errors.venueAddress && (
                       <p className="text-xs text-red-400 mt-1.5">{errors.venueAddress}</p>
@@ -1069,34 +1044,34 @@ export default function CreateEventPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
-                        Room / Floor <span className="text-[#615c7d] font-normal">(Optional)</span>
+                      <label className="block text-[13.5px] font-semibold text-foreground mb-2">
+                        Room / Floor <span className="text-muted-foreground font-normal">(Optional)</span>
                       </label>
                       <input
                         type="text"
                         value={roomFloor}
                         onChange={(e) => setRoomFloor(e.target.value)}
                         placeholder="e.g. Grand Ballroom, 2nd Floor"
-                        className="w-full bg-[#080610]/55 border border-[#2a2444] text-[#f5f3fa] text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-[#615c7d]"
+                        className="w-full bg-background border border-input text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-muted-foreground"
                       />
                     </div>
                     <div>
-                      <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
-                        Arrival Instructions <span className="text-[#615c7d] font-normal">(Optional)</span>
+                      <label className="block text-[13.5px] font-semibold text-foreground mb-2">
+                        Arrival Instructions <span className="text-muted-foreground font-normal">(Optional)</span>
                       </label>
                       <input
                         type="text"
                         value={arrivalInstructions}
                         onChange={(e) => setArrivalInstructions(e.target.value)}
                         placeholder="e.g. Enter via North Gate..."
-                        className="w-full bg-[#080610]/55 border border-[#2a2444] text-[#f5f3fa] text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-[#615c7d]"
+                        className="w-full bg-background border border-input text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-muted-foreground"
                       />
                     </div>
                   </div>
 
                   {/* Registration Deadline */}
                   <div className="pt-2">
-                    <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                    <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                       Registration Deadline <span className="text-[#c084fc]">*</span>
                     </label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -1105,9 +1080,9 @@ export default function CreateEventPage() {
                           type="date"
                           value={deadlineDate}
                           onChange={(e) => setDeadlineDate(e.target.value)}
-                          className={`w-full bg-[#080610]/55 border ${
-                            errors.deadlineDate ? "border-red-500" : "border-[#2a2444]"
-                          } text-[#f5f3fa] text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all`}
+                          className={`w-full bg-background border ${
+                            errors.deadlineDate ? "border-red-500" : "border-input"
+                          } text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all`}
                         />
                         {errors.deadlineDate && (
                           <p className="text-xs text-red-400 mt-1.5">{errors.deadlineDate}</p>
@@ -1118,9 +1093,9 @@ export default function CreateEventPage() {
                           type="time"
                           value={deadlineTime}
                           onChange={(e) => setDeadlineTime(e.target.value)}
-                          className={`w-full bg-[#080610]/55 border ${
-                            errors.deadlineTime ? "border-red-500" : "border-[#2a2444]"
-                          } text-[#f5f3fa] text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all`}
+                          className={`w-full bg-background border ${
+                            errors.deadlineTime ? "border-red-500" : "border-input"
+                          } text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all`}
                         />
                         {errors.deadlineTime && (
                           <p className="text-xs text-red-400 mt-1.5">{errors.deadlineTime}</p>
@@ -1136,7 +1111,7 @@ export default function CreateEventPage() {
                 <button
                   type="button"
                   onClick={() => setStep(0)}
-                  className="flex items-center gap-2 px-5 py-3 rounded-[12px] text-[14px] font-bold text-[#c7c2dd] border border-[#2a2444] bg-transparent hover:border-[#463b78] hover:text-white transition-all"
+                  className="flex items-center gap-2 px-5 py-3 rounded-[12px] text-[14px] font-bold text-foreground border border-input bg-transparent hover:border-primary hover:text-white transition-all"
                 >
                   <ArrowLeft className="w-4 h-4" /> Back
                 </button>
@@ -1145,7 +1120,7 @@ export default function CreateEventPage() {
                     type="button"
                     onClick={handleSaveDraft}
                     disabled={isSubmitting}
-                    className="flex items-center gap-2 px-5 py-3 rounded-[12px] text-[14px] font-bold text-[#c7c2dd] border border-[#2a2444] bg-[#1b1630] hover:bg-[#201a3a] hover:text-white transition-all disabled:opacity-50"
+                    className="flex items-center gap-2 px-5 py-3 rounded-[12px] text-[14px] font-bold text-foreground border border-input bg-secondary hover:bg-secondary/80 hover:text-white transition-all disabled:opacity-50"
                   >
                     <Save className="w-4 h-4" /> Save Draft
                   </button>
@@ -1165,28 +1140,28 @@ export default function CreateEventPage() {
           {step === 2 && (
             <div className="space-y-6 animate-in fade-in duration-300">
               <div className="mb-8">
-                <h1 className="text-3xl sm:text-[34px] font-extrabold text-[#f5f3fa] tracking-tight">
+                <h1 className="text-3xl sm:text-[34px] font-extrabold text-foreground tracking-tight">
                   Registration &amp; Tickets
                 </h1>
-                <p className="text-[#8d87a8] text-[15px] mt-1.5">
+                <p className="text-muted-foreground text-[15px] mt-1.5">
                   Decide how people get in, and what it costs them.
                 </p>
               </div>
 
               {/* Ticket Tiers Card */}
-              <div className="relative rounded-[20px] bg-gradient-to-b from-[#161228] to-[#161228]/70 border border-[#221d3a] p-6 sm:p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.55)] overflow-hidden">
+              <div className="relative rounded-[20px] bg-card border border-border p-6 sm:p-8 shadow-sm overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#a855f7]/40 to-transparent" />
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-gradient-to-br from-[#a855f7]/20 to-[#8b5cf6]/10 border border-[#a855f7]/25 text-[#c084fc]">
                       <Ticket className="w-5 h-5" />
                     </div>
-                    <h2 className="text-[19px] font-bold text-[#f5f3fa] tracking-tight">
+                    <h2 className="text-[19px] font-bold text-foreground tracking-tight">
                       Ticket Tiers
                     </h2>
                   </div>
                 </div>
-                <p className="text-[13.5px] text-[#8d87a8] mb-6 ml-12">
+                <p className="text-[13.5px] text-muted-foreground mb-6 ml-12">
                   Add one or more pricing tiers for attendees to choose from.
                 </p>
 
@@ -1194,10 +1169,10 @@ export default function CreateEventPage() {
                   {tickets.map((t, idx) => (
                     <div
                       key={idx}
-                      className="border-[1.5px] border-[#2a2444] rounded-[14px] p-5 bg-white/[0.015] relative space-y-4"
+                      className="border-[1.5px] border-input rounded-[14px] p-5 bg-white/[0.015] relative space-y-4"
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-[13px] font-bold text-[#f5f3fa]">
+                        <div className="flex items-center gap-2 text-[13px] font-bold text-foreground">
                           <span className="w-2 h-2 rounded-full bg-[#a855f7] shadow-[0_0_0_4px_rgba(139,92,246,0.18)]" />
                           Tier {idx + 1} {idx === 0 && "(Primary)"}
                         </div>
@@ -1205,7 +1180,7 @@ export default function CreateEventPage() {
                           <button
                             type="button"
                             onClick={() => removeTicketTier(idx)}
-                            className="w-8 h-8 rounded-[9px] flex items-center justify-center bg-white/[0.03] border border-[#2a2444] text-[#8d87a8] hover:text-red-400 hover:border-red-900/50 hover:bg-red-500/10 transition-all"
+                            className="w-8 h-8 rounded-[9px] flex items-center justify-center bg-white/[0.03] border border-input text-muted-foreground hover:text-red-400 hover:border-red-900/50 hover:bg-red-500/10 transition-all"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -1214,7 +1189,7 @@ export default function CreateEventPage() {
 
                       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                         <div>
-                          <label className="block text-xs font-semibold text-[#c7c2dd] mb-1.5">
+                          <label className="block text-xs font-semibold text-foreground mb-1.5">
                             Tier Name <span className="text-[#c084fc]">*</span>
                           </label>
                           <input
@@ -1222,11 +1197,11 @@ export default function CreateEventPage() {
                             value={t.name}
                             onChange={(e) => updateTicket(idx, "name", e.target.value)}
                             placeholder="e.g. General Admission"
-                            className="w-full bg-[#080610]/55 border border-[#2a2444] text-[#f5f3fa] text-[13.5px] px-3.5 py-2.5 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] transition-all"
+                            className="w-full bg-background border border-input text-foreground text-[13.5px] px-3.5 py-2.5 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] transition-all"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-semibold text-[#c7c2dd] mb-1.5">
+                          <label className="block text-xs font-semibold text-foreground mb-1.5">
                             Price ($) <span className="text-[#c084fc]">*</span>
                           </label>
                           <input
@@ -1234,11 +1209,11 @@ export default function CreateEventPage() {
                             value={t.price}
                             onChange={(e) => updateTicket(idx, "price", e.target.value)}
                             placeholder="99"
-                            className="w-full bg-[#080610]/55 border border-[#2a2444] text-[#f5f3fa] text-[13.5px] px-3.5 py-2.5 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] transition-all"
+                            className="w-full bg-background border border-input text-foreground text-[13.5px] px-3.5 py-2.5 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] transition-all"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-semibold text-[#c7c2dd] mb-1.5">
+                          <label className="block text-xs font-semibold text-foreground mb-1.5">
                             Quantity <span className="text-[#c084fc]">*</span>
                           </label>
                           <input
@@ -1246,18 +1221,18 @@ export default function CreateEventPage() {
                             value={t.quantity}
                             onChange={(e) => updateTicket(idx, "quantity", e.target.value)}
                             placeholder="200"
-                            className="w-full bg-[#080610]/55 border border-[#2a2444] text-[#f5f3fa] text-[13.5px] px-3.5 py-2.5 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] transition-all"
+                            className="w-full bg-background border border-input text-foreground text-[13.5px] px-3.5 py-2.5 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] transition-all"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-semibold text-[#c7c2dd] mb-1.5">
-                            Sales End Date <span className="text-[#615c7d] font-normal">(Optional)</span>
+                          <label className="block text-xs font-semibold text-foreground mb-1.5">
+                            Sales End Date <span className="text-muted-foreground font-normal">(Optional)</span>
                           </label>
                           <input
                             type="date"
                             value={t.salesEndDate}
                             onChange={(e) => updateTicket(idx, "salesEndDate", e.target.value)}
-                            className="w-full bg-[#080610]/55 border border-[#2a2444] text-[#f5f3fa] text-[13.5px] px-3.5 py-2.5 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] transition-all"
+                            className="w-full bg-background border border-input text-foreground text-[13.5px] px-3.5 py-2.5 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] transition-all"
                           />
                         </div>
                       </div>
@@ -1267,7 +1242,7 @@ export default function CreateEventPage() {
                   <button
                     type="button"
                     onClick={addTicketTier}
-                    className="w-full py-3.5 rounded-[14px] border-[1.5px] border-dashed border-[#2a2444] text-[#c084fc] font-semibold text-[13.5px] flex items-center justify-center gap-2 hover:border-[#a855f7] hover:bg-[#8b5cf6]/[0.06] transition-all"
+                    className="w-full py-3.5 rounded-[14px] border-[1.5px] border-dashed border-input text-[#c084fc] font-semibold text-[13.5px] flex items-center justify-center gap-2 hover:border-[#a855f7] hover:bg-[#8b5cf6]/[0.06] transition-all"
                   >
                     <Plus className="w-4 h-4" /> Add Another Ticket Tier
                   </button>
@@ -1275,24 +1250,24 @@ export default function CreateEventPage() {
               </div>
 
               {/* Attendance Limits & Contact Card */}
-              <div className="relative rounded-[20px] bg-gradient-to-b from-[#161228] to-[#161228]/70 border border-[#221d3a] p-6 sm:p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.55)] overflow-hidden">
+              <div className="relative rounded-[20px] bg-card border border-border p-6 sm:p-8 shadow-sm overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#a855f7]/40 to-transparent" />
                 <div className="flex items-center gap-3 mb-1">
                   <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-gradient-to-br from-[#a855f7]/20 to-[#8b5cf6]/10 border border-[#a855f7]/25 text-[#c084fc]">
                     <Users className="w-5 h-5" />
                   </div>
-                  <h2 className="text-[19px] font-bold text-[#f5f3fa] tracking-tight">
+                  <h2 className="text-[19px] font-bold text-foreground tracking-tight">
                     Attendance Limits &amp; Support Contact
                   </h2>
                 </div>
-                <p className="text-[13.5px] text-[#8d87a8] mb-6 ml-12">
+                <p className="text-[13.5px] text-muted-foreground mb-6 ml-12">
                   Configure capacity caps and contact details for attendees.
                 </p>
 
                 <div className="space-y-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                      <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                         Total Event Capacity <span className="text-[#c084fc]">*</span>
                       </label>
                       <input
@@ -1300,43 +1275,43 @@ export default function CreateEventPage() {
                         value={totalCapacity}
                         onChange={(e) => setTotalCapacity(e.target.value)}
                         placeholder="e.g. 500"
-                        className={`w-full bg-[#080610]/55 border ${
-                          errors.totalCapacity ? "border-red-500" : "border-[#2a2444]"
-                        } text-[#f5f3fa] text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-[#615c7d]`}
+                        className={`w-full bg-background border ${
+                          errors.totalCapacity ? "border-red-500" : "border-input"
+                        } text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-muted-foreground`}
                       />
                       {errors.totalCapacity && (
                         <p className="text-xs text-red-400 mt-1.5">{errors.totalCapacity}</p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
-                        Max Team Size <span className="text-[#615c7d] font-normal">(Optional)</span>
+                      <label className="block text-[13.5px] font-semibold text-foreground mb-2">
+                        Max Team Size <span className="text-muted-foreground font-normal">(Optional)</span>
                       </label>
                       <input
                         type="number"
                         value={maxTeamSize}
                         onChange={(e) => setMaxTeamSize(e.target.value)}
                         placeholder="e.g. 4"
-                        className="w-full bg-[#080610]/55 border border-[#2a2444] text-[#f5f3fa] text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-[#615c7d]"
+                        className="w-full bg-background border border-input text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-muted-foreground"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
+                      <label className="block text-[13.5px] font-semibold text-foreground mb-2">
                         Support Email <span className="text-[#c084fc]">*</span>
                       </label>
                       <div className="relative">
-                        <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#615c7d]" />
+                        <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                         <input
                           type="email"
                           value={supportEmail}
                           onChange={(e) => setSupportEmail(e.target.value)}
                           placeholder="support@connectangels.com"
-                          className={`w-full bg-[#080610]/55 border ${
-                            errors.supportEmail ? "border-red-500" : "border-[#2a2444]"
-                          } text-[#f5f3fa] text-[14.5px] pl-10 pr-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all`}
+                          className={`w-full bg-background border ${
+                            errors.supportEmail ? "border-red-500" : "border-input"
+                          } text-foreground text-[14.5px] pl-10 pr-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all`}
                         />
                       </div>
                       {errors.supportEmail && (
@@ -1344,17 +1319,17 @@ export default function CreateEventPage() {
                       )}
                     </div>
                     <div>
-                      <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
-                        Support Phone <span className="text-[#615c7d] font-normal">(Optional)</span>
+                      <label className="block text-[13.5px] font-semibold text-foreground mb-2">
+                        Support Phone <span className="text-muted-foreground font-normal">(Optional)</span>
                       </label>
                       <div className="relative">
-                        <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#615c7d]" />
+                        <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                         <input
                           type="text"
                           value={supportPhone}
                           onChange={(e) => setSupportPhone(e.target.value)}
                           placeholder="+1 (555) 000-0000"
-                          className="w-full bg-[#080610]/55 border border-[#2a2444] text-[#f5f3fa] text-[14.5px] pl-10 pr-4 py-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all"
+                          className="w-full bg-background border border-input text-foreground text-[14.5px] pl-10 pr-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all"
                         />
                       </div>
                     </div>
@@ -1363,7 +1338,7 @@ export default function CreateEventPage() {
                   {/* Terms agreement */}
                   <div
                     className={`flex items-start gap-3 p-4 rounded-[12px] border ${
-                      errors.agreeTerms ? "border-red-500 bg-red-500/5" : "border-[#2a2444] bg-[#080610]/40"
+                      errors.agreeTerms ? "border-red-500 bg-red-500/5" : "border-input bg-background/40"
                     }`}
                   >
                     <input
@@ -1373,7 +1348,7 @@ export default function CreateEventPage() {
                       onChange={(e) => setAgreeTerms(e.target.checked)}
                       className="w-4 h-4 rounded mt-0.5 accent-[#a855f7] cursor-pointer"
                     />
-                    <label htmlFor="terms" className="text-xs text-[#c7c2dd] cursor-pointer leading-relaxed">
+                    <label htmlFor="terms" className="text-xs text-foreground cursor-pointer leading-relaxed">
                       I agree to the ConnectAngels{" "}
                       <a href="#" className="text-[#c084fc] hover:underline">
                         Organizer Terms of Service
@@ -1396,7 +1371,7 @@ export default function CreateEventPage() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="flex items-center gap-2 px-5 py-3 rounded-[12px] text-[14px] font-bold text-[#c7c2dd] border border-[#2a2444] bg-transparent hover:border-[#463b78] hover:text-white transition-all"
+                  className="flex items-center gap-2 px-5 py-3 rounded-[12px] text-[14px] font-bold text-foreground border border-input bg-transparent hover:border-primary hover:text-white transition-all"
                 >
                   <ArrowLeft className="w-4 h-4" /> Back
                 </button>
@@ -1405,7 +1380,7 @@ export default function CreateEventPage() {
                     type="button"
                     onClick={handleSaveDraft}
                     disabled={isSubmitting}
-                    className="flex items-center gap-2 px-5 py-3 rounded-[12px] text-[14px] font-bold text-[#c7c2dd] border border-[#2a2444] bg-[#1b1630] hover:bg-[#201a3a] hover:text-white transition-all disabled:opacity-50"
+                    className="flex items-center gap-2 px-5 py-3 rounded-[12px] text-[14px] font-bold text-foreground border border-input bg-secondary hover:bg-secondary/80 hover:text-white transition-all disabled:opacity-50"
                   >
                     <Save className="w-4 h-4" /> Save Draft
                   </button>
@@ -1425,26 +1400,26 @@ export default function CreateEventPage() {
           {step === 3 && (
             <div className="space-y-6 animate-in fade-in duration-300">
               <div className="mb-8">
-                <h1 className="text-3xl sm:text-[34px] font-extrabold text-[#f5f3fa] tracking-tight">
+                <h1 className="text-3xl sm:text-[34px] font-extrabold text-foreground tracking-tight">
                   Content &amp; Assets
                 </h1>
-                <p className="text-[#8d87a8] text-[15px] mt-1.5">
+                <p className="text-muted-foreground text-[15px] mt-1.5">
                   Round out the page with everything attendees want to see before they register.
                 </p>
               </div>
 
               {/* Full Description Card */}
-              <div className="relative rounded-[20px] bg-gradient-to-b from-[#161228] to-[#161228]/70 border border-[#221d3a] p-6 sm:p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.55)] overflow-hidden">
+              <div className="relative rounded-[20px] bg-card border border-border p-6 sm:p-8 shadow-sm overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#a855f7]/40 to-transparent" />
                 <div className="flex items-center gap-3 mb-1">
                   <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-gradient-to-br from-[#a855f7]/20 to-[#8b5cf6]/10 border border-[#a855f7]/25 text-[#c084fc]">
                     <FileText className="w-5 h-5" />
                   </div>
-                  <h2 className="text-[19px] font-bold text-[#f5f3fa] tracking-tight">
+                  <h2 className="text-[19px] font-bold text-foreground tracking-tight">
                     Full Description <span className="text-[#c084fc]">*</span>
                   </h2>
                 </div>
-                <p className="text-[13.5px] text-[#8d87a8] mb-6 ml-12">
+                <p className="text-[13.5px] text-muted-foreground mb-6 ml-12">
                   Shown on the event detail page. Markdown &amp; HTML supported.
                 </p>
 
@@ -1454,9 +1429,9 @@ export default function CreateEventPage() {
                     onChange={(e) => setFullDescription(e.target.value)}
                     placeholder="Write the full story of your event — agenda highlights, why attendees shouldn't miss it, what to expect..."
                     rows={6}
-                    className={`w-full bg-[#080610]/55 border ${
-                      errors.fullDescription ? "border-red-500" : "border-[#2a2444]"
-                    } text-[#f5f3fa] text-[14.5px] p-4 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all resize-none placeholder:text-[#615c7d]`}
+                    className={`w-full bg-background border ${
+                      errors.fullDescription ? "border-red-500" : "border-input"
+                    } text-foreground text-[14.5px] p-4 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all resize-none placeholder:text-muted-foreground`}
                   />
                   {errors.fullDescription && (
                     <p className="text-xs text-red-400 mt-1.5">{errors.fullDescription}</p>
@@ -1465,19 +1440,19 @@ export default function CreateEventPage() {
               </div>
 
               {/* Speakers & Hosts Card */}
-              <div className="relative rounded-[20px] bg-gradient-to-b from-[#161228] to-[#161228]/70 border border-[#221d3a] p-6 sm:p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.55)] overflow-hidden">
+              <div className="relative rounded-[20px] bg-card border border-border p-6 sm:p-8 shadow-sm overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#a855f7]/40 to-transparent" />
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-gradient-to-br from-[#a855f7]/20 to-[#8b5cf6]/10 border border-[#a855f7]/25 text-[#c084fc]">
                       <Users className="w-5 h-5" />
                     </div>
-                    <h2 className="text-[19px] font-bold text-[#f5f3fa] tracking-tight">
+                    <h2 className="text-[19px] font-bold text-foreground tracking-tight">
                       Speakers &amp; Hosts
                     </h2>
                   </div>
                 </div>
-                <p className="text-[13.5px] text-[#8d87a8] mb-6 ml-12">
+                <p className="text-[13.5px] text-muted-foreground mb-6 ml-12">
                   Add the people attendees are coming to see.
                 </p>
 
@@ -1485,9 +1460,9 @@ export default function CreateEventPage() {
                   {speakers.map((s, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-3 p-3.5 rounded-[12px] border border-[#2a2444] bg-[#080610]/40"
+                      className="flex items-center gap-3 p-3.5 rounded-[12px] border border-input bg-background/40"
                     >
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1b1630] to-[#161228] border border-[#2a2444] flex items-center justify-center text-xs font-bold text-[#c084fc] flex-shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1b1630] to-[#161228] border border-input flex items-center justify-center text-xs font-bold text-[#c084fc] flex-shrink-0">
                         {s.name ? s.name.slice(0, 2).toUpperCase() : "?"}
                       </div>
                       <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1500,7 +1475,7 @@ export default function CreateEventPage() {
                             setSpeakers(c);
                           }}
                           placeholder="Speaker Name"
-                          className="bg-transparent border border-[#2a2444] rounded-[8px] px-3 py-1.5 text-xs text-[#f5f3fa] placeholder:text-[#615c7d] focus:border-[#a855f7] outline-none"
+                          className="bg-transparent border border-input rounded-[8px] px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-[#a855f7] outline-none"
                         />
                         <input
                           type="text"
@@ -1511,13 +1486,13 @@ export default function CreateEventPage() {
                             setSpeakers(c);
                           }}
                           placeholder="Role (e.g. CTO, Speaker)"
-                          className="bg-transparent border border-[#2a2444] rounded-[8px] px-3 py-1.5 text-xs text-[#f5f3fa] placeholder:text-[#615c7d] focus:border-[#a855f7] outline-none"
+                          className="bg-transparent border border-input rounded-[8px] px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-[#a855f7] outline-none"
                         />
                       </div>
                       <button
                         type="button"
                         onClick={() => setSpeakers(speakers.filter((_, i) => i !== idx))}
-                        className="p-2 rounded-lg text-[#8d87a8] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        className="p-2 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1527,7 +1502,7 @@ export default function CreateEventPage() {
                   <button
                     type="button"
                     onClick={() => setSpeakers([...speakers, { name: "", role: "" }])}
-                    className="w-full py-3 rounded-[12px] border border-dashed border-[#2a2444] text-[#c084fc] font-semibold text-xs flex items-center justify-center gap-2 hover:border-[#a855f7] hover:bg-[#8b5cf6]/[0.04] transition-all"
+                    className="w-full py-3 rounded-[12px] border border-dashed border-input text-[#c084fc] font-semibold text-xs flex items-center justify-center gap-2 hover:border-[#a855f7] hover:bg-[#8b5cf6]/[0.04] transition-all"
                   >
                     <Plus className="w-3.5 h-3.5" /> Add Speaker
                   </button>
@@ -1535,19 +1510,19 @@ export default function CreateEventPage() {
               </div>
 
               {/* Agenda Card */}
-              <div className="relative rounded-[20px] bg-gradient-to-b from-[#161228] to-[#161228]/70 border border-[#221d3a] p-6 sm:p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.55)] overflow-hidden">
+              <div className="relative rounded-[20px] bg-card border border-border p-6 sm:p-8 shadow-sm overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#a855f7]/40 to-transparent" />
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-gradient-to-br from-[#a855f7]/20 to-[#8b5cf6]/10 border border-[#a855f7]/25 text-[#c084fc]">
                       <Calendar className="w-5 h-5" />
                     </div>
-                    <h2 className="text-[19px] font-bold text-[#f5f3fa] tracking-tight">
+                    <h2 className="text-[19px] font-bold text-foreground tracking-tight">
                       Agenda &amp; Sessions
                     </h2>
                   </div>
                 </div>
-                <p className="text-[13.5px] text-[#8d87a8] mb-6 ml-12">
+                <p className="text-[13.5px] text-muted-foreground mb-6 ml-12">
                   Outline the flow of events for the day.
                 </p>
 
@@ -1555,7 +1530,7 @@ export default function CreateEventPage() {
                   {agenda.map((item, idx) => (
                     <div
                       key={idx}
-                      className="grid grid-cols-1 sm:grid-cols-[110px_1fr_1fr_40px] gap-2.5 items-center p-3 rounded-[12px] border border-[#2a2444] bg-[#080610]/40"
+                      className="grid grid-cols-1 sm:grid-cols-[110px_1fr_1fr_40px] gap-2.5 items-center p-3 rounded-[12px] border border-input bg-background/40"
                     >
                       <input
                         type="text"
@@ -1566,7 +1541,7 @@ export default function CreateEventPage() {
                           setAgenda(c);
                         }}
                         placeholder="10:00 AM"
-                        className="bg-transparent border border-[#2a2444] rounded-[8px] px-3 py-1.5 text-xs text-[#f5f3fa] placeholder:text-[#615c7d] focus:border-[#a855f7] outline-none"
+                        className="bg-transparent border border-input rounded-[8px] px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-[#a855f7] outline-none"
                       />
                       <input
                         type="text"
@@ -1577,7 +1552,7 @@ export default function CreateEventPage() {
                           setAgenda(c);
                         }}
                         placeholder="Keynote / Session Title"
-                        className="bg-transparent border border-[#2a2444] rounded-[8px] px-3 py-1.5 text-xs text-[#f5f3fa] placeholder:text-[#615c7d] focus:border-[#a855f7] outline-none"
+                        className="bg-transparent border border-input rounded-[8px] px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-[#a855f7] outline-none"
                       />
                       <input
                         type="text"
@@ -1588,12 +1563,12 @@ export default function CreateEventPage() {
                           setAgenda(c);
                         }}
                         placeholder="Speaker Name"
-                        className="bg-transparent border border-[#2a2444] rounded-[8px] px-3 py-1.5 text-xs text-[#f5f3fa] placeholder:text-[#615c7d] focus:border-[#a855f7] outline-none"
+                        className="bg-transparent border border-input rounded-[8px] px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-[#a855f7] outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => setAgenda(agenda.filter((_, i) => i !== idx))}
-                        className="p-2 rounded-lg text-[#8d87a8] hover:text-red-400 hover:bg-red-500/10 transition-colors flex items-center justify-center"
+                        className="p-2 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors flex items-center justify-center"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1603,7 +1578,7 @@ export default function CreateEventPage() {
                   <button
                     type="button"
                     onClick={() => setAgenda([...agenda, { time: "", session: "", speaker: "" }])}
-                    className="w-full py-3 rounded-[12px] border border-dashed border-[#2a2444] text-[#c084fc] font-semibold text-xs flex items-center justify-center gap-2 hover:border-[#a855f7] hover:bg-[#8b5cf6]/[0.04] transition-all"
+                    className="w-full py-3 rounded-[12px] border border-dashed border-input text-[#c084fc] font-semibold text-xs flex items-center justify-center gap-2 hover:border-[#a855f7] hover:bg-[#8b5cf6]/[0.04] transition-all"
                   >
                     <Plus className="w-3.5 h-3.5" /> Add Agenda Item
                   </button>
@@ -1611,37 +1586,37 @@ export default function CreateEventPage() {
               </div>
 
               {/* Prizes & FAQs Card */}
-              <div className="relative rounded-[20px] bg-gradient-to-b from-[#161228] to-[#161228]/70 border border-[#221d3a] p-6 sm:p-8 shadow-[0_8px_30px_-10px_rgba(0,0,0,0.55)] overflow-hidden">
+              <div className="relative rounded-[20px] bg-card border border-border p-6 sm:p-8 shadow-sm overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#a855f7]/40 to-transparent" />
                 <div className="flex items-center gap-3 mb-1">
                   <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-gradient-to-br from-[#a855f7]/20 to-[#8b5cf6]/10 border border-[#a855f7]/25 text-[#c084fc]">
                     <HelpCircle className="w-5 h-5" />
                   </div>
-                  <h2 className="text-[19px] font-bold text-[#f5f3fa] tracking-tight">
+                  <h2 className="text-[19px] font-bold text-foreground tracking-tight">
                     Prizes &amp; FAQs
                   </h2>
                 </div>
-                <p className="text-[13.5px] text-[#8d87a8] mb-6 ml-12">
+                <p className="text-[13.5px] text-muted-foreground mb-6 ml-12">
                   Optional perks and answers to common queries.
                 </p>
 
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-[13.5px] font-semibold text-[#c7c2dd] mb-2">
-                      Prizes &amp; Rewards <span className="text-[#615c7d] font-normal">(Optional)</span>
+                    <label className="block text-[13.5px] font-semibold text-foreground mb-2">
+                      Prizes &amp; Rewards <span className="text-muted-foreground font-normal">(Optional)</span>
                     </label>
                     <textarea
                       value={prizes}
                       onChange={(e) => setPrizes(e.target.value)}
                       placeholder="Describe prizes, rewards, or perks for attendees..."
                       rows={2}
-                      className="w-full bg-[#080610]/55 border border-[#2a2444] text-[#f5f3fa] text-[14.5px] p-3 rounded-[10px] outline-none hover:border-[#3a3260] focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all resize-none placeholder:text-[#615c7d]"
+                      className="w-full bg-background border border-input text-foreground text-[14.5px] p-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all resize-none placeholder:text-muted-foreground"
                     />
                   </div>
 
                   <div className="pt-2">
                     <div className="flex items-center justify-between mb-3">
-                      <label className="text-[13.5px] font-semibold text-[#c7c2dd]">
+                      <label className="text-[13.5px] font-semibold text-foreground">
                         Frequently Asked Questions
                       </label>
                       <button
@@ -1657,7 +1632,7 @@ export default function CreateEventPage() {
                       {faqs.map((faq, idx) => (
                         <div
                           key={idx}
-                          className="p-3.5 rounded-[12px] border border-[#2a2444] bg-[#080610]/40 space-y-2.5"
+                          className="p-3.5 rounded-[12px] border border-input bg-background/40 space-y-2.5"
                         >
                           <div className="flex items-center justify-between gap-2">
                             <input
@@ -1669,12 +1644,12 @@ export default function CreateEventPage() {
                                 setFaqs(c);
                               }}
                               placeholder="Question (e.g. Is lunch provided?)"
-                              className="w-full bg-transparent border border-[#2a2444] rounded-[8px] px-3 py-1.5 text-xs text-[#f5f3fa] placeholder:text-[#615c7d] focus:border-[#a855f7] outline-none"
+                              className="w-full bg-transparent border border-input rounded-[8px] px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-[#a855f7] outline-none"
                             />
                             <button
                               type="button"
                               onClick={() => setFaqs(faqs.filter((_, i) => i !== idx))}
-                              className="text-[#8d87a8] hover:text-red-400 p-1"
+                              className="text-muted-foreground hover:text-red-400 p-1"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -1688,7 +1663,7 @@ export default function CreateEventPage() {
                             }}
                             placeholder="Answer..."
                             rows={2}
-                            className="w-full bg-transparent border border-[#2a2444] rounded-[8px] p-2 text-xs text-[#c7c2dd] placeholder:text-[#615c7d] focus:border-[#a855f7] outline-none resize-none"
+                            className="w-full bg-transparent border border-input rounded-[8px] p-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-[#a855f7] outline-none resize-none"
                           />
                         </div>
                       ))}
@@ -1702,7 +1677,7 @@ export default function CreateEventPage() {
                 <button
                   type="button"
                   onClick={() => setStep(2)}
-                  className="flex items-center gap-2 px-5 py-3 rounded-[12px] text-[14px] font-bold text-[#c7c2dd] border border-[#2a2444] bg-transparent hover:border-[#463b78] hover:text-white transition-all"
+                  className="flex items-center gap-2 px-5 py-3 rounded-[12px] text-[14px] font-bold text-foreground border border-input bg-transparent hover:border-primary hover:text-white transition-all"
                 >
                   <ArrowLeft className="w-4 h-4" /> Back
                 </button>
@@ -1711,7 +1686,7 @@ export default function CreateEventPage() {
                     type="button"
                     onClick={handleSaveDraft}
                     disabled={isSubmitting}
-                    className="flex items-center gap-2 px-5 py-3 rounded-[12px] text-[14px] font-bold text-[#c7c2dd] border border-[#2a2444] bg-[#1b1630] hover:bg-[#201a3a] hover:text-white transition-all disabled:opacity-50"
+                    className="flex items-center gap-2 px-5 py-3 rounded-[12px] text-[14px] font-bold text-foreground border border-input bg-secondary hover:bg-secondary/80 hover:text-white transition-all disabled:opacity-50"
                   >
                     <Save className="w-4 h-4" /> Save Draft
                   </button>
@@ -1732,85 +1707,188 @@ export default function CreateEventPage() {
         {/* Sidebar Summary & Tips */}
         <aside className="space-y-5 lg:sticky lg:top-24 self-start">
           {/* Summary Card */}
-          <div className="relative rounded-[20px] bg-gradient-to-b from-[#1b1630] via-[#161228] to-[#161228] border border-[#221d3a] p-6 shadow-[0_0_0_1px_rgba(168,85,247,0.15),0_10px_40px_-12px_rgba(139,92,246,0.35)] overflow-hidden">
+          <div className="relative rounded-[20px] bg-card border border-border p-6 shadow-sm overflow-hidden">
             <div className="absolute -top-20 -right-20 w-44 h-44 rounded-full bg-[#a855f7]/25 blur-[35px] pointer-events-none" />
 
             <div className="flex items-center justify-between mb-5 relative z-10">
-              <h3 className="font-bold text-[17px] text-[#f5f3fa]">Event Summary</h3>
+              <div>
+                <h3 className="font-bold text-[17px] text-foreground">Event Summary</h3>
+                <p className="text-[11.5px] text-muted-foreground">{STEP_LABELS[step]}</p>
+              </div>
               <span className="text-[11px] font-extrabold tracking-wider uppercase px-3 py-1 rounded-full bg-[#e9c46a]/15 text-[#e9c46a] border border-[#e9c46a]/30">
                 {step === 3 ? "Ready" : "Draft"}
               </span>
             </div>
 
-            <div className="divide-y divide-[#221d3a] text-sm relative z-10">
-              <div className="flex items-start gap-3 py-3">
-                <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Type className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-[11.5px] text-[#615c7d] uppercase font-bold tracking-wider mb-0.5">
-                    Title
-                  </p>
-                  <p className={`font-semibold ${eventTitle ? "text-[#f5f3fa]" : "text-[#8d87a8]"}`}>
-                    {eventTitle || "Untitled Event"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 py-3">
-                <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Calendar className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-[11.5px] text-[#615c7d] uppercase font-bold tracking-wider mb-0.5">
-                    Date &amp; Time
-                  </p>
-                  <p className={`font-semibold ${startDate ? "text-[#f5f3fa]" : "text-[#8d87a8]"}`}>
-                    {getDateSummary()}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 py-3">
-                <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <MapPin className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-[11.5px] text-[#615c7d] uppercase font-bold tracking-wider mb-0.5">
-                    Location
-                  </p>
-                  <p
-                    className={`font-semibold ${
-                      venueAddress || venueName ? "text-[#f5f3fa]" : "text-[#8d87a8]"
-                    }`}
-                  >
-                    {getLocationSummary()}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 py-3">
-                <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Ticket className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-[11.5px] text-[#615c7d] uppercase font-bold tracking-wider mb-0.5">
-                    Tickets
-                  </p>
-                  <p className="font-semibold text-[#f5f3fa]">{getTicketSummary()}</p>
-                </div>
-              </div>
+            <div className="divide-y divide-border text-sm relative z-10">
+              {step === 0 ? (
+                <>
+                  <div className="flex items-start gap-3 py-3">
+                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Type className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Title</p>
+                      <p className={`font-semibold truncate ${eventTitle ? "text-foreground" : "text-muted-foreground"}`}>{eventTitle || "Untitled Event"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 py-3">
+                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Building2 className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Organizer</p>
+                      <p className={`font-semibold truncate ${organizerName ? "text-foreground" : "text-muted-foreground"}`}>{organizerName || "Not specified"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 py-3">
+                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Globe className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Category</p>
+                      <p className="font-semibold truncate text-foreground">{category || "Conference"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 py-3">
+                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Summary</p>
+                      <p className={`font-semibold truncate ${shortSummary ? "text-foreground" : "text-muted-foreground"}`}>{shortSummary || "No summary added"}</p>
+                    </div>
+                  </div>
+                </>
+              ) : step === 1 ? (
+                <>
+                  <div className="flex items-start gap-3 py-3">
+                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Calendar className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Date &amp; Time</p>
+                      <p className={`font-semibold truncate ${startDate ? "text-foreground" : "text-muted-foreground"}`}>{getDateSummary()}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 py-3">
+                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Monitor className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Mode</p>
+                      <p className="font-semibold truncate text-foreground">{eventMode} ({locationType})</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 py-3">
+                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Location</p>
+                      <p className={`font-semibold truncate ${venueAddress || venueName ? "text-foreground" : "text-muted-foreground"}`}>{getLocationSummary()}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 py-3">
+                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Clock className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Registration Deadline</p>
+                      <p className={`font-semibold truncate ${deadlineDate ? "text-foreground" : "text-muted-foreground"}`}>{deadlineDate ? `${deadlineDate}${deadlineTime ? ` • ${deadlineTime}` : ""}` : "To be announced"}</p>
+                    </div>
+                  </div>
+                </>
+              ) : step === 2 ? (
+                <>
+                  <div className="flex items-start gap-3 py-3">
+                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Ticket className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Tickets</p>
+                      <p className="font-semibold truncate text-foreground">{getTicketSummary()}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 py-3">
+                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Capacity</p>
+                      <p className={`font-semibold truncate ${totalCapacity ? "text-foreground" : "text-muted-foreground"}`}>{totalCapacity ? `${totalCapacity} attendees` : "Not specified"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 py-3">
+                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Team Size</p>
+                      <p className={`font-semibold truncate ${maxTeamSize ? "text-foreground" : "text-muted-foreground"}`}>{maxTeamSize ? `Max ${maxTeamSize} per team` : "Individual / Any"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 py-3">
+                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Mail className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Support Email</p>
+                      <p className={`font-semibold truncate ${supportEmail ? "text-foreground" : "text-muted-foreground"}`}>{supportEmail || "Not provided"}</p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-start gap-3 py-3">
+                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Description</p>
+                      <p className={`font-semibold truncate ${fullDescription ? "text-foreground" : "text-muted-foreground"}`}>{fullDescription ? `${fullDescription.slice(0, 35)}...` : "No description added"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 py-3">
+                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Clock className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Agenda</p>
+                      <p className="font-semibold truncate text-foreground">{agenda.length} session{agenda.length === 1 ? "" : "s"} added</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 py-3">
+                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Speakers</p>
+                      <p className="font-semibold truncate text-foreground">{speakers.length} speaker{speakers.length === 1 ? "" : "s"} added</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 py-3">
+                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <HelpCircle className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">FAQs</p>
+                      <p className="font-semibold truncate text-foreground">{faqs.length} question{faqs.length === 1 ? "" : "s"} added</p>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Progress track */}
-            <div className="mt-4 pt-4 border-t border-[#221d3a] relative z-10">
-              <div className="h-1.5 rounded-full bg-[#161228] overflow-hidden">
+            <div className="mt-4 pt-4 border-t border-border relative z-10">
+              <div className="h-1.5 rounded-full bg-card overflow-hidden">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-[#8b5cf6] to-[#c084fc] transition-all duration-300"
                   style={{ width: `${((step + 1) / 4) * 100}%` }}
                 />
               </div>
-              <p className="text-right text-[12px] text-[#615c7d] mt-1.5">
+              <p className="text-right text-[12px] text-muted-foreground mt-1.5">
                 {step + 1} of 4 steps complete
               </p>
             </div>
