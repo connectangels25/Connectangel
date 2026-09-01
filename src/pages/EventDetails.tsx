@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
 import logo from "@/assets/logo.png";
 import { toast } from "sonner";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -63,6 +64,7 @@ interface FullEvent {
   speakers: Speaker[] | null;
   room_floor: string | null;
   arrival_instructions: string | null;
+  hosting_type?: 'internal' | 'external' | null;
 }
 
 interface RelatedEvent {
@@ -77,12 +79,16 @@ interface RelatedEvent {
 
 export default function EventDetails() {
   const { id } = useParams<{ id: string }>();
+  const eventId = id;
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [event, setEvent] = useState<FullEvent | null>(null);
   const [loading, setLoading] = useState(true);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [relatedEvents, setRelatedEvents] = useState<RelatedEvent[]>([]);
   const [isSaved, setIsSaved] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -147,6 +153,52 @@ export default function EventDetails() {
     window.open(url, "_blank");
   };
 
+  // Register click — use upsert, not insert
+  const handleRegister = async () => {
+    if (!user) {
+      toast.error("Please log in to register for this event");
+      navigate("/login");
+      return;
+    }
+    if (!eventId) return;
+
+    try {
+      setIsRegistering(true);
+      const { error } = await supabase.from('event_registrations').upsert(
+        { event_id: eventId, user_id: user.id, status: 'confirmed', registered_at: new Date().toISOString(), cancelled_at: null },
+        { onConflict: 'event_id,user_id' }
+      );
+      if (error) throw error;
+      setIsRegistered(true);
+      toast.success("Successfully registered for this event!");
+    } catch (err: any) {
+      console.error("Registration error:", err);
+      toast.error(err.message || "Failed to register");
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
+  // Cancel click — soft update, never delete
+  const handleCancel = async () => {
+    if (!user || !eventId) return;
+
+    try {
+      setIsRegistering(true);
+      const { error } = await supabase.from('event_registrations')
+        .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+        .eq('event_id', eventId).eq('user_id', user.id);
+      if (error) throw error;
+      setIsRegistered(false);
+      toast.success("Registration cancelled");
+    } catch (err: any) {
+      console.error("Cancel registration error:", err);
+      toast.error(err.message || "Failed to cancel registration");
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (!id) return;
@@ -163,6 +215,20 @@ export default function EventDetails() {
           .eq("id", currentUser.id)
           .maybeSingle();
         isAdmin = !!profile?.is_admin;
+      }
+
+      // On page load — check status
+      const activeUser = currentUser || user;
+      if (eventId && activeUser) {
+        const { data } = await supabase
+          .from('event_registrations')
+          .select('id')
+          .eq('event_id', eventId)
+          .eq('user_id', activeUser.id)
+          .eq('status', 'confirmed')
+          .maybeSingle();
+
+        setIsRegistered(!!data);
       }
 
       const { data } = await supabase
@@ -241,12 +307,23 @@ export default function EventDetails() {
     );
   }
 
+  const isExternal = event.hosting_type === "external";
+  const getExternalUrl = (url: string | null | undefined) => {
+    if (!url || !url.trim()) return null;
+    const trimmed = url.trim();
+    return trimmed.startsWith("http://") || trimmed.startsWith("https://") ? trimmed : `https://${trimmed}`;
+  };
+  const externalUrl = isExternal ? getExternalUrl(event.event_link) : null;
+  const externalHostLabel = event.organizer_name?.trim()
+    ? `Register on ${event.organizer_name}'s Site`
+    : "Register on External Site";
+
   const agenda = event.agenda || [];
   const faqs = event.faqs || [];
-  const tickets = event.tickets || [];
+  const tickets = !isExternal ? (event.tickets || []) : [];
   const speakers = event.speakers || [];
 
-  const minPrice = tickets.length > 0 ? Math.min(...tickets.map(t => parseFloat(t.price) || 0)) : null;
+  const minPrice = !isExternal && tickets.length > 0 ? Math.min(...tickets.map(t => parseFloat(t.price) || 0)) : null;
 
   return (
     <motion.div
@@ -301,27 +378,72 @@ export default function EventDetails() {
               🌐 {event.location_type || event.event_mode}
             </span>
           </div>
-          <div className="flex gap-3">
-            {event.event_link ? (
-              <a href={event.event_link} target="_blank" rel="noopener noreferrer" className="px-8 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity inline-flex items-center gap-2">
-                <ExternalLink className="h-4 w-4" /> Register Now
-              </a>
-            ) : (
-              <button className="px-8 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity">
-                Register Now
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-3">
+              {isExternal ? (
+                externalUrl ? (
+                  <a
+                    href={externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-8 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-center"
+                  >
+                    {externalHostLabel} <ExternalLink className="h-4 w-4" />
+                  </a>
+                ) : (
+                  <button
+                    disabled
+                    className="px-8 py-3 rounded-lg bg-muted text-muted-foreground font-semibold cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    External Link Unavailable
+                  </button>
+                )
+              ) : isRegistered ? (
+                <button 
+                  onClick={handleCancel}
+                  disabled={isRegistering}
+                  className="px-8 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 font-semibold hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isRegistering ? "Processing..." : "✓ Registered / Cancel"}
+                </button>
+              ) : (
+                <button 
+                  onClick={handleRegister} 
+                  disabled={isRegistering}
+                  className="px-8 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  {isRegistering ? "Registering..." : "Register Now"}
+                </button>
+              )}
+              <button 
+                onClick={handleSaveEvent}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg border transition-colors font-semibold ${
+                  isSaved 
+                    ? "bg-primary/10 border-primary text-primary hover:bg-primary/20" 
+                    : "border-border text-foreground hover:bg-secondary"
+                }`}
+              >
+                <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
+                {isSaved ? "Saved" : "Save Event"}
               </button>
+            </div>
+
+            {!isExternal && isRegistered && event.event_mode !== 'In-Person' && event.event_link && (
+              <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-1">
+                <div>
+                  <span className="text-[11px] font-bold text-primary uppercase tracking-wider">Virtual Meeting Link</span>
+                  <p className="text-sm font-semibold text-foreground truncate max-w-md">{event.event_link}</p>
+                </div>
+                <a 
+                  href={event.event_link.startsWith("http") ? event.event_link : `https://${event.event_link}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5 shrink-0"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" /> Join Meeting
+                </a>
+              </div>
             )}
-            <button 
-              onClick={handleSaveEvent}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg border transition-colors font-semibold ${
-                isSaved 
-                  ? "bg-primary/10 border-primary text-primary hover:bg-primary/20" 
-                  : "border-border text-foreground hover:bg-secondary"
-              }`}
-            >
-              <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
-              {isSaved ? "Saved" : "Save Event"}
-            </button>
           </div>
         </div>
         <div className="w-full md:w-[400px] h-48 sm:h-56 md:h-auto">
@@ -500,14 +622,56 @@ export default function EventDetails() {
                 <span className="text-sm text-muted-foreground">Event Type</span>
                 <span className="text-sm font-bold text-foreground">{event.location_type || event.event_mode}</span>
               </div>
-              {event.event_link ? (
-                <a href={event.event_link} target="_blank" rel="noopener noreferrer" className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity mb-3 block text-center">
-                  Register Now
-                </a>
-              ) : (
-                <button className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity mb-3">
-                  Register Now
+              {isExternal ? (
+                externalUrl ? (
+                  <a
+                    href={externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity mb-3 flex items-center justify-center gap-2 text-center"
+                  >
+                    {externalHostLabel} <ExternalLink className="h-4 w-4" />
+                  </a>
+                ) : (
+                  <button
+                    disabled
+                    className="w-full py-3 rounded-lg bg-muted text-muted-foreground font-semibold mb-3 cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    External Link Unavailable
+                  </button>
+                )
+              ) : isRegistered ? (
+                <button 
+                  onClick={handleCancel}
+                  disabled={isRegistering}
+                  className="w-full py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 font-semibold hover:bg-red-500 hover:text-white transition-colors mb-3 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isRegistering ? "Processing..." : "✓ Registered / Cancel"}
                 </button>
+              ) : (
+                <button 
+                  onClick={handleRegister} 
+                  disabled={isRegistering}
+                  className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity mb-3 disabled:opacity-50"
+                >
+                  {isRegistering ? "Registering..." : "Register Now"}
+                </button>
+              )}
+
+              {!isExternal && isRegistered && event.event_mode !== 'In-Person' && event.event_link && (
+                <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/20 mb-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Virtual Meeting Link</span>
+                  </div>
+                  <a 
+                    href={event.event_link.startsWith("http") ? event.event_link : `https://${event.event_link}`}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" /> Join Virtual Meeting
+                  </a>
+                </div>
               )}
               <div className="flex gap-2">
                 <button 

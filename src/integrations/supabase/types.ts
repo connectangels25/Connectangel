@@ -30,6 +30,7 @@ export type Database = {
           event_mode: string
           faqs: Json | null
           full_description: string | null
+          hosting_type: "internal" | "external" | null
           id: string
           location_type: string | null
           max_team_size: string | null
@@ -69,6 +70,7 @@ export type Database = {
           event_mode?: string
           faqs?: Json | null
           full_description?: string | null
+          hosting_type?: "internal" | "external" | null
           id?: string
           location_type?: string | null
           max_team_size?: string | null
@@ -108,8 +110,7 @@ export type Database = {
           event_mode?: string
           faqs?: Json | null
           full_description?: string | null
-          id?: string
-          location_type?: string | null
+          hosting_type?: "internal" | "external" | null
           max_team_size?: string | null
           organizer_logo_url?: string | null
           organizer_name?: string
@@ -167,6 +168,36 @@ export type Database = {
           name?: string | null
           signup_method?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      event_registrations: {
+        Row: {
+          cancelled_at: string | null
+          created_at: string | null
+          event_id: string
+          id: string
+          registered_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          created_at?: string | null
+          event_id: string
+          id?: string
+          registered_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          registered_at?: string | null
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
