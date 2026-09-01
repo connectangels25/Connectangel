@@ -118,6 +118,7 @@ export default function CreateEventPage() {
   const [deadlineTime, setDeadlineTime] = useState("");
 
   // Step 3: Registration & Tickets (Exact DB fields)
+  const [hostingType, setHostingType] = useState<"internal" | "external">("internal");
   const [tickets, setTickets] = useState<TicketTier[]>([
     { name: "General Admission", price: "99", quantity: "200", salesEndDate: "" },
   ]);
@@ -172,6 +173,7 @@ export default function CreateEventPage() {
             setDeadlineDate(data.deadline_date || "");
             setDeadlineTime(data.deadline_time || "");
             setShowTimezone(data.show_timezone ?? true);
+            setHostingType((data.hosting_type as "internal" | "external") || "internal");
             setTotalCapacity(data.total_capacity || "");
             setMaxTeamSize(data.max_team_size || "");
             setSupportEmail(data.support_email || "");
@@ -264,7 +266,6 @@ export default function CreateEventPage() {
       if (!organizerName.trim()) e.organizerName = "Organizer name is required";
       if (!category) e.category = "Event category is required";
       if (!shortSummary.trim()) e.shortSummary = "Short summary is required";
-      if (!eventLink.trim()) e.eventLink = "Event registration link is required";
       if (!bannerUrl) e.bannerUrl = "Event banner image is required";
     }
     if (s === 1) {
@@ -280,8 +281,12 @@ export default function CreateEventPage() {
       if (!deadlineTime) e.deadlineTime = "Registration deadline time is required";
     }
     if (s === 2) {
-      if (!tickets[0]?.name.trim()) e["ticket_0_name"] = "Ticket name is required";
-      if (!totalCapacity.trim()) e.totalCapacity = "Total capacity is required";
+      if (hostingType === "internal") {
+        if (!tickets[0]?.name.trim()) e["ticket_0_name"] = "Ticket name is required";
+        if (!totalCapacity.trim()) e.totalCapacity = "Total capacity is required";
+      } else {
+        if (!eventLink.trim()) e.eventLink = "External registration link is required";
+      }
       if (!supportEmail.trim()) e.supportEmail = "Support contact email is required";
       if (!agreeTerms) e.agreeTerms = "You must agree to the terms";
     }
@@ -310,7 +315,7 @@ export default function CreateEventPage() {
       category,
       tags,
       short_summary: shortSummary,
-      event_link: eventLink,
+      event_link: eventLink || null,
       banner_url: bannerUrl || null,
       start_date: startDate,
       start_time: startTime,
@@ -325,9 +330,10 @@ export default function CreateEventPage() {
       deadline_date: deadlineDate,
       deadline_time: deadlineTime,
       show_timezone: showTimezone,
-      tickets: JSON.stringify(tickets),
-      total_capacity: totalCapacity,
-      max_team_size: maxTeamSize || null,
+      hosting_type: hostingType,
+      tickets: hostingType === "internal" ? JSON.stringify(tickets) : null,
+      total_capacity: hostingType === "internal" ? totalCapacity : null,
+      max_team_size: hostingType === "internal" ? (maxTeamSize || null) : null,
       support_email: supportEmail,
       support_phone: supportPhone || null,
       agree_terms: agreeTerms,
@@ -697,29 +703,6 @@ export default function CreateEventPage() {
                       <span>{errors.shortSummary || "This will be shown on event discovery cards"}</span>
                       <span>{shortSummary.length} / 250</span>
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[13.5px] font-semibold text-foreground mb-2">
-                      Event Link / Registration URL <span className="text-[#c084fc]">*</span>
-                    </label>
-                    <div className="relative">
-                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground">
-                        <Link2 className="w-4 h-4" />
-                      </div>
-                      <input
-                        type="url"
-                        value={eventLink}
-                        onChange={(e) => setEventLink(e.target.value)}
-                        placeholder="https://event.link or meeting link"
-                        className={`w-full bg-background border ${
-                          errors.eventLink ? "border-red-500" : "border-input"
-                        } text-foreground text-[14.5px] pl-10 pr-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-muted-foreground`}
-                      />
-                    </div>
-                    {errors.eventLink && (
-                      <p className="text-xs text-red-400 mt-1.5">{errors.eventLink}</p>
-                    )}
                   </div>
                 </div>
               </div>
@@ -1148,106 +1131,204 @@ export default function CreateEventPage() {
                 </p>
               </div>
 
-              {/* Ticket Tiers Card */}
+              {/* Registration Type Card */}
               <div className="relative rounded-[20px] bg-card border border-border p-6 sm:p-8 shadow-sm overflow-hidden">
                 <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#a855f7]/40 to-transparent" />
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-gradient-to-br from-[#a855f7]/20 to-[#8b5cf6]/10 border border-[#a855f7]/25 text-[#c084fc]">
-                      <Ticket className="w-5 h-5" />
-                    </div>
-                    <h2 className="text-[19px] font-bold text-foreground tracking-tight">
-                      Ticket Tiers
-                    </h2>
+                <div className="flex items-center gap-3 mb-1">
+                  <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-gradient-to-br from-[#a855f7]/20 to-[#8b5cf6]/10 border border-[#a855f7]/25 text-[#c084fc]">
+                    <Ticket className="w-5 h-5" />
                   </div>
+                  <h2 className="text-[19px] font-bold text-foreground tracking-tight">
+                    Registration Type
+                  </h2>
                 </div>
                 <p className="text-[13.5px] text-muted-foreground mb-6 ml-12">
-                  Add one or more pricing tiers for attendees to choose from.
+                  Choose how attendees will register for this event.
                 </p>
 
-                <div className="space-y-4">
-                  {tickets.map((t, idx) => (
-                    <div
-                      key={idx}
-                      className="border-[1.5px] border-input rounded-[14px] p-5 bg-white/[0.015] relative space-y-4"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-[13px] font-bold text-foreground">
-                          <span className="w-2 h-2 rounded-full bg-[#a855f7] shadow-[0_0_0_4px_rgba(139,92,246,0.18)]" />
-                          Tier {idx + 1} {idx === 0 && "(Primary)"}
-                        </div>
-                        {tickets.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeTicketTier(idx)}
-                            className="w-8 h-8 rounded-[9px] flex items-center justify-center bg-white/[0.03] border border-input text-muted-foreground hover:text-red-400 hover:border-red-900/50 hover:bg-red-500/10 transition-all"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-foreground mb-1.5">
-                            Tier Name <span className="text-[#c084fc]">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={t.name}
-                            onChange={(e) => updateTicket(idx, "name", e.target.value)}
-                            placeholder="e.g. General Admission"
-                            className="w-full bg-background border border-input text-foreground text-[13.5px] px-3.5 py-2.5 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] transition-all"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-foreground mb-1.5">
-                            Price ($) <span className="text-[#c084fc]">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            value={t.price}
-                            onChange={(e) => updateTicket(idx, "price", e.target.value)}
-                            placeholder="99"
-                            className="w-full bg-background border border-input text-foreground text-[13.5px] px-3.5 py-2.5 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] transition-all"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-foreground mb-1.5">
-                            Quantity <span className="text-[#c084fc]">*</span>
-                          </label>
-                          <input
-                            type="number"
-                            value={t.quantity}
-                            onChange={(e) => updateTicket(idx, "quantity", e.target.value)}
-                            placeholder="200"
-                            className="w-full bg-background border border-input text-foreground text-[13.5px] px-3.5 py-2.5 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] transition-all"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-foreground mb-1.5">
-                            Sales End Date <span className="text-muted-foreground font-normal">(Optional)</span>
-                          </label>
-                          <input
-                            type="date"
-                            value={t.salesEndDate}
-                            onChange={(e) => updateTicket(idx, "salesEndDate", e.target.value)}
-                            className="w-full bg-background border border-input text-foreground text-[13.5px] px-3.5 py-2.5 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] transition-all"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  <button
-                    type="button"
-                    onClick={addTicketTier}
-                    className="w-full py-3.5 rounded-[14px] border-[1.5px] border-dashed border-input text-[#c084fc] font-semibold text-[13.5px] flex items-center justify-center gap-2 hover:border-[#a855f7] hover:bg-[#8b5cf6]/[0.06] transition-all"
-                  >
-                    <Plus className="w-4 h-4" /> Add Another Ticket Tier
-                  </button>
+                <div>
+                  <label className="block text-[13.5px] font-semibold text-foreground mb-2">
+                    Registration Method <span className="text-[#c084fc]">*</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2.5">
+                    {[
+                      { id: "internal", label: "Register on ConnectAngels", icon: Ticket },
+                      { id: "external", label: "Redirect to external link", icon: Globe },
+                    ].map((item) => {
+                      const Icon = item.icon;
+                      const isSel = hostingType === item.id;
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            setHostingType(item.id as "internal" | "external");
+                            setErrors((prev) => {
+                              const next = { ...prev };
+                              delete next.eventLink;
+                              delete next.totalCapacity;
+                              delete next.ticket_0_name;
+                              return next;
+                            });
+                          }}
+                          className={`flex items-center gap-2 px-4 py-3 rounded-[12px] border text-[13.5px] font-semibold transition-all ${
+                            isSel
+                              ? "border-[#a855f7] bg-gradient-to-r from-[#8b5cf6]/30 to-[#7c3aed]/15 text-white shadow-[0_4px_16px_-6px_rgba(139,92,246,0.5)]"
+                              : "border-input bg-white/[0.02] text-muted-foreground hover:border-primary hover:text-foreground"
+                          }`}
+                        >
+                          <Icon className={`w-4 h-4 ${isSel ? "text-[#c084fc]" : "text-muted-foreground"}`} />
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
+
+              {/* External Registration Link Card (Only for external) */}
+              {hostingType === "external" && (
+                <div className="relative rounded-[20px] bg-card border border-border p-6 sm:p-8 shadow-sm overflow-hidden animate-in fade-in duration-300">
+                  <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#a855f7]/40 to-transparent" />
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-gradient-to-br from-[#a855f7]/20 to-[#8b5cf6]/10 border border-[#a855f7]/25 text-[#c084fc]">
+                      <Link2 className="w-5 h-5" />
+                    </div>
+                    <h2 className="text-[19px] font-bold text-foreground tracking-tight">
+                      External Registration Link
+                    </h2>
+                  </div>
+                  <p className="text-[13.5px] text-muted-foreground mb-6 ml-12">
+                    Attendees will be redirected to this URL to register or purchase tickets.
+                  </p>
+
+                  <div>
+                    <label className="block text-[13.5px] font-semibold text-foreground mb-2">
+                      External Event URL <span className="text-[#c084fc]">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground">
+                        <Link2 className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="url"
+                        value={eventLink}
+                        onChange={(e) => setEventLink(e.target.value)}
+                        placeholder="https://external-ticketing.com/event-page"
+                        className={`w-full bg-background border ${
+                          errors.eventLink ? "border-red-500" : "border-input"
+                        } text-foreground text-[14.5px] pl-10 pr-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-muted-foreground`}
+                      />
+                    </div>
+                    {errors.eventLink && (
+                      <p className="text-xs text-red-400 mt-1.5">{errors.eventLink}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Ticket Tiers Card (Only for internal) */}
+              {hostingType === "internal" && (
+                <div className="relative rounded-[20px] bg-card border border-border p-6 sm:p-8 shadow-sm overflow-hidden animate-in fade-in duration-300">
+                  <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#a855f7]/40 to-transparent" />
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-[10px] flex items-center justify-center bg-gradient-to-br from-[#a855f7]/20 to-[#8b5cf6]/10 border border-[#a855f7]/25 text-[#c084fc]">
+                        <Ticket className="w-5 h-5" />
+                      </div>
+                      <h2 className="text-[19px] font-bold text-foreground tracking-tight">
+                        Ticket Tiers
+                      </h2>
+                    </div>
+                  </div>
+                  <p className="text-[13.5px] text-muted-foreground mb-6 ml-12">
+                    Add one or more pricing tiers for attendees to choose from.
+                  </p>
+
+                  <div className="space-y-4">
+                    {tickets.map((t, idx) => (
+                      <div
+                        key={idx}
+                        className="border-[1.5px] border-input rounded-[14px] p-5 bg-white/[0.015] relative space-y-4"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-[13px] font-bold text-foreground">
+                            <span className="w-2 h-2 rounded-full bg-[#a855f7] shadow-[0_0_0_4px_rgba(139,92,246,0.18)]" />
+                            Tier {idx + 1} {idx === 0 && "(Primary)"}
+                          </div>
+                          {tickets.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeTicketTier(idx)}
+                              className="w-8 h-8 rounded-[9px] flex items-center justify-center bg-white/[0.03] border border-input text-muted-foreground hover:text-red-400 hover:border-red-900/50 hover:bg-red-500/10 transition-all"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                          <div>
+                            <label className="block text-xs font-semibold text-foreground mb-1.5">
+                              Tier Name <span className="text-[#c084fc]">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={t.name}
+                              onChange={(e) => updateTicket(idx, "name", e.target.value)}
+                              placeholder="e.g. General Admission"
+                              className="w-full bg-background border border-input text-foreground text-[13.5px] px-3.5 py-2.5 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] transition-all"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-foreground mb-1.5">
+                              Price ($) <span className="text-[#c084fc]">*</span>
+                            </label>
+                            <input
+                              type="number"
+                              value={t.price}
+                              onChange={(e) => updateTicket(idx, "price", e.target.value)}
+                              placeholder="99"
+                              className="w-full bg-background border border-input text-foreground text-[13.5px] px-3.5 py-2.5 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] transition-all"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-foreground mb-1.5">
+                              Quantity <span className="text-[#c084fc]">*</span>
+                            </label>
+                            <input
+                              type="number"
+                              value={t.quantity}
+                              onChange={(e) => updateTicket(idx, "quantity", e.target.value)}
+                              placeholder="200"
+                              className="w-full bg-background border border-input text-foreground text-[13.5px] px-3.5 py-2.5 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] transition-all"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-foreground mb-1.5">
+                              Sales End Date <span className="text-muted-foreground font-normal">(Optional)</span>
+                            </label>
+                            <input
+                              type="date"
+                              value={t.salesEndDate}
+                              onChange={(e) => updateTicket(idx, "salesEndDate", e.target.value)}
+                              className="w-full bg-background border border-input text-foreground text-[13.5px] px-3.5 py-2.5 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] transition-all"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    <button
+                      type="button"
+                      onClick={addTicketTier}
+                      className="w-full py-3.5 rounded-[14px] border-[1.5px] border-dashed border-input text-[#c084fc] font-semibold text-[13.5px] flex items-center justify-center gap-2 hover:border-[#a855f7] hover:bg-[#8b5cf6]/[0.06] transition-all"
+                    >
+                      <Plus className="w-4 h-4" /> Add Another Ticket Tier
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Attendance Limits & Contact Card */}
               <div className="relative rounded-[20px] bg-card border border-border p-6 sm:p-8 shadow-sm overflow-hidden">
@@ -1257,45 +1338,49 @@ export default function CreateEventPage() {
                     <Users className="w-5 h-5" />
                   </div>
                   <h2 className="text-[19px] font-bold text-foreground tracking-tight">
-                    Attendance Limits &amp; Support Contact
+                    {hostingType === "internal" ? "Attendance Limits & Support Contact" : "Support Contact & Policy"}
                   </h2>
                 </div>
                 <p className="text-[13.5px] text-muted-foreground mb-6 ml-12">
-                  Configure capacity caps and contact details for attendees.
+                  {hostingType === "internal"
+                    ? "Configure capacity caps and contact details for attendees."
+                    : "Configure contact details and terms for attendees."}
                 </p>
 
                 <div className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                      <label className="block text-[13.5px] font-semibold text-foreground mb-2">
-                        Total Event Capacity <span className="text-[#c084fc]">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        value={totalCapacity}
-                        onChange={(e) => setTotalCapacity(e.target.value)}
-                        placeholder="e.g. 500"
-                        className={`w-full bg-background border ${
-                          errors.totalCapacity ? "border-red-500" : "border-input"
-                        } text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-muted-foreground`}
-                      />
-                      {errors.totalCapacity && (
-                        <p className="text-xs text-red-400 mt-1.5">{errors.totalCapacity}</p>
-                      )}
+                  {hostingType === "internal" && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-[13.5px] font-semibold text-foreground mb-2">
+                          Total Event Capacity <span className="text-[#c084fc]">*</span>
+                        </label>
+                        <input
+                          type="number"
+                          value={totalCapacity}
+                          onChange={(e) => setTotalCapacity(e.target.value)}
+                          placeholder="e.g. 500"
+                          className={`w-full bg-background border ${
+                            errors.totalCapacity ? "border-red-500" : "border-input"
+                          } text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-muted-foreground`}
+                        />
+                        {errors.totalCapacity && (
+                          <p className="text-xs text-red-400 mt-1.5">{errors.totalCapacity}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-[13.5px] font-semibold text-foreground mb-2">
+                          Max Team Size <span className="text-muted-foreground font-normal">(Optional)</span>
+                        </label>
+                        <input
+                          type="number"
+                          value={maxTeamSize}
+                          onChange={(e) => setMaxTeamSize(e.target.value)}
+                          placeholder="e.g. 4"
+                          className="w-full bg-background border border-input text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-muted-foreground"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-[13.5px] font-semibold text-foreground mb-2">
-                        Max Team Size <span className="text-muted-foreground font-normal">(Optional)</span>
-                      </label>
-                      <input
-                        type="number"
-                        value={maxTeamSize}
-                        onChange={(e) => setMaxTeamSize(e.target.value)}
-                        placeholder="e.g. 4"
-                        className="w-full bg-background border border-input text-foreground text-[14.5px] px-4 py-3 rounded-[10px] outline-none hover:border-primary/50 focus:border-[#a855f7] focus:ring-4 focus:ring-[#8b5cf6]/15 transition-all placeholder:text-muted-foreground"
-                      />
-                    </div>
-                  </div>
+                  )}
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
@@ -1803,31 +1888,47 @@ export default function CreateEventPage() {
                 <>
                   <div className="flex items-start gap-3 py-3">
                     <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Ticket className="w-4 h-4" />
+                      {hostingType === "external" ? <Globe className="w-4 h-4" /> : <Ticket className="w-4 h-4" />}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Tickets</p>
-                      <p className="font-semibold truncate text-foreground">{getTicketSummary()}</p>
+                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Registration</p>
+                      <p className="font-semibold truncate text-foreground">
+                        {hostingType === "external" ? "External Link Redirect" : "ConnectAngels Native"}
+                      </p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 py-3">
-                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Users className="w-4 h-4" />
+                  {hostingType === "internal" ? (
+                    <>
+                      <div className="flex items-start gap-3 py-3">
+                        <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Ticket className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Tickets</p>
+                          <p className="font-semibold truncate text-foreground">{getTicketSummary()}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3 py-3">
+                        <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Users className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Capacity</p>
+                          <p className={`font-semibold truncate ${totalCapacity ? "text-foreground" : "text-muted-foreground"}`}>{totalCapacity ? `${totalCapacity} attendees` : "Not specified"}</p>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex items-start gap-3 py-3">
+                      <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Link2 className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">External URL</p>
+                        <p className={`font-semibold truncate ${eventLink ? "text-foreground" : "text-muted-foreground"}`}>{eventLink || "Not provided"}</p>
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Capacity</p>
-                      <p className={`font-semibold truncate ${totalCapacity ? "text-foreground" : "text-muted-foreground"}`}>{totalCapacity ? `${totalCapacity} attendees` : "Not specified"}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 py-3">
-                    <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Users className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11.5px] text-muted-foreground uppercase font-bold tracking-wider mb-0.5">Team Size</p>
-                      <p className={`font-semibold truncate ${maxTeamSize ? "text-foreground" : "text-muted-foreground"}`}>{maxTeamSize ? `Max ${maxTeamSize} per team` : "Individual / Any"}</p>
-                    </div>
-                  </div>
+                  )}
                   <div className="flex items-start gap-3 py-3">
                     <div className="w-8 h-8 rounded-[9px] bg-[#8b5cf6]/10 text-[#c084fc] flex items-center justify-center flex-shrink-0 mt-0.5">
                       <Mail className="w-4 h-4" />

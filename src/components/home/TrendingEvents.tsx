@@ -16,6 +16,7 @@ interface DbEvent {
   event_link: string | null;
   venue_address: string | null;
   location_type: string | null;
+  hosting_type?: 'internal' | 'external' | null;
 }
 
 export default function TrendingEvents() {
@@ -28,7 +29,7 @@ export default function TrendingEvents() {
       setLoading(true);
       const { data } = await supabase
         .from("events")
-        .select("id, title, short_summary, start_date, start_time, banner_url, organizer_logo_url, category, event_link, venue_address, location_type")
+        .select("id, title, short_summary, start_date, start_time, banner_url, organizer_logo_url, category, event_link, venue_address, location_type, hosting_type")
         .eq("status", "approved")
         .order("created_at", { ascending: false })
         .limit(6);
@@ -131,9 +132,9 @@ export default function TrendingEvents() {
                     >
                       <Eye className="h-4 w-4" /> Details
                     </button>
-                    {event.event_link ? (
+                    {event.hosting_type === "external" && event.event_link ? (
                       <a
-                        href={event.event_link}
+                        href={event.event_link.startsWith("http") ? event.event_link : `https://${event.event_link}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-all text-center flex items-center justify-center gap-2"
