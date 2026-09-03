@@ -1,5 +1,5 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Calendar, Clock, MapPin, Users, Trophy, Mail, ChevronDown, ChevronRight, Download, Bookmark, Share2, MessageCircle, Globe, ExternalLink, Eye, Ticket, User, Info, Building2 } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Trophy, Mail, ChevronDown, ChevronRight, Download, Bookmark, Share2, MessageCircle, Globe, ExternalLink, Eye, Ticket, User, Info, Building2, BarChart3 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
@@ -65,6 +65,8 @@ interface FullEvent {
   room_floor: string | null;
   arrival_instructions: string | null;
   hosting_type?: 'internal' | 'external' | null;
+  user_id?: string | null;
+  status?: string;
 }
 
 interface RelatedEvent {
@@ -89,6 +91,7 @@ export default function EventDetails() {
   const [isSaved, setIsSaved] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -215,6 +218,7 @@ export default function EventDetails() {
           .eq("id", currentUser.id)
           .maybeSingle();
         isAdmin = !!profile?.is_admin;
+        setIsAdminUser(isAdmin);
       }
 
       // On page load — check status
@@ -308,6 +312,7 @@ export default function EventDetails() {
   }
 
   const isExternal = event.hosting_type === "external";
+  const isHost = Boolean(user && event && (event.user_id === user.id || isAdminUser));
   const getExternalUrl = (url: string | null | undefined) => {
     if (!url || !url.trim()) return null;
     const trimmed = url.trim();
@@ -413,6 +418,19 @@ export default function EventDetails() {
                   {isRegistering ? "Registering..." : "Register Now"}
                 </button>
               )}
+
+              {/* Dashboard Button (For Host/Admin) */}
+              {isHost && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/my-events/${event.id}/dashboard`)}
+                  className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[#8b5cf6]/20 border border-[#a855f7]/50 text-[#c084fc] hover:bg-[#8b5cf6]/30 font-semibold transition-all"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  Dashboard
+                </button>
+              )}
+
               <button 
                 onClick={handleSaveEvent}
                 className={`flex items-center gap-2 px-6 py-3 rounded-lg border transition-colors font-semibold ${
