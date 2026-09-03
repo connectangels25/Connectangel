@@ -21,6 +21,7 @@ import AdminLoginPage from "./pages/AdminLoginPage.tsx";
 import CreateEventPage from "./pages/CreateEventPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import MyEventsPage from "./pages/MyEventsPage.tsx";
+import EventAnalyticsDashboard from "./pages/EventAnalyticsDashboard.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import EventDashboard from "./pages/EventDashboard.tsx";
 import UserManagementDashboard from "./pages/UserManagementDashboard.tsx";
@@ -63,6 +64,11 @@ const App = () => (
             <Route path="/my-events" element={
               <ProtectedRoute>
                 <PendingPlanGate><MyEventsPage /></PendingPlanGate>
+              </ProtectedRoute>
+            } />
+            <Route path="/my-events/:eventId/dashboard" element={
+              <ProtectedRoute>
+                <PendingPlanGate><EventAnalyticsDashboard /></PendingPlanGate>
               </ProtectedRoute>
             } />
             <Route path="/create-event" element={

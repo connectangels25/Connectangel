@@ -314,9 +314,7 @@ export default function EventDetails() {
     return trimmed.startsWith("http://") || trimmed.startsWith("https://") ? trimmed : `https://${trimmed}`;
   };
   const externalUrl = isExternal ? getExternalUrl(event.event_link) : null;
-  const externalHostLabel = event.organizer_name?.trim()
-    ? `Register on ${event.organizer_name}'s Site`
-    : "Register on External Site";
+  const externalHostLabel = "Register on External Site";
 
   const agenda = event.agenda || [];
   const faqs = event.faqs || [];
@@ -617,74 +615,6 @@ export default function EventDetails() {
         {/* Right Sidebar */}
         <div className="w-full lg:w-[340px] shrink-0">
           <div className="sticky top-6 space-y-6">
-            <div className="rounded-2xl border border-border bg-card p-6">
-              <div className="flex items-center justify-between mb-6">
-                <span className="text-sm text-muted-foreground">Event Type</span>
-                <span className="text-sm font-bold text-foreground">{event.location_type || event.event_mode}</span>
-              </div>
-              {isExternal ? (
-                externalUrl ? (
-                  <a
-                    href={externalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity mb-3 flex items-center justify-center gap-2 text-center"
-                  >
-                    {externalHostLabel} <ExternalLink className="h-4 w-4" />
-                  </a>
-                ) : (
-                  <button
-                    disabled
-                    className="w-full py-3 rounded-lg bg-muted text-muted-foreground font-semibold mb-3 cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    External Link Unavailable
-                  </button>
-                )
-              ) : isRegistered ? (
-                <button 
-                  onClick={handleCancel}
-                  disabled={isRegistering}
-                  className="w-full py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 font-semibold hover:bg-red-500 hover:text-white transition-colors mb-3 disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isRegistering ? "Processing..." : "✓ Registered / Cancel"}
-                </button>
-              ) : (
-                <button 
-                  onClick={handleRegister} 
-                  disabled={isRegistering}
-                  className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:opacity-90 transition-opacity mb-3 disabled:opacity-50"
-                >
-                  {isRegistering ? "Registering..." : "Register Now"}
-                </button>
-              )}
-
-              {!isExternal && isRegistered && event.event_mode !== 'In-Person' && event.event_link && (
-                <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/20 mb-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Virtual Meeting Link</span>
-                  </div>
-                  <a 
-                    href={event.event_link.startsWith("http") ? event.event_link : `https://${event.event_link}`}
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="w-full py-2 rounded-lg bg-primary text-primary-foreground text-xs font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" /> Join Virtual Meeting
-                  </a>
-                </div>
-              )}
-              <div className="flex gap-2">
-                <button 
-                  onClick={handleAddToCalendar}
-                  className="flex-1 py-2.5 rounded-lg border border-border text-sm text-foreground hover:bg-secondary transition-colors flex items-center justify-center gap-1.5"
-                >
-                  <Calendar className="h-3.5 w-3.5" /> Add to Calendar
-                </button>
-                <button className="py-2.5 px-3 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors">
-                  <Share2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
 
             {/* Quick Facts */}
             <div className="rounded-2xl border border-border bg-card p-6 shadow-xl">
