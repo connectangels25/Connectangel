@@ -412,11 +412,11 @@ export default function EventAnalyticsDashboard() {
   const isExternal = event.hosting_type === "external";
 
   return (
-    <div className="min-h-screen bg-[#0d0d12] text-foreground font-sans antialiased pb-24 relative selection:bg-[#a855f7]/30">
+    <div className="min-h-screen bg-background text-foreground font-sans antialiased pb-24 relative selection:bg-primary/30">
       {/* Background ambient lighting */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute -top-[10%] left-[20%] w-[900px] h-[500px] bg-[#8b5cf6]/10 rounded-full blur-[140px]" />
-        <div className="absolute top-[30%] right-[5%] w-[600px] h-[450px] bg-[#a855f7]/8 rounded-full blur-[160px]" />
+        <div className="absolute -top-[10%] left-[20%] w-[900px] h-[500px] bg-primary/10 rounded-full blur-[140px]" />
+        <div className="absolute top-[30%] right-[5%] w-[600px] h-[450px] bg-primary/5 rounded-full blur-[160px]" />
       </div>
 
       <div className="relative z-50">
@@ -426,7 +426,7 @@ export default function EventAnalyticsDashboard() {
       {/* Main Container */}
       <main className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-8 pt-6 space-y-6">
         {/* Top Header & Event Switcher Bar */}
-        <div className="relative z-30 flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-[#14141e]/90 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-4 sm:p-5 shadow-2xl">
+        <div className="relative z-30 flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-card/90 backdrop-blur-xl border border-border rounded-2xl p-4 sm:p-5 shadow-sm">
           {/* Left: Active Event Switcher & Quick Filters */}
           <div className="flex flex-wrap items-center gap-3">
             {/* Event Switcher Dropdown */}
@@ -434,32 +434,32 @@ export default function EventAnalyticsDashboard() {
               <button
                 type="button"
                 onClick={() => setIsEventSwitcherOpen(!isEventSwitcherOpen)}
-                className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-[#1c1a2e] border border-[#a855f7]/40 text-foreground font-bold text-sm hover:border-[#a855f7] hover:bg-[#25223d] transition-all shadow-[0_0_20px_-5px_rgba(168,85,247,0.3)]"
+                className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-secondary border border-primary/40 text-foreground font-bold text-sm hover:border-primary hover:bg-secondary/80 transition-all shadow-[0_0_20px_-5px_rgba(168,85,247,0.2)]"
               >
-                <span className="text-[#c084fc] font-semibold text-xs uppercase tracking-wider">Active:</span>
+                <span className="text-primary font-semibold text-xs uppercase tracking-wider">Active:</span>
                 <span className="truncate max-w-[200px] sm:max-w-[280px]">{event.title}</span>
-                <ChevronDown className={`w-4 h-4 text-[#c084fc] transition-transform duration-200 ${isEventSwitcherOpen ? "rotate-180" : ""}`} />
+                <ChevronDown className={`w-4 h-4 text-primary transition-transform duration-200 ${isEventSwitcherOpen ? "rotate-180" : ""}`} />
               </button>
 
               {isEventSwitcherOpen && (
-                <div className="absolute left-0 top-full mt-2 w-84 sm:w-[420px] rounded-2xl bg-[#161626] border border-white/[0.15] shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-3 z-[100] animate-in fade-in zoom-in-95 duration-150 backdrop-blur-2xl">
-                  <div className="flex items-center justify-between px-2 pb-2 mb-2 border-b border-white/[0.08]">
+                <div className="absolute left-0 top-full mt-2 w-84 sm:w-[420px] rounded-2xl bg-card border border-border shadow-2xl p-3 z-[100] animate-in fade-in zoom-in-95 duration-150 backdrop-blur-2xl">
+                  <div className="flex items-center justify-between px-2 pb-2 mb-2 border-b border-border">
                     <span className="text-xs font-bold uppercase tracking-wider text-foreground">
                       Switch Managed Event
                     </span>
-                    <span className="text-[11px] font-medium text-muted-foreground bg-white/[0.06] px-2 py-0.5 rounded-full">
+                    <span className="text-[11px] font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
                       {filteredUserEvents.length} {filteredUserEvents.length === 1 ? "Event" : "Events"}
                     </span>
                   </div>
 
                   {/* Filter tabs inside dropdown */}
-                  <div className="flex items-center gap-1 mb-2 bg-[#10101a] p-1 rounded-xl border border-white/[0.06]">
+                  <div className="flex items-center gap-1 mb-2 bg-secondary p-1 rounded-xl border border-border">
                     <button
                       type="button"
                       onClick={() => setActiveTab("all")}
                       className={`flex-1 py-1 rounded-lg text-[11px] font-semibold transition-all ${
                         activeTab === "all"
-                          ? "bg-[#a855f7]/20 text-[#c084fc] font-bold border border-[#a855f7]/30"
+                          ? "bg-primary/20 text-primary font-bold border border-primary/30"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
@@ -470,7 +470,7 @@ export default function EventAnalyticsDashboard() {
                       onClick={() => setActiveTab("active")}
                       className={`flex-1 py-1 rounded-lg text-[11px] font-semibold transition-all ${
                         activeTab === "active"
-                          ? "bg-[#a855f7]/20 text-[#c084fc] font-bold border border-[#a855f7]/30"
+                          ? "bg-primary/20 text-primary font-bold border border-primary/30"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
@@ -481,7 +481,7 @@ export default function EventAnalyticsDashboard() {
                       onClick={() => setActiveTab("drafts")}
                       className={`flex-1 py-1 rounded-lg text-[11px] font-semibold transition-all ${
                         activeTab === "drafts"
-                          ? "bg-[#a855f7]/20 text-[#c084fc] font-bold border border-[#a855f7]/30"
+                          ? "bg-primary/20 text-primary font-bold border border-primary/30"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
@@ -492,7 +492,7 @@ export default function EventAnalyticsDashboard() {
                       onClick={() => setActiveTab("past")}
                       className={`flex-1 py-1 rounded-lg text-[11px] font-semibold transition-all ${
                         activeTab === "past"
-                          ? "bg-[#a855f7]/20 text-[#c084fc] font-bold border border-[#a855f7]/30"
+                          ? "bg-primary/20 text-primary font-bold border border-primary/30"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
@@ -516,8 +516,8 @@ export default function EventAnalyticsDashboard() {
                           }}
                           className={`w-full flex items-center justify-between gap-3 p-2.5 rounded-xl text-left text-xs transition-all ${
                             ev.id === event.id
-                              ? "bg-[#8b5cf6]/20 text-white font-bold border border-[#a855f7]/50 shadow-[0_0_15px_-3px_rgba(168,85,247,0.3)]"
-                              : "bg-[#141422] border border-white/[0.04] text-muted-foreground hover:text-foreground hover:bg-[#1f1d33] hover:border-white/[0.1]"
+                              ? "bg-primary/15 text-foreground font-bold border border-primary/40 shadow-[0_0_15px_-3px_rgba(168,85,247,0.2)]"
+                              : "bg-secondary/50 border border-border text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-border"
                           }`}
                         >
                           <div className="truncate flex-1">
@@ -526,10 +526,10 @@ export default function EventAnalyticsDashboard() {
                               <span
                                 className={`text-[9px] px-1.5 py-0.5 rounded-md font-bold uppercase ${
                                   ev.status === "approved" || ev.status === "published"
-                                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                                     : ev.status === "draft"
-                                    ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                                    : "bg-red-500/10 text-red-400 border border-red-500/20"
+                                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                                    : "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20"
                                 }`}
                               >
                                 {ev.status}
@@ -542,9 +542,9 @@ export default function EventAnalyticsDashboard() {
                             </p>
                           </div>
                           {ev.id === event.id ? (
-                            <Check className="w-4 h-4 text-[#c084fc] shrink-0" />
+                            <Check className="w-4 h-4 text-primary shrink-0" />
                           ) : (
-                            <span className="text-[10px] text-muted-foreground/60 group-hover:text-foreground shrink-0">Switch &rarr;</span>
+                            <span className="text-[10px] text-muted-foreground group-hover:text-foreground shrink-0">Switch &rarr;</span>
                           )}
                         </button>
                       ))
@@ -555,7 +555,7 @@ export default function EventAnalyticsDashboard() {
             </div>
 
             {/* Quick Filter Badges on Header Bar */}
-            <div className="flex items-center gap-1.5 bg-[#12121c] p-1 rounded-xl border border-white/[0.06]">
+            <div className="flex items-center gap-1.5 bg-secondary p-1 rounded-xl border border-border">
               <button
                 type="button"
                 onClick={() => {
@@ -564,7 +564,7 @@ export default function EventAnalyticsDashboard() {
                 }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   activeTab === "active"
-                    ? "bg-[#a855f7]/20 text-[#c084fc] border border-[#a855f7]/30 font-bold"
+                    ? "bg-primary/20 text-primary border border-primary/30 font-bold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -578,7 +578,7 @@ export default function EventAnalyticsDashboard() {
                 }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   activeTab === "drafts"
-                    ? "bg-[#a855f7]/20 text-[#c084fc] border border-[#a855f7]/30 font-bold"
+                    ? "bg-primary/20 text-primary border border-primary/30 font-bold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -592,7 +592,7 @@ export default function EventAnalyticsDashboard() {
                 }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   activeTab === "past"
-                    ? "bg-[#a855f7]/20 text-[#c084fc] border border-[#a855f7]/30 font-bold"
+                    ? "bg-primary/20 text-primary border border-primary/30 font-bold"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -614,9 +614,9 @@ export default function EventAnalyticsDashboard() {
               <button
                 onClick={() => setIsBroadcastOpen(true)}
                 disabled={attendees.length === 0}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1c1a2e] border border-white/[0.08] text-foreground text-xs font-semibold hover:border-[#a855f7]/50 hover:bg-[#25223d] transition-all disabled:opacity-40"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary border border-border text-foreground text-xs font-semibold hover:border-primary/50 hover:bg-secondary/80 transition-all disabled:opacity-40"
               >
-                <Send className="w-3.5 h-3.5 text-[#c084fc]" /> Broadcast Email
+                <Send className="w-3.5 h-3.5 text-primary" /> Broadcast Email
               </button>
             )}
 
@@ -624,15 +624,15 @@ export default function EventAnalyticsDashboard() {
               <button
                 onClick={handleExportCSV}
                 disabled={attendees.length === 0}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1c1a2e] border border-white/[0.08] text-foreground text-xs font-semibold hover:border-[#a855f7]/50 hover:bg-[#25223d] transition-all disabled:opacity-40"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary border border-border text-foreground text-xs font-semibold hover:border-primary/50 hover:bg-secondary/80 transition-all disabled:opacity-40"
               >
-                <Download className="w-3.5 h-3.5 text-[#c084fc]" /> Export CSV
+                <Download className="w-3.5 h-3.5 text-primary" /> Export CSV
               </button>
             )}
 
             <button
               onClick={() => navigate(`/event/${event.id}`)}
-              className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-white/[0.08] text-muted-foreground hover:text-foreground text-xs font-semibold hover:bg-white/[0.04] transition-all"
+              className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-border text-muted-foreground hover:text-foreground text-xs font-semibold hover:bg-secondary transition-all"
               title="View Public Event Page"
             >
               <Eye className="w-3.5 h-3.5" />
@@ -642,10 +642,10 @@ export default function EventAnalyticsDashboard() {
 
         {/* External Event Banner Notice */}
         {isExternal && (
-          <div className="relative rounded-2xl bg-gradient-to-r from-[#1c162e] via-[#161426] to-[#12121e] border border-[#a855f7]/30 p-6 sm:p-8 overflow-hidden shadow-xl">
+          <div className="relative rounded-2xl bg-gradient-to-r from-secondary/90 via-card to-card border border-primary/30 p-6 sm:p-8 overflow-hidden shadow-sm">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
               <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#a855f7]/20 border border-[#a855f7]/40 text-[#c084fc] text-xs font-bold">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary text-xs font-bold">
                   <Globe className="w-3.5 h-3.5" /> External Event Hosting
                 </div>
                 <h2 className="text-xl sm:text-2xl font-bold text-foreground">
@@ -657,7 +657,7 @@ export default function EventAnalyticsDashboard() {
                     href={event.event_link || "#"}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#c084fc] font-medium hover:underline inline-flex items-center gap-1"
+                    className="text-primary font-medium hover:underline inline-flex items-center gap-1"
                   >
                     {event.event_link || "No external link provided"} <ExternalLink className="w-3 h-3" />
                   </a>
@@ -668,7 +668,7 @@ export default function EventAnalyticsDashboard() {
               <div className="flex items-center gap-3 shrink-0">
                 <button
                   onClick={() => navigate(`/edit-event/${event.id}`)}
-                  className="px-5 py-2.5 rounded-xl border border-white/[0.12] bg-[#1a1829] text-foreground text-xs font-bold hover:border-[#a855f7] transition-all"
+                  className="px-5 py-2.5 rounded-xl border border-border bg-secondary text-foreground text-xs font-bold hover:border-primary transition-all"
                 >
                   Edit Event Link
                 </button>
@@ -687,12 +687,12 @@ export default function EventAnalyticsDashboard() {
           </div>
         )}
 
-        {/* 5-Card Analytics Grid (Matching Image Design) */}
+        {/* 5-Card Analytics Grid */}
         {!isExternal && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Card 1: Total Confirmed Attendees */}
-            <div className="relative rounded-2xl bg-[#14141f]/90 border border-white/[0.08] p-5 shadow-lg flex flex-col justify-between overflow-hidden group hover:border-[#a855f7]/40 transition-all">
-              <div className="absolute -top-12 -right-12 w-28 h-28 bg-[#a855f7]/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="relative rounded-2xl bg-card border border-border p-5 shadow-sm flex flex-col justify-between overflow-hidden group hover:border-primary/40 transition-all">
+              <div className="absolute -top-12 -right-12 w-28 h-28 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
                   Total Confirmed Attendees
@@ -704,15 +704,15 @@ export default function EventAnalyticsDashboard() {
               </div>
 
               <div className="mt-5 space-y-2">
-                <div className="h-3 w-full bg-white/[0.06] rounded-full overflow-hidden p-0.5 border border-white/[0.04]">
+                <div className="h-3 w-full bg-secondary rounded-full overflow-hidden p-0.5 border border-border/50">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-[#a855f7] via-[#c084fc] to-[#f472b6] transition-all duration-1000 shadow-[0_0_12px_rgba(168,85,247,0.8)]"
+                    className="h-full rounded-full bg-gradient-to-r from-[#a855f7] via-[#c084fc] to-[#f472b6] transition-all duration-1000 shadow-[0_0_12px_rgba(168,85,247,0.5)]"
                     style={{ width: `${Math.max(5, Math.min(100, fillRate))}%` }}
                   />
                 </div>
                 <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium">
-                  <span className="flex items-center gap-1 text-[#c084fc]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#c084fc] animate-pulse" />
+                  <span className="flex items-center gap-1 text-primary">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                     Live Attendees
                   </span>
                   <span>{spotsRemaining > 0 ? `${spotsRemaining} spots left` : "Capacity Full"}</span>
@@ -721,7 +721,7 @@ export default function EventAnalyticsDashboard() {
             </div>
 
             {/* Card 2: Capacity Fill Rate (Radial Ring Gauge) */}
-            <div className="relative rounded-2xl bg-[#14141f]/90 border border-white/[0.08] p-5 shadow-lg flex flex-col justify-between items-center text-center overflow-hidden hover:border-[#a855f7]/40 transition-all">
+            <div className="relative rounded-2xl bg-card border border-border p-5 shadow-sm flex flex-col justify-between items-center text-center overflow-hidden hover:border-primary/40 transition-all">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider self-start mb-1">
                 Capacity Fill Rate
               </p>
@@ -732,7 +732,7 @@ export default function EventAnalyticsDashboard() {
                     cx="50"
                     cy="50"
                     r="40"
-                    className="stroke-white/[0.06]"
+                    className="stroke-secondary dark:stroke-white/[0.08]"
                     strokeWidth="8"
                     fill="transparent"
                   />
@@ -740,13 +740,13 @@ export default function EventAnalyticsDashboard() {
                     cx="50"
                     cy="50"
                     r="40"
-                    className="stroke-[#a855f7] transition-all duration-1000 ease-out"
+                    className="stroke-primary transition-all duration-1000 ease-out"
                     strokeWidth="8"
                     strokeDasharray={`${2 * Math.PI * 40}`}
                     strokeDashoffset={`${2 * Math.PI * 40 * (1 - fillRate / 100)}`}
                     strokeLinecap="round"
                     fill="transparent"
-                    style={{ filter: "drop-shadow(0 0 8px rgba(168,85,247,0.7))" }}
+                    style={{ filter: "drop-shadow(0 0 6px rgba(168,85,247,0.5))" }}
                   />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -760,7 +760,7 @@ export default function EventAnalyticsDashboard() {
             </div>
 
             {/* Card 3: Ticket Revenue / Breakdown */}
-            <div className="relative rounded-2xl bg-[#14141f]/90 border border-white/[0.08] p-5 shadow-lg flex flex-col justify-between overflow-hidden hover:border-[#a855f7]/40 transition-all">
+            <div className="relative rounded-2xl bg-card border border-border p-5 shadow-sm flex flex-col justify-between overflow-hidden hover:border-primary/40 transition-all">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
                   Ticket Revenue / Breakdown
@@ -787,14 +787,14 @@ export default function EventAnalyticsDashboard() {
             </div>
 
             {/* Card 4: Check-in & Attendance Rate */}
-            <div className="relative rounded-2xl bg-[#14141f]/90 border border-white/[0.08] p-5 shadow-lg flex flex-col justify-between overflow-hidden hover:border-[#a855f7]/40 transition-all">
+            <div className="relative rounded-2xl bg-card border border-border p-5 shadow-sm flex flex-col justify-between overflow-hidden hover:border-primary/40 transition-all">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
                   Check-in &amp; Attendance Rate
                 </p>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                     Live
                   </span>
                 </div>
@@ -805,7 +805,7 @@ export default function EventAnalyticsDashboard() {
                 <p className="text-xs text-muted-foreground mt-0.5">checked in</p>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-muted-foreground">
+              <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
                 <span>Arrival rate</span>
                 <span className="font-bold text-foreground">
                   {confirmedCount > 0 ? Math.round((checkedInCount / confirmedCount) * 100) : 0}%
@@ -814,15 +814,15 @@ export default function EventAnalyticsDashboard() {
             </div>
 
             {/* Card 5: Registration Velocity (Area Sparkline) */}
-            <div className="relative rounded-2xl bg-[#14141f]/90 border border-white/[0.08] p-5 shadow-lg flex flex-col justify-between overflow-hidden hover:border-[#a855f7]/40 transition-all">
+            <div className="relative rounded-2xl bg-card border border-border p-5 shadow-sm flex flex-col justify-between overflow-hidden hover:border-primary/40 transition-all">
               <div>
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                     Registration Velocity
                   </p>
-                  <TrendingUp className="w-3.5 h-3.5 text-[#c084fc]" />
+                  <TrendingUp className="w-3.5 h-3.5 text-primary" />
                 </div>
-                <p className="text-[11px] text-[#c084fc] font-semibold mt-1">Daily signups</p>
+                <p className="text-[11px] text-primary font-semibold mt-1">Daily signups</p>
               </div>
 
               {/* Sparkline Graph */}
@@ -830,7 +830,7 @@ export default function EventAnalyticsDashboard() {
                 <svg className="w-full h-full overflow-visible" viewBox="0 0 100 40" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#a855f7" stopOpacity="0.5" />
+                      <stop offset="0%" stopColor="#a855f7" stopOpacity="0.4" />
                       <stop offset="100%" stopColor="#a855f7" stopOpacity="0" />
                     </linearGradient>
                   </defs>
@@ -841,11 +841,11 @@ export default function EventAnalyticsDashboard() {
                   <path
                     d="M 0 35 Q 15 28, 30 32 T 60 18 T 85 8 T 100 12"
                     fill="none"
-                    stroke="#c084fc"
+                    stroke="#a855f7"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                   />
-                  <circle cx="85" cy="8" r="2.5" className="fill-[#a855f7] stroke-white stroke-1" />
+                  <circle cx="85" cy="8" r="2.5" className="fill-primary stroke-background stroke-2" />
                 </svg>
               </div>
 
@@ -859,9 +859,9 @@ export default function EventAnalyticsDashboard() {
           </div>
         )}
 
-        {/* Real-Time Attendee Roster Table (Matching Bottom Section of Image) */}
+        {/* Real-Time Attendee Roster Table */}
         {!isExternal && (
-          <div className="rounded-2xl bg-[#14141f]/90 border border-white/[0.08] shadow-2xl p-6 space-y-5">
+          <div className="rounded-2xl bg-card border border-border shadow-sm p-6 space-y-5">
             {/* Header & Controls */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
@@ -882,7 +882,7 @@ export default function EventAnalyticsDashboard() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search attendees..."
-                    className="w-full bg-[#1c1a2e] border border-white/[0.08] text-foreground text-xs pl-9 pr-3 py-2 rounded-xl outline-none focus:border-[#a855f7] transition-all placeholder:text-muted-foreground"
+                    className="w-full bg-secondary border border-border text-foreground text-xs pl-9 pr-3 py-2 rounded-xl outline-none focus:border-primary transition-all placeholder:text-muted-foreground"
                   />
                 </div>
 
@@ -890,7 +890,7 @@ export default function EventAnalyticsDashboard() {
                 <select
                   value={selectedTierFilter}
                   onChange={(e) => setSelectedTierFilter(e.target.value)}
-                  className="bg-[#1c1a2e] border border-white/[0.08] text-foreground text-xs px-3 py-2 rounded-xl outline-none focus:border-[#a855f7] transition-all"
+                  className="bg-secondary border border-border text-foreground text-xs px-3 py-2 rounded-xl outline-none focus:border-primary transition-all"
                 >
                   <option value="all">Filter by Ticket Tier</option>
                   {ticketTiers.map((t, idx) => (
@@ -904,7 +904,7 @@ export default function EventAnalyticsDashboard() {
                 <select
                   value={selectedStatusFilter}
                   onChange={(e) => setSelectedStatusFilter(e.target.value)}
-                  className="bg-[#1c1a2e] border border-white/[0.08] text-foreground text-xs px-3 py-2 rounded-xl outline-none focus:border-[#a855f7] transition-all"
+                  className="bg-secondary border border-border text-foreground text-xs px-3 py-2 rounded-xl outline-none focus:border-primary transition-all"
                 >
                   <option value="all">All Statuses</option>
                   <option value="checked_in">Checked In</option>
@@ -914,19 +914,19 @@ export default function EventAnalyticsDashboard() {
                 <button
                   onClick={loadDashboardData}
                   disabled={refreshing}
-                  className="p-2 rounded-xl border border-white/[0.08] text-muted-foreground hover:text-foreground hover:bg-white/[0.04] transition-all"
+                  className="p-2 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
                   title="Refresh Attendees"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-[#c084fc]" : ""}`} />
+                  <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-primary" : ""}`} />
                 </button>
               </div>
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto rounded-xl border border-white/[0.06]">
+            <div className="overflow-x-auto rounded-xl border border-border">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-white/[0.08] bg-[#1a1829]/60 text-muted-foreground font-bold tracking-wider uppercase text-[11px]">
+                  <tr className="border-b border-border bg-secondary/70 text-muted-foreground font-bold tracking-wider uppercase text-[11px]">
                     <th className="py-3.5 px-4">Attendee Avatar &amp; Name</th>
                     <th className="py-3.5 px-4">Email</th>
                     <th className="py-3.5 px-4">Ticket Tier</th>
@@ -935,11 +935,11 @@ export default function EventAnalyticsDashboard() {
                     <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.04]">
+                <tbody className="divide-y divide-border">
                   {filteredAttendees.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="text-center py-12 text-muted-foreground">
-                        <Users className="w-8 h-8 mx-auto mb-2 opacity-30 text-[#a855f7]" />
+                        <Users className="w-8 h-8 mx-auto mb-2 opacity-30 text-primary" />
                         <p className="font-semibold text-sm">No attendees found</p>
                         <p className="text-xs text-muted-foreground mt-1">
                           {searchQuery ? "Try refining your search filter" : "Share your event link to start collecting registrations!"}
@@ -950,7 +950,7 @@ export default function EventAnalyticsDashboard() {
                     filteredAttendees.map((att) => (
                       <tr
                         key={att.id}
-                        className="hover:bg-white/[0.02] transition-colors group"
+                        className="hover:bg-secondary/40 transition-colors group"
                       >
                         {/* Avatar & Name */}
                         <td className="py-3 px-4 font-semibold text-foreground flex items-center gap-3">
@@ -958,10 +958,10 @@ export default function EventAnalyticsDashboard() {
                             <img
                               src={att.avatarUrl}
                               alt={att.name}
-                              className="w-8 h-8 rounded-full object-cover border border-[#a855f7]/30"
+                              className="w-8 h-8 rounded-full object-cover border border-primary/30"
                             />
                           ) : (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#a855f7]/30 to-[#6d28d9]/20 border border-[#a855f7]/40 flex items-center justify-center font-bold text-[11px] text-[#c084fc]">
+                            <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center font-bold text-[11px] text-primary">
                               {att.name
                                 .split(" ")
                                 .map((n) => n[0])
@@ -980,7 +980,7 @@ export default function EventAnalyticsDashboard() {
 
                         {/* Ticket Tier */}
                         <td className="py-3 px-4">
-                          <span className="px-2.5 py-1 rounded-full bg-[#a855f7]/15 border border-[#a855f7]/30 text-[#c084fc] font-bold text-[10.5px]">
+                          <span className="px-2.5 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary font-bold text-[10.5px]">
                             {att.ticketTier}
                           </span>
                         </td>
@@ -995,13 +995,13 @@ export default function EventAnalyticsDashboard() {
                           <span
                             className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold ${
                               att.isCheckedIn
-                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                                : "bg-white/[0.04] text-muted-foreground border border-white/[0.08]"
+                                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                                : "bg-secondary text-muted-foreground border border-border"
                             }`}
                           >
                             <span
                               className={`w-1.5 h-1.5 rounded-full ${
-                                att.isCheckedIn ? "bg-emerald-400" : "bg-muted-foreground"
+                                att.isCheckedIn ? "bg-emerald-500" : "bg-muted-foreground"
                               }`}
                             />
                             {att.isCheckedIn ? "Live" : "Registered"}
@@ -1013,14 +1013,14 @@ export default function EventAnalyticsDashboard() {
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => handleResendConfirmation(att)}
-                              className="p-1.5 rounded-lg text-muted-foreground hover:text-[#c084fc] hover:bg-[#a855f7]/10 transition-colors"
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                               title="Resend Confirmation Email"
                             >
                               <Mail className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleCancelRegistration(att)}
-                              className="p-1.5 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                              className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
                               title="Cancel Ticket"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -1039,16 +1039,16 @@ export default function EventAnalyticsDashboard() {
 
       {/* Broadcast Email Modal */}
       {isBroadcastOpen && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-          <div className="w-full max-w-lg bg-[#161524] border border-white/[0.12] rounded-2xl p-6 shadow-2xl space-y-5">
-            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="w-full max-w-lg bg-card border border-border rounded-2xl p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
-                <Send className="w-5 h-5 text-[#c084fc]" />
+                <Send className="w-5 h-5 text-primary" />
                 <h3 className="font-bold text-foreground text-lg">Broadcast to Attendees</h3>
               </div>
               <button
                 onClick={() => setIsBroadcastOpen(false)}
-                className="p-1 rounded-lg text-muted-foreground hover:text-white"
+                className="p-1 rounded-lg text-muted-foreground hover:text-foreground"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1059,35 +1059,35 @@ export default function EventAnalyticsDashboard() {
                 <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
                   Recipients ({confirmedCount} confirmed attendees)
                 </label>
-                <div className="p-2.5 rounded-xl bg-[#12121e] border border-white/[0.08] text-xs text-[#c084fc] font-semibold">
+                <div className="p-2.5 rounded-xl bg-secondary border border-border text-xs text-primary font-semibold">
                   All confirmed registrants for "{event.title}"
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1.5">
-                  Subject <span className="text-[#c084fc]">*</span>
+                  Subject <span className="text-primary">*</span>
                 </label>
                 <input
                   type="text"
                   value={broadcastSubject}
                   onChange={(e) => setBroadcastSubject(e.target.value)}
                   placeholder="e.g. Important update regarding tomorrow's schedule"
-                  className="w-full bg-[#12121e] border border-white/[0.08] text-foreground text-xs p-3 rounded-xl outline-none focus:border-[#a855f7] transition-all"
+                  className="w-full bg-secondary border border-border text-foreground text-xs p-3 rounded-xl outline-none focus:border-primary transition-all"
                   required
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1.5">
-                  Message <span className="text-[#c084fc]">*</span>
+                  Message <span className="text-primary">*</span>
                 </label>
                 <textarea
                   value={broadcastMessage}
                   onChange={(e) => setBroadcastMessage(e.target.value)}
                   placeholder="Write your announcement or instructions for attendees..."
                   rows={5}
-                  className="w-full bg-[#12121e] border border-white/[0.08] text-foreground text-xs p-3 rounded-xl outline-none focus:border-[#a855f7] transition-all resize-none"
+                  className="w-full bg-secondary border border-border text-foreground text-xs p-3 rounded-xl outline-none focus:border-primary transition-all resize-none"
                   required
                 />
               </div>
@@ -1096,7 +1096,7 @@ export default function EventAnalyticsDashboard() {
                 <button
                   type="button"
                   onClick={() => setIsBroadcastOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-white/[0.08] text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+                  className="px-4 py-2.5 rounded-xl border border-border text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-secondary"
                 >
                   Cancel
                 </button>
