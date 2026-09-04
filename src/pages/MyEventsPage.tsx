@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
-import { Calendar, Plus, FileText, Globe, Trash2, Edit, Clock, Bookmark } from "lucide-react";
+import { Calendar, Plus, FileText, Globe, Trash2, Edit, Clock, Bookmark, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -173,12 +173,20 @@ export default function MyEventsPage() {
                     <Calendar className="h-3 w-3" />
                     {event.start_date || "No date set"}
                   </div>
-                  <button
-                    onClick={() => navigate(`/event/${event.id}`)}
-                    className="w-full py-2 rounded-lg border border-border text-sm text-foreground hover:bg-secondary transition-colors"
-                  >
-                    View Details
-                  </button>
+                  <div className="grid grid-cols-2 gap-2 mt-auto">
+                    <button
+                      onClick={() => navigate(`/event/${event.id}`)}
+                      className="py-2 rounded-xl border border-border text-xs font-semibold text-foreground hover:bg-secondary transition-colors text-center"
+                    >
+                      View Details
+                    </button>
+                    <button
+                      onClick={() => navigate(`/my-events/${event.id}/dashboard`)}
+                      className="py-2 rounded-xl bg-[#8b5cf6]/20 border border-[#a855f7]/40 text-[#c084fc] hover:bg-[#8b5cf6]/30 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-[0_0_12px_-4px_rgba(168,85,247,0.4)]"
+                    >
+                      <BarChart3 className="w-3.5 h-3.5" /> Dashboard
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

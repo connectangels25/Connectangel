@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Search, Menu, X, LogOut, Pencil, Camera, Check, Loader2, CalendarDays, Sparkles, ShieldCheck, MailWarning } from "lucide-react";
+import { Search, Menu, X, LogOut, Pencil, Camera, Check, Loader2, CalendarDays, Sparkles, ShieldCheck, MailWarning, Ticket } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import ThemeToggle from "@/components/ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { label: "Chat", to: "/chat" },
   { label: "Blog", to: "/blog" },
   { label: "My Events", to: "/my-events" },
+  { label: "My Registrations", to: "/my-registrations" },
 ];
 
 export default function Navbar() {
@@ -208,15 +209,23 @@ export default function Navbar() {
           {/* Desktop nav links */}
           {!isSimplifiedNavRoute && (
             <div className="hidden md:flex items-center gap-6">
-              {visibleLinks.map((link) => (
-                <button
-                  key={link.label}
-                  onClick={() => handleNavClick(link)}
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {link.label}
-                </button>
-              ))}
+              {visibleLinks.map((link) => {
+                const isActive = location.pathname === link.to;
+                return (
+                  <button
+                    key={link.label}
+                    onClick={() => handleNavClick(link)}
+                    className={`text-sm font-medium transition-colors relative py-1 ${
+                      isActive ? "text-foreground font-bold" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {link.label}
+                    {isActive && (
+                      <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-[#a855f7] rounded-full shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
+                    )}
+                  </button>
+                );
+              })}
               {isAdmin && (
                 <button
                   onClick={() => navigate("/admindashboard")}
@@ -356,6 +365,13 @@ export default function Navbar() {
                     >
                       <CalendarDays className="w-4 h-4" />
                       My Events
+                    </button>
+                    <button
+                      onClick={() => { setProfileOpen(false); navigate("/my-registrations"); }}
+                      className="w-full flex items-center gap-2 px-5 py-3 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                    >
+                      <Ticket className="w-4 h-4 text-[#c084fc]" />
+                      My Registrations
                     </button>
                     <button
                       onClick={() => { setProfileOpen(false); navigate("/pricing"); }}
