@@ -26,6 +26,7 @@ import {
   Eye,
   Check,
   TrendingUp,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -194,7 +195,7 @@ export default function EventAnalyticsDashboard() {
       if (currentEvent.hosting_type !== "external") {
         const { data: regRows, error: regErr } = await supabase
           .from("event_registrations")
-          .select("id, event_id, user_id, status, registered_at, cancelled_at")
+          .select("id, event_id, user_id, status, registered_at, cancelled_at, checked_in, checked_in_at" as any)
           .eq("event_id", eventId)
           .eq("status", "confirmed")
           .order("registered_at", { ascending: false });
@@ -202,7 +203,7 @@ export default function EventAnalyticsDashboard() {
         if (regErr) throw regErr;
 
         if (regRows && regRows.length > 0) {
-          const userIds = Array.from(new Set(regRows.map((r) => r.user_id)));
+          const userIds = Array.from(new Set(regRows.map((r: any) => r.user_id)));
           const { data: profilesData } = await supabase
             .from("profiles")
             .select("id, name, email, avatar_url")
@@ -210,7 +211,7 @@ export default function EventAnalyticsDashboard() {
 
           const profileMap = new Map((profilesData || []).map((p) => [p.id, p]));
 
-          const attendeeList: Attendee[] = regRows.map((reg, idx) => {
+          const attendeeList: Attendee[] = (regRows as any[]).map((reg, idx) => {
             const prof = profileMap.get(reg.user_id);
             // Assign ticket tier if available
             const tierName = parsedTickets.length > 0
@@ -226,7 +227,7 @@ export default function EventAnalyticsDashboard() {
               registeredAt: reg.registered_at,
               status: reg.status,
               ticketTier: tierName,
-              isCheckedIn: idx % 3 === 0, // dynamic check-in demo status
+              isCheckedIn: Boolean(reg.checked_in),
             };
           });
 
@@ -253,11 +254,12 @@ export default function EventAnalyticsDashboard() {
   }, [eventId, user]);
 
   // Derived Metrics
-  const confirmedCount = attendees.length;
+  const checkedInCount = attendees.filter((r) => r.isCheckedIn).length;
+  const confirmedCount = attendees.filter((r) => r.status === "confirmed").length;
+  const attendanceRate = confirmedCount > 0 ? Math.round((checkedInCount / confirmedCount) * 100) : 0;
   const capacityNumber = event?.total_capacity ? parseInt(event.total_capacity) || 0 : 0;
   const fillRate = capacityNumber > 0 ? Math.min(100, Math.round((confirmedCount / capacityNumber) * 100)) : 0;
   const spotsRemaining = capacityNumber > 0 ? Math.max(0, capacityNumber - confirmedCount) : 0;
-  const checkedInCount = attendees.filter((a) => a.isCheckedIn).length;
 
   // Revenue & Ticket Breakdown
   const ticketTiers = event?.tickets || [];
@@ -280,6 +282,48 @@ export default function EventAnalyticsDashboard() {
   const totalRevenue = useMemo(() => {
     return tierBreakdown.reduce((sum, item) => sum + item.revenue, 0);
   }, [tierBreakdown]);
+
+  // 7-Day Registration Velocity Analytics (Real Supabase Data)
+  const last7DaysVelocity = useMemo(() => {
+    const days: { day: string; shortDate: string; count: number }[] = [];
+    const now = new Date();
+
+    for (let i = 6; i >= 0; i--) {
+      const targetDate = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const dayLabel = format(targetDate, "EEE");
+      const dateKey = format(targetDate, "yyyy-MM-dd");
+
+      const count = attendees.filter((att) => {
+        if (!att.registeredAt) return false;
+        try {
+          const regDate = format(new Date(att.registeredAt), "yyyy-MM-dd");
+          return regDate === dateKey;
+        } catch {
+          return false;
+        }
+      }).length;
+
+      days.push({ day: dayLabel, shortDate: dateKey, count });
+    }
+
+    return days;
+  }, [attendees]);
+
+  const sparklineData = useMemo(() => {
+    const counts = last7DaysVelocity.map((v) => v.count);
+    const maxCount = Math.max(...counts, 1);
+    const points = last7DaysVelocity.map((d, idx) => {
+      const x = (idx / 6) * 100;
+      const y = 34 - (d.count / maxCount) * 26;
+      return { x: Number(x.toFixed(1)), y: Number(y.toFixed(1)), count: d.count, day: d.day };
+    });
+
+    const strokePath = points.reduce((acc, pt, i) => (i === 0 ? `M ${pt.x} ${pt.y}` : `${acc} L ${pt.x} ${pt.y}`), "");
+    const areaPath = `${strokePath} L 100 40 L 0 40 Z`;
+    const total7Days = counts.reduce((a, b) => a + b, 0);
+
+    return { points, strokePath, areaPath, total7Days };
+  }, [last7DaysVelocity]);
 
   // Filtered Attendees List
   const filteredAttendees = useMemo(() => {
@@ -341,6 +385,133 @@ export default function EventAnalyticsDashboard() {
     link.click();
     document.body.removeChild(link);
     toast.success("Attendee list exported to CSV!");
+  };
+
+  const handleExportPDF = async () => {
+    if (attendees.length === 0) {
+      toast.error("No attendees to export yet");
+      return;
+    }
+
+    try {
+      const { default: jsPDF } = await import("jspdf");
+      const autoTable = (await import("jspdf-autotable")).default;
+
+      const doc = new jsPDF();
+
+      // Brand Top Header Bar
+      doc.setFillColor(147, 51, 234);
+      doc.rect(0, 0, 210, 22, "F");
+
+      doc.setFontSize(14);
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.text("ConnectAngels — Attendee Roster", 14, 15);
+
+      // Event Info Header
+      doc.setTextColor(30, 30, 30);
+      doc.setFontSize(15);
+      doc.text(event?.title || "Event Attendees", 14, 33);
+
+      doc.setFontSize(8.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Generated on: ${format(new Date(), "dd MMM yyyy, hh:mm a")}`, 14, 39);
+      doc.text(
+        `Event Date: ${event?.start_date || "N/A"}${event?.start_time ? ` at ${event.start_time}` : ""}   |   Location: ${
+          event?.venue_name || event?.venue_address || (event?.location_type === "Virtual" ? "Virtual Online" : "In-Person")
+        }`,
+        14,
+        44
+      );
+
+      // Summary Stats Box
+      doc.setFillColor(245, 243, 255);
+      doc.setDrawColor(221, 214, 254);
+      doc.roundedRect(14, 49, 182, 12, 2, 2, "FD");
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(109, 40, 217);
+      doc.text(
+        `Total Registered: ${confirmedCount}    |    Checked In: ${checkedInCount}    |    Attendance Rate: ${attendanceRate}%`,
+        20,
+        57
+      );
+
+      // Attendees Table
+      const tableHeaders = [["#", "Name", "Email", "Ticket Tier", "Registration Date", "Status"]];
+      const tableRows = attendees.map((a, index) => [
+        index + 1,
+        a.name,
+        a.email,
+        a.ticketTier,
+        a.registeredAt ? format(new Date(a.registeredAt), "dd.MM.yyyy, hh:mm a") : "—",
+        a.isCheckedIn ? "Checked In" : "Registered",
+      ]);
+
+      autoTable(doc, {
+        head: tableHeaders,
+        body: tableRows,
+        startY: 65,
+        theme: "striped",
+        headStyles: {
+          fillColor: [147, 51, 234],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+          fontSize: 8.5,
+        },
+        styles: {
+          fontSize: 8,
+          cellPadding: 3,
+        },
+        alternateRowStyles: {
+          fillColor: [250, 248, 255],
+        },
+      });
+
+      const fileName = `${(event?.title || "event").replace(/[^a-z0-9]/gi, "_").toLowerCase()}_attendee_roster.pdf`;
+      doc.save(fileName);
+      toast.success("Attendee roster exported to PDF!");
+    } catch (err: any) {
+      console.error("PDF export error:", err);
+      toast.error(err.message || "Failed to generate PDF");
+    }
+  };
+
+  const handleCheckIn = async (registrationId: string) => {
+    try {
+      const { error } = await supabase
+        .from("event_registrations")
+        .update({ checked_in: true, checked_in_at: new Date().toISOString() } as any)
+        .eq("id", registrationId);
+
+      if (error) throw error;
+
+      setAttendees((prev) =>
+        prev.map((a) => (a.id === registrationId ? { ...a, isCheckedIn: true, checkedInAt: new Date().toISOString() } : a))
+      );
+      toast.success("Attendee checked in successfully");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to check in");
+    }
+  };
+
+  const handleUndoCheckIn = async (registrationId: string) => {
+    try {
+      const { error } = await supabase
+        .from("event_registrations")
+        .update({ checked_in: false, checked_in_at: null } as any)
+        .eq("id", registrationId);
+
+      if (error) throw error;
+
+      setAttendees((prev) =>
+        prev.map((a) => (a.id === registrationId ? { ...a, isCheckedIn: false, checkedInAt: undefined } : a))
+      );
+      toast.info("Check-in undone");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to undo check-in");
+    }
   };
 
   const handleResendConfirmation = (attendee: Attendee) => {
@@ -621,13 +792,24 @@ export default function EventAnalyticsDashboard() {
             )}
 
             {!isExternal && (
-              <button
-                onClick={handleExportCSV}
-                disabled={attendees.length === 0}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary border border-border text-foreground text-xs font-semibold hover:border-primary/50 hover:bg-secondary/80 transition-all disabled:opacity-40"
-              >
-                <Download className="w-3.5 h-3.5 text-primary" /> Export CSV
-              </button>
+              <>
+                <button
+                  onClick={handleExportCSV}
+                  disabled={attendees.length === 0}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary border border-border text-foreground text-xs font-semibold hover:border-primary/50 hover:bg-secondary/80 transition-all disabled:opacity-40"
+                  title="Download CSV Spreadsheet"
+                >
+                  <Download className="w-3.5 h-3.5 text-primary" /> Export CSV
+                </button>
+                <button
+                  onClick={handleExportPDF}
+                  disabled={attendees.length === 0}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary border border-border text-foreground text-xs font-semibold hover:border-primary/50 hover:bg-secondary/80 transition-all disabled:opacity-40"
+                  title="Download Printable PDF Table"
+                >
+                  <FileText className="w-3.5 h-3.5 text-primary" /> Export PDF
+                </button>
+              </>
             )}
 
             <button
@@ -786,11 +968,11 @@ export default function EventAnalyticsDashboard() {
               </div>
             </div>
 
-            {/* Card 4: Check-in & Attendance Rate */}
+            {/* Card 4: Real check-in tracking */}
             <div className="relative rounded-2xl bg-card border border-border p-5 shadow-sm flex flex-col justify-between overflow-hidden hover:border-primary/40 transition-all">
               <div>
                 <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
-                  Check-in &amp; Attendance Rate
+                  Real check-in tracking
                 </p>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
@@ -806,9 +988,9 @@ export default function EventAnalyticsDashboard() {
               </div>
 
               <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-[11px] text-muted-foreground">
-                <span>Arrival rate</span>
+                <span>Attendance rate</span>
                 <span className="font-bold text-foreground">
-                  {confirmedCount > 0 ? Math.round((checkedInCount / confirmedCount) * 100) : 0}%
+                  {attendanceRate}%
                 </span>
               </div>
             </div>
@@ -822,7 +1004,9 @@ export default function EventAnalyticsDashboard() {
                   </p>
                   <TrendingUp className="w-3.5 h-3.5 text-primary" />
                 </div>
-                <p className="text-[11px] text-primary font-semibold mt-1">Daily signups</p>
+                <p className="text-[11px] text-primary font-semibold mt-1">
+                  {sparklineData.total7Days} daily signup{sparklineData.total7Days === 1 ? "" : "s"} (last 7 days)
+                </p>
               </div>
 
               {/* Sparkline Graph */}
@@ -835,25 +1019,34 @@ export default function EventAnalyticsDashboard() {
                     </linearGradient>
                   </defs>
                   <path
-                    d="M 0 35 Q 15 28, 30 32 T 60 18 T 85 8 T 100 12 L 100 40 L 0 40 Z"
+                    d={sparklineData.areaPath}
                     fill="url(#purpleGradient)"
                   />
                   <path
-                    d="M 0 35 Q 15 28, 30 32 T 60 18 T 85 8 T 100 12"
+                    d={sparklineData.strokePath}
                     fill="none"
                     stroke="#a855f7"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                   />
-                  <circle cx="85" cy="8" r="2.5" className="fill-primary stroke-background stroke-2" />
+                  {sparklineData.points.map((pt, i) => (
+                    <circle
+                      key={i}
+                      cx={pt.x}
+                      cy={pt.y}
+                      r={i === sparklineData.points.length - 1 ? "3" : "2"}
+                      className={i === sparklineData.points.length - 1 ? "fill-primary stroke-background stroke-2" : "fill-primary/60"}
+                    >
+                      <title>{`${pt.day}: ${pt.count} signup${pt.count === 1 ? "" : "s"}`}</title>
+                    </circle>
+                  ))}
                 </svg>
               </div>
 
               <div className="flex justify-between text-[9px] font-bold text-muted-foreground uppercase tracking-wider pt-1">
-                <span>Mon</span>
-                <span>Wed</span>
-                <span>Fri</span>
-                <span>Sun</span>
+                {last7DaysVelocity.map((d, i) => (
+                  <span key={i} title={`${d.day}: ${d.count} signups`}>{d.day}</span>
+                ))}
               </div>
             </div>
           </div>
@@ -992,20 +1185,23 @@ export default function EventAnalyticsDashboard() {
 
                         {/* Check-in */}
                         <td className="py-3 px-4 text-center">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold ${
+                          <button
+                            type="button"
+                            onClick={() => (att.isCheckedIn ? handleUndoCheckIn(att.id) : handleCheckIn(att.id))}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all cursor-pointer hover:scale-105 ${
                               att.isCheckedIn
-                                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
-                                : "bg-secondary text-muted-foreground border border-border"
+                                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25"
+                                : "bg-secondary text-muted-foreground border border-border hover:bg-primary/10 hover:text-primary hover:border-primary/30"
                             }`}
+                            title={att.isCheckedIn ? "Click to undo check-in" : "Click to check in attendee"}
                           >
                             <span
                               className={`w-1.5 h-1.5 rounded-full ${
-                                att.isCheckedIn ? "bg-emerald-500" : "bg-muted-foreground"
+                                att.isCheckedIn ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground"
                               }`}
                             />
-                            {att.isCheckedIn ? "Live" : "Registered"}
-                          </span>
+                            {att.isCheckedIn ? "Checked In" : "Check In"}
+                          </button>
                         </td>
 
                         {/* Actions */}
