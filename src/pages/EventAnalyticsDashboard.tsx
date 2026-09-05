@@ -26,6 +26,7 @@ import {
   Eye,
   Check,
   TrendingUp,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -194,7 +195,7 @@ export default function EventAnalyticsDashboard() {
       if (currentEvent.hosting_type !== "external") {
         const { data: regRows, error: regErr } = await supabase
           .from("event_registrations")
-          .select("id, event_id, user_id, status, registered_at, created_at, cancelled_at, checked_in, checked_in_at" as any)
+          .select("id, event_id, user_id, status, registered_at, cancelled_at, checked_in, checked_in_at" as any)
           .eq("event_id", eventId)
           .eq("status", "confirmed")
           .order("registered_at", { ascending: false });
@@ -223,7 +224,7 @@ export default function EventAnalyticsDashboard() {
               name: prof?.name || "Verified Attendee",
               email: prof?.email || "attendee@connectangels.com",
               avatarUrl: prof?.avatar_url || null,
-              registeredAt: reg.registered_at || reg.created_at,
+              registeredAt: reg.registered_at,
               status: reg.status,
               ticketTier: tierName,
               isCheckedIn: Boolean(reg.checked_in),
@@ -384,6 +385,97 @@ export default function EventAnalyticsDashboard() {
     link.click();
     document.body.removeChild(link);
     toast.success("Attendee list exported to CSV!");
+  };
+
+  const handleExportPDF = async () => {
+    if (attendees.length === 0) {
+      toast.error("No attendees to export yet");
+      return;
+    }
+
+    try {
+      const { default: jsPDF } = await import("jspdf");
+      const autoTable = (await import("jspdf-autotable")).default;
+
+      const doc = new jsPDF();
+
+      // Brand Top Header Bar
+      doc.setFillColor(147, 51, 234);
+      doc.rect(0, 0, 210, 22, "F");
+
+      doc.setFontSize(14);
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.text("ConnectAngels — Attendee Roster", 14, 15);
+
+      // Event Info Header
+      doc.setTextColor(30, 30, 30);
+      doc.setFontSize(15);
+      doc.text(event?.title || "Event Attendees", 14, 33);
+
+      doc.setFontSize(8.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Generated on: ${format(new Date(), "dd MMM yyyy, hh:mm a")}`, 14, 39);
+      doc.text(
+        `Event Date: ${event?.start_date || "N/A"}${event?.start_time ? ` at ${event.start_time}` : ""}   |   Location: ${
+          event?.venue_name || event?.venue_address || (event?.location_type === "Virtual" ? "Virtual Online" : "In-Person")
+        }`,
+        14,
+        44
+      );
+
+      // Summary Stats Box
+      doc.setFillColor(245, 243, 255);
+      doc.setDrawColor(221, 214, 254);
+      doc.roundedRect(14, 49, 182, 12, 2, 2, "FD");
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(109, 40, 217);
+      doc.text(
+        `Total Registered: ${confirmedCount}    |    Checked In: ${checkedInCount}    |    Attendance Rate: ${attendanceRate}%`,
+        20,
+        57
+      );
+
+      // Attendees Table
+      const tableHeaders = [["#", "Name", "Email", "Ticket Tier", "Registration Date", "Status"]];
+      const tableRows = attendees.map((a, index) => [
+        index + 1,
+        a.name,
+        a.email,
+        a.ticketTier,
+        a.registeredAt ? format(new Date(a.registeredAt), "dd.MM.yyyy, hh:mm a") : "—",
+        a.isCheckedIn ? "Checked In" : "Registered",
+      ]);
+
+      autoTable(doc, {
+        head: tableHeaders,
+        body: tableRows,
+        startY: 65,
+        theme: "striped",
+        headStyles: {
+          fillColor: [147, 51, 234],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+          fontSize: 8.5,
+        },
+        styles: {
+          fontSize: 8,
+          cellPadding: 3,
+        },
+        alternateRowStyles: {
+          fillColor: [250, 248, 255],
+        },
+      });
+
+      const fileName = `${(event?.title || "event").replace(/[^a-z0-9]/gi, "_").toLowerCase()}_attendee_roster.pdf`;
+      doc.save(fileName);
+      toast.success("Attendee roster exported to PDF!");
+    } catch (err: any) {
+      console.error("PDF export error:", err);
+      toast.error(err.message || "Failed to generate PDF");
+    }
   };
 
   const handleCheckIn = async (registrationId: string) => {
@@ -700,13 +792,24 @@ export default function EventAnalyticsDashboard() {
             )}
 
             {!isExternal && (
-              <button
-                onClick={handleExportCSV}
-                disabled={attendees.length === 0}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary border border-border text-foreground text-xs font-semibold hover:border-primary/50 hover:bg-secondary/80 transition-all disabled:opacity-40"
-              >
-                <Download className="w-3.5 h-3.5 text-primary" /> Export CSV
-              </button>
+              <>
+                <button
+                  onClick={handleExportCSV}
+                  disabled={attendees.length === 0}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary border border-border text-foreground text-xs font-semibold hover:border-primary/50 hover:bg-secondary/80 transition-all disabled:opacity-40"
+                  title="Download CSV Spreadsheet"
+                >
+                  <Download className="w-3.5 h-3.5 text-primary" /> Export CSV
+                </button>
+                <button
+                  onClick={handleExportPDF}
+                  disabled={attendees.length === 0}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary border border-border text-foreground text-xs font-semibold hover:border-primary/50 hover:bg-secondary/80 transition-all disabled:opacity-40"
+                  title="Download Printable PDF Table"
+                >
+                  <FileText className="w-3.5 h-3.5 text-primary" /> Export PDF
+                </button>
+              </>
             )}
 
             <button
