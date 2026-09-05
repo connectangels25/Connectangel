@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import LoadingScreen from "@/components/LoadingScreen";
+import logo from "@/assets/logo.png";
 import { format } from "date-fns";
 
 interface TicketTier {
@@ -398,80 +399,188 @@ export default function EventAnalyticsDashboard() {
       const autoTable = (await import("jspdf-autotable")).default;
 
       const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
 
-      // Brand Top Header Bar
-      doc.setFillColor(147, 51, 234);
-      doc.rect(0, 0, 210, 22, "F");
+      // 1. Sleek Obsidian Header Banner (ConnectAngels Dark Luxury Theme)
+      doc.setFillColor(15, 13, 25);
+      doc.rect(0, 0, pageWidth, 24, "F");
 
-      doc.setFontSize(14);
+      // Violet Accent Line under header
+      doc.setFillColor(168, 85, 247);
+      doc.rect(0, 24, pageWidth, 1.5, "F");
+
+      // Embed Brand Logo
+      try {
+        const img = new Image();
+        img.src = logo;
+        await new Promise((resolve) => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+        doc.addImage(img, "PNG", 14, 4.5, 15, 15);
+      } catch (e) {
+        console.warn("Logo embed notice:", e);
+      }
+
+      // Brand Logo Text
+      doc.setFontSize(13.5);
       doc.setTextColor(255, 255, 255);
       doc.setFont("helvetica", "bold");
-      doc.text("ConnectAngels — Attendee Roster", 14, 15);
+      doc.text("ConnectAngels", 32, 15.5);
 
-      // Event Info Header
-      doc.setTextColor(30, 30, 30);
-      doc.setFontSize(15);
-      doc.text(event?.title || "Event Attendees", 14, 33);
+      // Header Tag Badge
+      doc.setFillColor(168, 85, 247);
+      doc.roundedRect(pageWidth - 62, 7, 48, 10, 2, 2, "F");
+      doc.setFontSize(7.5);
+      doc.setTextColor(255, 255, 255);
+      doc.text("ATTENDEE ROSTER", pageWidth - 38, 13.5, { align: "center" });
+
+      // 2. Event Title & Details
+      doc.setTextColor(15, 23, 42);
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text(event?.title || "Event Roster", 14, 35);
 
       doc.setFontSize(8.5);
       doc.setFont("helvetica", "normal");
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Generated on: ${format(new Date(), "dd MMM yyyy, hh:mm a")}`, 14, 39);
+      doc.setTextColor(100, 116, 139);
+
+      const eventDateStr = event?.start_date
+        ? `${event.start_date}${event.start_time ? ` at ${event.start_time}` : ""}`
+        : "Date TBA";
+      const locationStr =
+        event?.venue_name ||
+        event?.venue_address ||
+        (event?.location_type === "Virtual" ? "Virtual Online" : "In-Person");
+      doc.text(`Event Date: ${eventDateStr}   |   Location: ${locationStr}`, 14, 41);
       doc.text(
-        `Event Date: ${event?.start_date || "N/A"}${event?.start_time ? ` at ${event.start_time}` : ""}   |   Location: ${
-          event?.venue_name || event?.venue_address || (event?.location_type === "Virtual" ? "Virtual Online" : "In-Person")
-        }`,
+        `Generated: ${format(new Date(), "dd MMM yyyy, hh:mm a")}   |   Category: ${event?.category || "General"}`,
         14,
-        44
+        46
       );
 
-      // Summary Stats Box
-      doc.setFillColor(245, 243, 255);
-      doc.setDrawColor(221, 214, 254);
-      doc.roundedRect(14, 49, 182, 12, 2, 2, "FD");
-      doc.setFontSize(9);
+      // 3. Three Metric KPI Cards
+      const cardY = 52;
+      const cardWidth = (pageWidth - 28 - 8) / 3;
+      const cardHeight = 15;
+
+      // Card 1: Total Confirmed
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(14, cardY, cardWidth, cardHeight, 2, 2, "FD");
+      doc.setFontSize(7);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(109, 40, 217);
-      doc.text(
-        `Total Registered: ${confirmedCount}    |    Checked In: ${checkedInCount}    |    Attendance Rate: ${attendanceRate}%`,
-        20,
-        57
-      );
+      doc.setTextColor(100, 116, 139);
+      doc.text("TOTAL CONFIRMED", 18, cardY + 5.5);
+      doc.setFontSize(12);
+      doc.setTextColor(15, 23, 42);
+      doc.text(`${confirmedCount}`, 18, cardY + 12);
 
-      // Attendees Table
-      const tableHeaders = [["#", "Name", "Email", "Ticket Tier", "Registration Date", "Status"]];
+      // Card 2: Checked In
+      const card2X = 14 + cardWidth + 4;
+      doc.setFillColor(240, 253, 244);
+      doc.setDrawColor(187, 247, 208);
+      doc.roundedRect(card2X, cardY, cardWidth, cardHeight, 2, 2, "FD");
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(22, 101, 52);
+      doc.text("LIVE CHECKED IN", card2X + 4, cardY + 5.5);
+      doc.setFontSize(12);
+      doc.setTextColor(21, 128, 61);
+      doc.text(`${checkedInCount}`, card2X + 4, cardY + 12);
+
+      // Card 3: Attendance Rate
+      const card3X = card2X + cardWidth + 4;
+      doc.setFillColor(250, 245, 255);
+      doc.setDrawColor(233, 213, 255);
+      doc.roundedRect(card3X, cardY, cardWidth, cardHeight, 2, 2, "FD");
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(107, 33, 168);
+      doc.text("ATTENDANCE RATE", card3X + 4, cardY + 5.5);
+      doc.setFontSize(12);
+      doc.setTextColor(126, 34, 206);
+      doc.text(`${attendanceRate}%`, card3X + 4, cardY + 12);
+
+      // 4. Formatted Table
+      const tableHeaders = [["#", "Attendee Name", "Email", "Ticket Tier", "Registered Date", "Status"]];
       const tableRows = attendees.map((a, index) => [
         index + 1,
         a.name,
         a.email,
         a.ticketTier,
         a.registeredAt ? format(new Date(a.registeredAt), "dd.MM.yyyy, hh:mm a") : "—",
-        a.isCheckedIn ? "Checked In" : "Registered",
+        "", // Drawn custom in didDrawCell
       ]);
 
       autoTable(doc, {
         head: tableHeaders,
         body: tableRows,
-        startY: 65,
-        theme: "striped",
+        startY: 72,
+        theme: "plain",
         headStyles: {
-          fillColor: [147, 51, 234],
+          fillColor: [30, 27, 75],
           textColor: [255, 255, 255],
           fontStyle: "bold",
-          fontSize: 8.5,
-        },
-        styles: {
           fontSize: 8,
+          cellPadding: 3.5,
+        },
+        bodyStyles: {
+          fontSize: 7.5,
           cellPadding: 3,
+          textColor: [51, 65, 85],
+          lineColor: [241, 245, 249],
+          lineWidth: 0.3,
         },
         alternateRowStyles: {
-          fillColor: [250, 248, 255],
+          fillColor: [248, 250, 252],
+        },
+        columnStyles: {
+          0: { cellWidth: 10, halign: "center" },
+          1: { cellWidth: 42, fontStyle: "bold" },
+          2: { cellWidth: 48 },
+          3: { cellWidth: 32 },
+          4: { cellWidth: 28 },
+          5: { cellWidth: 22, halign: "center" },
+        },
+        didDrawCell: (data) => {
+          if (data.section === "body" && data.column.index === 5) {
+            const attendee = attendees[data.row.index];
+            const isCheckedIn = attendee?.isCheckedIn;
+            const x = data.cell.x + 1.5;
+            const y = data.cell.y + (data.cell.height - 5.5) / 2;
+            const width = data.cell.width - 3;
+            const height = 5.5;
+
+            // Pill background
+            doc.setFillColor(isCheckedIn ? 220 : 243, isCheckedIn ? 252 : 232, isCheckedIn ? 231 : 255);
+            doc.roundedRect(x, y, width, height, 1.2, 1.2, "F");
+
+            // Pill text
+            doc.setFontSize(6.5);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(isCheckedIn ? 22 : 124, isCheckedIn ? 101 : 58, isCheckedIn ? 52 : 237);
+            doc.text(isCheckedIn ? "Checked In" : "Registered", x + width / 2, y + 3.8, { align: "center" });
+          }
+        },
+        didDrawPage: (data) => {
+          // Footer on every page
+          const pageCount = doc.internal.pages.length - 1;
+          doc.setFontSize(7.5);
+          doc.setTextColor(148, 163, 184);
+          doc.setFont("helvetica", "normal");
+          doc.setDrawColor(226, 232, 240);
+          doc.line(14, doc.internal.pageSize.getHeight() - 10, pageWidth - 14, doc.internal.pageSize.getHeight() - 10);
+          doc.text("ConnectAngels • Confidential Event Roster", 14, doc.internal.pageSize.getHeight() - 6);
+          doc.text(`Page ${data.pageNumber} of ${pageCount}`, pageWidth - 14, doc.internal.pageSize.getHeight() - 6, {
+            align: "right",
+          });
         },
       });
 
       const fileName = `${(event?.title || "event").replace(/[^a-z0-9]/gi, "_").toLowerCase()}_attendee_roster.pdf`;
       doc.save(fileName);
-      toast.success("Attendee roster exported to PDF!");
+      toast.success("Professional attendee roster exported to PDF!");
     } catch (err: any) {
       console.error("PDF export error:", err);
       toast.error(err.message || "Failed to generate PDF");
