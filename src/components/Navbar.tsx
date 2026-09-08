@@ -179,6 +179,7 @@ export default function Navbar() {
     );
   };
 
+  const isDashboardRoute = location.pathname.includes("/dashboard");
   const isSimplifiedNavRoute =
     location.pathname.startsWith("/create-event") ||
     location.pathname.startsWith("/investor-onboarding") ||
@@ -246,10 +247,10 @@ export default function Navbar() {
             <input
               type="text"
               placeholder="Search"
-              className="pl-9 pr-4 py-2 rounded-full bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 w-40 xl:w-48"
+              className="pl-9 pr-4 py-2 rounded-full bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 w-48 xl:w-64 transition-all"
             />
           </div>
-          {!isSimplifiedNavRoute && (
+          {!isSimplifiedNavRoute && !isDashboardRoute && (
             <button
               onClick={() => navigate("/create-event")}
               className="px-4 lg:px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity whitespace-nowrap"

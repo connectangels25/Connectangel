@@ -56,6 +56,8 @@ interface RegistrationItem {
   event_id: string;
   user_id: string;
   status: string;
+  checked_in?: boolean | null;
+  checked_in_at?: string | null;
   registered_at: string | null;
   cancelled_at: string | null;
   created_at: string | null;
@@ -422,12 +424,14 @@ export default function MyRegistrationsPage() {
                       )}
                       <span
                         className={`px-2.5 py-1 rounded-full backdrop-blur-md text-[10px] font-bold border ${
-                          isConfirmed
+                          item.checked_in
                             ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                            : isConfirmed
+                            ? "bg-primary/20 text-primary border-primary/30"
                             : "bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/30"
                         }`}
                       >
-                        {isConfirmed ? "Confirmed" : "Cancelled"}
+                        {item.checked_in ? "Checked In" : isConfirmed ? "Registered" : "Cancelled"}
                       </span>
                     </div>
                   </div>
