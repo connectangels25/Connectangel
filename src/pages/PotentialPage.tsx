@@ -98,11 +98,7 @@ export default function PotentialPage() {
     );
   }
 
-<<<<<<< HEAD
-  const DASHBOARD_URL = "https://maryln-dutiable-felicita.ngrok-free.dev/";
-=======
   const DASHBOARD_URL = "https://maryln-dutiable-felicita.ngrok-free.dev";
->>>>>>> c1d0779b9ac7815550bfbcea936f6de767efa00d
 
   (window as any).__POTENTIAL_API_URL = DASHBOARD_URL;
 
