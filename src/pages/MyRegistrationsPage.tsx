@@ -190,6 +190,29 @@ export default function MyRegistrationsPage() {
 
       if (error) throw error;
 
+      // Auto-promote earliest waitlisted attendee if a confirmed spot opened AND host has not disabled auto-admit
+      const isAutoPromoteOn = localStorage.getItem(`auto_promote_${cancelModalItem.event.id}`) !== "false";
+      if (cancelModalItem.status === "confirmed" && isAutoPromoteOn) {
+        try {
+          const { data: nextWaitlist } = await supabase
+            .from("event_registrations")
+            .select("id")
+            .eq("event_id", cancelModalItem.event.id)
+            .eq("status", "waitlist")
+            .order("registered_at", { ascending: true })
+            .limit(1);
+
+          if (nextWaitlist && nextWaitlist.length > 0) {
+            await supabase
+              .from("event_registrations")
+              .update({ status: "confirmed", registered_at: new Date().toISOString() })
+              .eq("id", nextWaitlist[0].id);
+          }
+        } catch {
+          // Fallback handled by Supabase database trigger
+        }
+      }
+
       setRegistrations((prev) =>
         prev.map((r) => (r.id === cancelModalItem.id ? { ...r, status: "cancelled" } : r))
       );

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Calendar, Clock, ArrowRight, MessageCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -69,6 +70,11 @@ const CATEGORIES = ["All", "Startup", "Tech", "Funding", "Growth"];
 
 export default function BlogPage() {
   const navigate = useNavigate();
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
+  const filteredPosts = selectedCategory === "All"
+    ? BLOG_POSTS
+    : BLOG_POSTS.filter((post) => post.category.toLowerCase() === selectedCategory.toLowerCase());
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -93,8 +99,9 @@ export default function BlogPage() {
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
+              onClick={() => setSelectedCategory(cat)}
               className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
-                cat === "All"
+                selectedCategory === cat
                   ? "bg-primary text-primary-foreground"
                   : "border border-border text-muted-foreground hover:bg-secondary"
               }`}
@@ -108,7 +115,7 @@ export default function BlogPage() {
       {/* Blog Grid */}
       <section className="px-6 pb-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-          {BLOG_POSTS.map((post) => (
+          {filteredPosts.map((post) => (
             <article
               key={post.id}
               className="rounded-2xl bg-card border border-border overflow-hidden hover:border-primary/30 transition-colors cursor-pointer group"

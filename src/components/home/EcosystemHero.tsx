@@ -1,16 +1,28 @@
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Play, Users, Globe, Rocket, ShieldCheck, Zap } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion, useScroll, useTransform, type Variants } from "framer-motion";
+import { ArrowRight, Play, Users, Globe, Rocket, ShieldCheck, Zap, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 export default function EcosystemHero() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
   const { scrollY } = useScroll();
   const y1 = useTransform(scrollY, [0, 500], [0, 200]);
   const y2 = useTransform(scrollY, [0, 500], [0, -150]);
 
-  const floatingVariants = {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsVideoOpen(false);
+    };
+    if (isVideoOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isVideoOpen]);
+
+  const floatingVariants: Variants = {
     animate: {
       y: [0, -15, 0],
       transition: {
@@ -26,34 +38,34 @@ export default function EcosystemHero() {
       {/* Dynamic Background */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-background" />
-        
+
         {/* Startup/Trading Themed Background Image */}
-        <div 
-          className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-[0.15] dark:opacity-[0.25]" 
+        <div
+          className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center opacity-[0.15] dark:opacity-[0.25]"
         />
-        
+
         {/* Animated Glow Orbs */}
-        <motion.div 
+        <motion.div
           style={{ y: y1 }}
           className="absolute top-[10%] left-[5%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none"
         />
-        <motion.div 
+        <motion.div
           style={{ y: y2 }}
           className="absolute bottom-[10%] right-[5%] w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-[150px] pointer-events-none"
         />
-        
+
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/40 to-background" />
       </div>
 
       <div className="container mx-auto px-6 lg:px-12 xl:px-20 relative z-10">
         <div className="grid lg:grid-cols-2 gap-16 items-center">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -60 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="text-left"
           >
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
@@ -62,7 +74,7 @@ export default function EcosystemHero() {
               <Zap className="w-3.5 h-3.5 fill-current animate-pulse" />
               THE FUTURE OF GLOBAL INNOVATION
             </motion.div>
-            
+
             <h1 className="text-4xl md:text-6xl font-black text-foreground mb-8 leading-[1.1] tracking-tight">
               Invest in <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-blue-500 bg-[length:200%_auto] animate-gradient-x">
@@ -70,21 +82,24 @@ export default function EcosystemHero() {
               </span> <br />
               Ideas.
             </h1>
-            
+
             <p className="text-xl text-muted-foreground mb-10 max-w-xl leading-relaxed font-medium">
-              Join the world's most elite network of startups, investors, and incubators. 
+              Join the world's most elite network of startups, investors, and incubators.
               Accelerating growth through strategic global connections.
             </p>
 
             <div className="flex flex-wrap gap-5">
-              <button 
+              <button
                 onClick={() => navigate("/events")}
                 className="px-10 py-5 rounded-2xl bg-primary text-primary-foreground font-bold hover:scale-105 active:scale-95 transition-all flex items-center gap-3 group shadow-2xl shadow-primary/20"
               >
                 View Events
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
               </button>
-              <button className="px-10 py-5 rounded-2xl bg-card border border-border text-foreground font-bold hover:bg-secondary transition-all flex items-center gap-3 backdrop-blur-xl group">
+              <button 
+                onClick={() => setIsVideoOpen(true)}
+                className="px-10 py-5 rounded-2xl bg-card border border-border text-foreground font-bold hover:bg-secondary hover:border-primary/40 transition-all flex items-center gap-3 backdrop-blur-xl group cursor-pointer shadow-lg"
+              >
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
                   <Play className="w-3.5 h-3.5 fill-current" />
                 </div>
@@ -112,7 +127,7 @@ export default function EcosystemHero() {
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9, rotate: 2 }}
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
             transition={{ duration: 1, ease: "easeOut" }}
@@ -122,13 +137,13 @@ export default function EcosystemHero() {
             <div className="relative z-10 p-4 rounded-[48px] bg-gradient-to-br from-white/10 to-transparent border border-white/10 backdrop-blur-2xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 via-transparent to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               <div className="rounded-[36px] overflow-hidden">
-                <img 
-                  src="https://images.unsplash.com/photo-1559136555-9303baea8ebd?q=80&w=2070&auto=format&fit=crop" 
-                  alt="Elite Networking" 
+                <img
+                  src="https://images.unsplash.com/photo-1559136555-9303baea8ebd?q=80&w=2070&auto=format&fit=crop"
+                  alt="Elite Networking"
                   className="w-full h-[450px] object-cover opacity-60 group-hover:opacity-100 transition-all duration-1000 group-hover:scale-110"
                 />
               </div>
-              
+
               {/* Overlay Content */}
               <div className="absolute bottom-10 left-10 right-10 p-8 rounded-3xl bg-background/80 backdrop-blur-xl border border-white/10 shadow-2xl translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
                 <div className="flex items-center justify-between mb-4">
@@ -152,7 +167,7 @@ export default function EcosystemHero() {
             </div>
 
             {/* Fixed & Better Visible Floating Elements */}
-            <motion.div 
+            <motion.div
               variants={floatingVariants}
               animate="animate"
               className="hidden sm:flex absolute -top-6 -right-6 p-6 rounded-3xl bg-card border border-border backdrop-blur-xl shadow-2xl z-20 items-center gap-4"
@@ -166,7 +181,7 @@ export default function EcosystemHero() {
               </div>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               variants={floatingVariants}
               animate="animate"
               transition={{ delay: 0.5 }}
@@ -181,7 +196,7 @@ export default function EcosystemHero() {
               </div>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               variants={floatingVariants}
               animate="animate"
               transition={{ delay: 1 }}
@@ -197,10 +212,54 @@ export default function EcosystemHero() {
           </motion.div>
         </div>
       </div>
-      
+
       {/* Dynamic Background Orbs (Decorative) */}
       <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[160px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-600/5 rounded-full blur-[140px] pointer-events-none" />
+
+      {/* Video Modal Lightbox */}
+      {isVideoOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200"
+          onClick={() => setIsVideoOpen(false)}
+        >
+          <div 
+            className="relative w-full max-w-4xl rounded-3xl bg-card border border-border shadow-[0_0_50px_rgba(168,85,247,0.3)] overflow-hidden animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top Bar */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/90 backdrop-blur-md">
+              <div className="flex items-center gap-2.5">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </span>
+                <span className="text-sm font-bold text-foreground">ConnectAngels Platform Showcase</span>
+              </div>
+              <button
+                onClick={() => setIsVideoOpen(false)}
+                className="p-1.5 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                aria-label="Close video"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Video Player */}
+            <div className="relative aspect-video w-full bg-black flex items-center justify-center">
+              <video
+                src="/hero-video.mp4"
+                controls
+                autoPlay
+                playsInline
+                className="w-full h-full object-contain"
+              >
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

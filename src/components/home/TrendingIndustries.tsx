@@ -44,7 +44,8 @@ export default function TrendingIndustries() {
               initial={{ opacity: 0, x: idx % 2 === 0 ? -20 : 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="group relative h-[320px] rounded-[28px] overflow-hidden border border-border"
+              onClick={() => navigate(`/potential?industry=${encodeURIComponent(item.name)}`)}
+              className="group relative h-[320px] rounded-[28px] overflow-hidden border border-border cursor-pointer hover:border-primary/40 transition-all"
             >
               <img 
                 src={item.image} 

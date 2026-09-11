@@ -38,8 +38,7 @@
           </div>
         </div>
         <div class="page-heading-actions">
-          <button class="btn-outline">Export CSV</button>
-          <button class="btn-primary">+ New Report</button>
+          <button id="export-pdf-btn" class="btn-outline" onclick="exportSummaryPDF()">📄 Export PDF</button>
         </div>
       </div>
 
@@ -373,7 +372,38 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="static/js/dashboard.js?v=4"></script>
+  <script>
+    function exportSummaryPDF() {
+      const countrySelect = document.getElementById('filter-country');
+      const countryName = countrySelect && countrySelect.value && countrySelect.value !== 'All' ? countrySelect.value : 'Global';
+      const element = document.querySelector('.page-content') || document.body;
+      const btn = document.getElementById('export-pdf-btn');
+      const oldText = btn ? btn.innerHTML : '';
+      if (btn) btn.innerHTML = '⏳ Generating PDF...';
+
+      if (typeof html2pdf !== 'undefined') {
+        const opt = {
+          margin: [8, 8, 8, 8],
+          filename: `ConnectAngels_${countryName.replace(/\s+/g, '_')}_Summary.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 1.5, useCORS: true, logging: false },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        };
+        html2pdf().set(opt).from(element).save().then(() => {
+          if (btn) btn.innerHTML = oldText;
+        }).catch((err) => {
+          console.warn('html2pdf fallback to print:', err);
+          if (btn) btn.innerHTML = oldText;
+          window.print();
+        });
+      } else {
+        window.print();
+        if (btn) btn.innerHTML = oldText;
+      }
+    }
+  </script>
 
 </body>
 </html>

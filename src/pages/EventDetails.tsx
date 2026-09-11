@@ -90,6 +90,8 @@ export default function EventDetails() {
   const [relatedEvents, setRelatedEvents] = useState<RelatedEvent[]>([]);
   const [isSaved, setIsSaved] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [isWaitlisted, setIsWaitlisted] = useState(false);
+  const [registeredCount, setRegisteredCount] = useState(0);
   const [isRegistering, setIsRegistering] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
 
@@ -163,7 +165,15 @@ export default function EventDetails() {
       navigate("/login");
       return;
     }
-    if (!eventId) return;
+    if (!eventId || !event) return;
+
+    // Hard check: abort registration if capacity is full
+    const cap = getEffectiveCapacity(event);
+    if (cap !== null && cap > 0 && registeredCount >= cap) {
+      toast.error("This event has reached full capacity. Adding you to the waitlist instead.");
+      await handleJoinWaitlist();
+      return;
+    }
 
     try {
       setIsRegistering(true);
@@ -173,10 +183,41 @@ export default function EventDetails() {
       );
       if (error) throw error;
       setIsRegistered(true);
+      setIsWaitlisted(false);
+      const nextCount = registeredCount + 1;
+      setRegisteredCount(nextCount);
+      localStorage.setItem(`event_cap_${eventId}`, String(nextCount));
       toast.success("Successfully registered for this event!");
     } catch (err: any) {
       console.error("Registration error:", err);
       toast.error(err.message || "Failed to register");
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
+  // Join Waitlist click
+  const handleJoinWaitlist = async () => {
+    if (!user) {
+      toast.error("Please log in to join the waitlist");
+      navigate("/login");
+      return;
+    }
+    if (!eventId) return;
+
+    try {
+      setIsRegistering(true);
+      const { error } = await supabase.from('event_registrations').upsert(
+        { event_id: eventId, user_id: user.id, status: 'waitlist', registered_at: new Date().toISOString(), cancelled_at: null },
+        { onConflict: 'event_id,user_id' }
+      );
+      if (error) throw error;
+      setIsWaitlisted(true);
+      setIsRegistered(false);
+      toast.success("You have been added to the waitlist!");
+    } catch (err: any) {
+      console.error("Waitlist error:", err);
+      toast.error(err.message || "Failed to join waitlist");
     } finally {
       setIsRegistering(false);
     }
@@ -192,8 +233,16 @@ export default function EventDetails() {
         .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
         .eq('event_id', eventId).eq('user_id', user.id);
       if (error) throw error;
+      if (isRegistered) {
+        setRegisteredCount((prev) => {
+          const next = Math.max(0, prev - 1);
+          localStorage.setItem(`event_cap_${eventId}`, String(next));
+          return next;
+        });
+      }
       setIsRegistered(false);
-      toast.success("Registration cancelled");
+      setIsWaitlisted(false);
+      toast.success("Status updated / Cancelled");
     } catch (err: any) {
       console.error("Cancel registration error:", err);
       toast.error(err.message || "Failed to cancel registration");
@@ -221,18 +270,30 @@ export default function EventDetails() {
         setIsAdminUser(isAdmin);
       }
 
+      // Fetch registered count
+      const { count: regCount } = await supabase
+        .from('event_registrations')
+        .select('*', { count: 'exact', head: true })
+        .eq('event_id', id)
+        .eq('status', 'confirmed');
+      
+      const cachedCount = parseInt(localStorage.getItem(`event_cap_${id}`) || "0", 10);
+      setRegisteredCount(Math.max(regCount || 0, cachedCount));
+
       // On page load — check status
       const activeUser = currentUser || user;
       if (eventId && activeUser) {
-        const { data } = await supabase
+        const { data: regStatus } = await supabase
           .from('event_registrations')
-          .select('id')
+          .select('id, status')
           .eq('event_id', eventId)
           .eq('user_id', activeUser.id)
-          .eq('status', 'confirmed')
           .maybeSingle();
 
-        setIsRegistered(!!data);
+        if (regStatus) {
+          setIsRegistered(regStatus.status === 'confirmed');
+          setIsWaitlisted(regStatus.status === 'waitlist');
+        }
       }
 
       const { data } = await supabase
@@ -328,6 +389,21 @@ export default function EventDetails() {
 
   const minPrice = !isExternal && tickets.length > 0 ? Math.min(...tickets.map(t => parseFloat(t.price) || 0)) : null;
 
+  const getEffectiveCapacity = (ev: FullEvent | null) => {
+    if (!ev) return null;
+    if (ev.total_capacity && parseInt(ev.total_capacity, 10) > 0) {
+      return parseInt(ev.total_capacity, 10);
+    }
+    if (ev.tickets && Array.isArray(ev.tickets) && ev.tickets.length > 0) {
+      const sum = ev.tickets.reduce((acc, t) => acc + (parseInt(t.quantity, 10) || 0), 0);
+      if (sum > 0) return sum;
+    }
+    return null;
+  };
+
+  const effectiveCapacity = getEffectiveCapacity(event);
+  const isFull = effectiveCapacity !== null && registeredCount >= effectiveCapacity;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -408,6 +484,22 @@ export default function EventDetails() {
                   className="px-8 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 font-semibold hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
                   {isRegistering ? "Processing..." : "✓ Registered / Cancel"}
+                </button>
+              ) : isWaitlisted ? (
+                <button 
+                  onClick={handleCancel}
+                  disabled={isRegistering}
+                  className="px-8 py-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-500 font-semibold hover:bg-red-500 hover:text-white transition-colors disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isRegistering ? "Processing..." : "✓ On Waitlist / Leave"}
+                </button>
+              ) : isFull ? (
+                <button 
+                  onClick={handleJoinWaitlist}
+                  disabled={isRegistering}
+                  className="px-8 py-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold transition-opacity disabled:opacity-50 shadow-lg shadow-amber-500/25 flex items-center gap-2"
+                >
+                  {isRegistering ? "Joining..." : "Join Waitlist"}
                 </button>
               ) : (
                 <button 
@@ -662,10 +754,15 @@ export default function EventDetails() {
                     <span className="text-foreground font-bold">{event.max_team_size}</span>
                   </div>
                 )}
-                {event.total_capacity && (
+                {effectiveCapacity !== null && (
                   <div className="flex items-center justify-between py-2 border-t border-border/50 text-sm">
                     <span className="flex items-center gap-2 text-muted-foreground"><Users className="h-3.5 w-3.5" /> Capacity</span>
-                    <span className="text-foreground font-bold">{event.total_capacity}</span>
+                    <span className="text-foreground font-bold">
+                      {registeredCount} / {effectiveCapacity}
+                      {isFull && (
+                        <span className="ml-1.5 text-xs text-amber-500 font-bold">(Full)</span>
+                      )}
+                    </span>
                   </div>
                 )}
                 {event.prizes && (
