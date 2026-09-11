@@ -98,7 +98,7 @@ export default function PotentialPage() {
     );
   }
 
-  const DASHBOARD_URL = "http://localhost:5000";
+  const DASHBOARD_URL = "https://maryln-dutiable-felicita.ngrok-free.dev/";
 
   (window as any).__POTENTIAL_API_URL = DASHBOARD_URL;
 
@@ -172,7 +172,7 @@ export default function PotentialPage() {
   useEffect(() => {
     const initialTheme = document.documentElement.classList.contains("light") ? "light" : "dark";
     (window as any).__POTENTIAL_THEME = initialTheme;
-    
+
     let url = `/capacity/index.html?t=${Date.now()}&theme=${initialTheme}&apiUrl=${encodeURIComponent(DASHBOARD_URL)}`;
     if (countryParam) {
       url += `&country=${encodeURIComponent(countryParam)}`;
@@ -206,7 +206,7 @@ export default function PotentialPage() {
           src={iframeSrc}
           className="w-full flex-1 border-0 bg-transparent"
           title="ConnectAngels Capacity Dashboard"
-          sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+          sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-downloads allow-modals"
         />
       </div>
     </div>

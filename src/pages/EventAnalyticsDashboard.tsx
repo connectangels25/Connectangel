@@ -27,6 +27,7 @@ import {
   Check,
   TrendingUp,
   FileText,
+  UserCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -78,6 +79,25 @@ export default function EventAnalyticsDashboard() {
   const [event, setEvent] = useState<EventData | null>(null);
   const [userEvents, setUserEvents] = useState<EventData[]>([]);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [waitlistAttendees, setWaitlistAttendees] = useState<Attendee[]>([]);
+  const [attendeeViewTab, setAttendeeViewTab] = useState<"confirmed" | "waitlist">("confirmed");
+  const [autoPromoteEnabled, setAutoPromoteEnabled] = useState<boolean>(() => {
+    if (!eventId) return true;
+    const saved = localStorage.getItem(`auto_promote_${eventId}`);
+    return saved !== null ? saved === "true" : true;
+  });
+
+  const toggleAutoPromote = () => {
+    if (!eventId) return;
+    const nextVal = !autoPromoteEnabled;
+    setAutoPromoteEnabled(nextVal);
+    localStorage.setItem(`auto_promote_${eventId}`, String(nextVal));
+    if (nextVal) {
+      toast.success("Auto-admission enabled: Waitlisted attendees will be promoted automatically when spots open.");
+    } else {
+      toast.info("Manual admission enabled: Host must manually approve waitlisted attendees.");
+    }
+  };
   const [activeTab, setActiveTab] = useState<"all" | "active" | "drafts" | "past">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTierFilter, setSelectedTierFilter] = useState("all");
@@ -192,14 +212,14 @@ export default function EventAnalyticsDashboard() {
       };
       setEvent(currentEvent);
 
-      // 3. Fetch Registrations if internal
+      // 3. Fetch Registrations if internal (confirmed & waitlist)
       if (currentEvent.hosting_type !== "external") {
         const { data: regRows, error: regErr } = await supabase
           .from("event_registrations")
           .select("id, event_id, user_id, status, registered_at, cancelled_at, checked_in, checked_in_at" as any)
           .eq("event_id", eventId)
-          .eq("status", "confirmed")
-          .order("registered_at", { ascending: false });
+          .in("status", ["confirmed", "waitlist"])
+          .order("registered_at", { ascending: true });
 
         if (regErr) throw regErr;
 
@@ -212,14 +232,16 @@ export default function EventAnalyticsDashboard() {
 
           const profileMap = new Map((profilesData || []).map((p) => [p.id, p]));
 
-          const attendeeList: Attendee[] = (regRows as any[]).map((reg, idx) => {
+          const confirmedList: Attendee[] = [];
+          const waitlistList: Attendee[] = [];
+
+          (regRows as any[]).forEach((reg, idx) => {
             const prof = profileMap.get(reg.user_id);
-            // Assign ticket tier if available
             const tierName = parsedTickets.length > 0
               ? parsedTickets[idx % parsedTickets.length]?.name || "General Admission"
               : "Standard Admission";
 
-            return {
+            const att: Attendee = {
               id: reg.id,
               userId: reg.user_id,
               name: prof?.name || "Verified Attendee",
@@ -230,11 +252,24 @@ export default function EventAnalyticsDashboard() {
               ticketTier: tierName,
               isCheckedIn: Boolean(reg.checked_in),
             };
+
+            if (reg.status === "waitlist") {
+              waitlistList.push(att);
+            } else {
+              confirmedList.push(att);
+            }
           });
 
-          setAttendees(attendeeList);
+          // Sort confirmed descending by registration date
+          confirmedList.sort((a, b) => new Date(b.registeredAt || 0).getTime() - new Date(a.registeredAt || 0).getTime());
+          // Sort waitlist ascending (earliest first in line)
+          waitlistList.sort((a, b) => new Date(a.registeredAt || 0).getTime() - new Date(b.registeredAt || 0).getTime());
+
+          setAttendees(confirmedList);
+          setWaitlistAttendees(waitlistList);
         } else {
           setAttendees([]);
+          setWaitlistAttendees([]);
         }
       }
     } catch (err: any) {
@@ -344,6 +379,16 @@ export default function EventAnalyticsDashboard() {
       return matchesSearch && matchesTier && matchesStatus;
     });
   }, [attendees, searchQuery, selectedTierFilter, selectedStatusFilter]);
+
+  const filteredWaitlist = useMemo(() => {
+    return waitlistAttendees.filter((att) => {
+      const query = searchQuery.toLowerCase();
+      return (
+        att.name.toLowerCase().includes(query) ||
+        att.email.toLowerCase().includes(query)
+      );
+    });
+  }, [waitlistAttendees, searchQuery]);
 
   // Host Event Counts
   const activeEventsCount = userEvents.filter((e) => e.status === "approved" || e.status === "published").length;
@@ -639,9 +684,54 @@ export default function EventAnalyticsDashboard() {
 
       if (error) throw error;
       setAttendees((prev) => prev.filter((a) => a.id !== attendee.id));
+      setWaitlistAttendees((prev) => prev.filter((a) => a.id !== attendee.id));
       toast.success(`Registration cancelled for ${attendee.name}`);
+
+      // Auto-promote earliest waitlisted attendee if a confirmed spot opened up AND auto-admit is ON
+      if (attendee.status === "confirmed" && eventId && autoPromoteEnabled) {
+        try {
+          const { data: nextInLine } = await supabase
+            .from("event_registrations")
+            .select("id")
+            .eq("event_id", eventId)
+            .eq("status", "waitlist")
+            .order("registered_at", { ascending: true })
+            .limit(1);
+
+          if (nextInLine && nextInLine.length > 0) {
+            await supabase
+              .from("event_registrations")
+              .update({ status: "confirmed", registered_at: new Date().toISOString() })
+              .eq("id", nextInLine[0].id);
+
+            toast.info("Auto-Promote: A waitlisted attendee was automatically promoted to confirmed!");
+            loadDashboardData();
+          }
+        } catch {
+          // Trigger handles database side
+        }
+      } else if (attendee.status === "confirmed" && !autoPromoteEnabled) {
+        toast.info("A spot opened up! Since Auto-Admit is OFF, you can manually admit an attendee from the Waitlist tab.");
+      }
     } catch (err: any) {
       toast.error(err.message || "Failed to cancel registration");
+    }
+  };
+
+  const handleAdmitWaitlist = async (attendee: Attendee) => {
+    try {
+      const { error } = await supabase
+        .from("event_registrations")
+        .update({ status: "confirmed", registered_at: new Date().toISOString() })
+        .eq("id", attendee.id);
+
+      if (error) throw error;
+
+      setWaitlistAttendees((prev) => prev.filter((a) => a.id !== attendee.id));
+      setAttendees((prev) => [{ ...attendee, status: "confirmed", registeredAt: new Date().toISOString() }, ...prev]);
+      toast.success(`${attendee.name} admitted successfully!`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to admit attendee");
     }
   };
 
@@ -1164,14 +1254,94 @@ export default function EventAnalyticsDashboard() {
         {/* Real-Time Attendee Roster Table */}
         {!isExternal && (
           <div className="rounded-2xl bg-card border border-border shadow-sm p-6 space-y-5">
+            {/* View Selector Tabs & Auto-Admit Mode Toggle */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAttendeeViewTab("confirmed")}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                    attendeeViewTab === "confirmed"
+                      ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+                      : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80"
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  Confirmed Attendees
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                    attendeeViewTab === "confirmed" ? "bg-white/20 text-white" : "bg-card text-muted-foreground"
+                  }`}>
+                    {attendees.length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAttendeeViewTab("waitlist")}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                    attendeeViewTab === "waitlist"
+                      ? "bg-amber-500 text-white shadow-sm shadow-amber-500/20"
+                      : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80"
+                  }`}
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  Waitlist Queue
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                    attendeeViewTab === "waitlist" ? "bg-white/20 text-white" : "bg-card text-muted-foreground"
+                  }`}>
+                    {waitlistAttendees.length}
+                  </span>
+                </button>
+              </div>
+
+              {/* Waitlist Auto/Manual Mode Switch */}
+              <div className="flex items-center gap-2.5 bg-secondary/80 border border-border px-3 py-1.5 rounded-xl self-start sm:self-auto">
+                <span className="text-[11px] font-medium">
+                  {autoPromoteEnabled ? (
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Auto-Admit: ON
+                    </span>
+                  ) : (
+                    <span className="text-amber-500 font-bold flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-amber-500" />
+                      Auto-Admit: OFF (Manual)
+                    </span>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={toggleAutoPromote}
+                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    autoPromoteEnabled ? "bg-emerald-500" : "bg-muted-foreground/30"
+                  }`}
+                  role="switch"
+                  aria-checked={autoPromoteEnabled}
+                  title={
+                    autoPromoteEnabled
+                      ? "Auto-Admit is ON: Next waitlisted user is promoted automatically when a spot opens. Click to turn OFF."
+                      : "Auto-Admit is OFF: Host manually approves waitlisted users. Click to turn ON."
+                  }
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      autoPromoteEnabled ? "translate-x-4" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
             {/* Header & Controls */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h3 className="text-lg font-bold text-foreground tracking-tight">
-                  Real-Time Attendee Roster
+                  {attendeeViewTab === "confirmed" ? "Real-Time Attendee Roster" : "Event Waitlist Queue"}
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Showing {filteredAttendees.length} confirmed registration{filteredAttendees.length === 1 ? "" : "s"}
+                  {attendeeViewTab === "confirmed"
+                    ? `Showing ${filteredAttendees.length} confirmed registration${filteredAttendees.length === 1 ? "" : "s"}`
+                    : `Showing ${filteredWaitlist.length} waitlisted attendee${filteredWaitlist.length === 1 ? "" : "s"} in line`}
                 </p>
               </div>
 
@@ -1183,35 +1353,39 @@ export default function EventAnalyticsDashboard() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search attendees..."
+                    placeholder={attendeeViewTab === "confirmed" ? "Search attendees..." : "Search waitlist..."}
                     className="w-full bg-secondary border border-border text-foreground text-xs pl-9 pr-3 py-2 rounded-xl outline-none focus:border-primary transition-all placeholder:text-muted-foreground"
                   />
                 </div>
 
-                {/* Filter by Tier */}
-                <select
-                  value={selectedTierFilter}
-                  onChange={(e) => setSelectedTierFilter(e.target.value)}
-                  className="bg-secondary border border-border text-foreground text-xs px-3 py-2 rounded-xl outline-none focus:border-primary transition-all"
-                >
-                  <option value="all">Filter by Ticket Tier</option>
-                  {ticketTiers.map((t, idx) => (
-                    <option key={idx} value={t.name}>
-                      {t.name}
-                    </option>
-                  ))}
-                </select>
+                {attendeeViewTab === "confirmed" && (
+                  <>
+                    {/* Filter by Tier */}
+                    <select
+                      value={selectedTierFilter}
+                      onChange={(e) => setSelectedTierFilter(e.target.value)}
+                      className="bg-secondary border border-border text-foreground text-xs px-3 py-2 rounded-xl outline-none focus:border-primary transition-all"
+                    >
+                      <option value="all">Filter by Ticket Tier</option>
+                      {ticketTiers.map((t, idx) => (
+                        <option key={idx} value={t.name}>
+                          {t.name}
+                        </option>
+                      ))}
+                    </select>
 
-                {/* Status Filter */}
-                <select
-                  value={selectedStatusFilter}
-                  onChange={(e) => setSelectedStatusFilter(e.target.value)}
-                  className="bg-secondary border border-border text-foreground text-xs px-3 py-2 rounded-xl outline-none focus:border-primary transition-all"
-                >
-                  <option value="all">All Statuses</option>
-                  <option value="checked_in">Checked In</option>
-                  <option value="pending_checkin">Not Checked In</option>
-                </select>
+                    {/* Status Filter */}
+                    <select
+                      value={selectedStatusFilter}
+                      onChange={(e) => setSelectedStatusFilter(e.target.value)}
+                      className="bg-secondary border border-border text-foreground text-xs px-3 py-2 rounded-xl outline-none focus:border-primary transition-all"
+                    >
+                      <option value="all">All Statuses</option>
+                      <option value="checked_in">Checked In</option>
+                      <option value="pending_checkin">Not Checked In</option>
+                    </select>
+                  </>
+                )}
 
                 <button
                   onClick={loadDashboardData}
@@ -1224,120 +1398,225 @@ export default function EventAnalyticsDashboard() {
               </div>
             </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto rounded-xl border border-border">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-border bg-secondary/70 text-muted-foreground font-bold tracking-wider uppercase text-[11px]">
-                    <th className="py-3.5 px-4">Attendee Avatar &amp; Name</th>
-                    <th className="py-3.5 px-4">Email</th>
-                    <th className="py-3.5 px-4">Ticket Tier</th>
-                    <th className="py-3.5 px-4">Registration Timestamp</th>
-                    <th className="py-3.5 px-4 text-center">Check-in</th>
-                    <th className="py-3.5 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {filteredAttendees.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="text-center py-12 text-muted-foreground">
-                        <Users className="w-8 h-8 mx-auto mb-2 opacity-30 text-primary" />
-                        <p className="font-semibold text-sm">No attendees found</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {searchQuery ? "Try refining your search filter" : "Share your event link to start collecting registrations!"}
-                        </p>
-                      </td>
+            {/* Confirmed Attendees Table */}
+            {attendeeViewTab === "confirmed" ? (
+              <div className="overflow-x-auto rounded-xl border border-border">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-border bg-secondary/70 text-muted-foreground font-bold tracking-wider uppercase text-[11px]">
+                      <th className="py-3.5 px-4">Attendee Avatar &amp; Name</th>
+                      <th className="py-3.5 px-4">Email</th>
+                      <th className="py-3.5 px-4">Ticket Tier</th>
+                      <th className="py-3.5 px-4">Registration Timestamp</th>
+                      <th className="py-3.5 px-4 text-center">Check-in</th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
                     </tr>
-                  ) : (
-                    filteredAttendees.map((att) => (
-                      <tr
-                        key={att.id}
-                        className="hover:bg-secondary/40 transition-colors group"
-                      >
-                        {/* Avatar & Name */}
-                        <td className="py-3 px-4 font-semibold text-foreground flex items-center gap-3">
-                          {att.avatarUrl ? (
-                            <img
-                              src={att.avatarUrl}
-                              alt={att.name}
-                              className="w-8 h-8 rounded-full object-cover border border-primary/30"
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center font-bold text-[11px] text-primary">
-                              {att.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")
-                                .slice(0, 2)
-                                .toUpperCase()}
-                            </div>
-                          )}
-                          <span className="font-bold text-foreground">{att.name}</span>
-                        </td>
-
-                        {/* Email */}
-                        <td className="py-3 px-4 text-muted-foreground font-mono text-xs">
-                          {att.email}
-                        </td>
-
-                        {/* Ticket Tier */}
-                        <td className="py-3 px-4">
-                          <span className="px-2.5 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary font-bold text-[10.5px]">
-                            {att.ticketTier}
-                          </span>
-                        </td>
-
-                        {/* Registration Timestamp */}
-                        <td className="py-3 px-4 text-muted-foreground text-xs">
-                          {att.registeredAt ? format(new Date(att.registeredAt), "dd.MM.yyyy, h:mm a") : "—"}
-                        </td>
-
-                        {/* Check-in */}
-                        <td className="py-3 px-4 text-center">
-                          <button
-                            type="button"
-                            onClick={() => (att.isCheckedIn ? handleUndoCheckIn(att.id) : handleCheckIn(att.id))}
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all cursor-pointer hover:scale-105 ${
-                              att.isCheckedIn
-                                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25"
-                                : "bg-secondary text-muted-foreground border border-border hover:bg-primary/10 hover:text-primary hover:border-primary/30"
-                            }`}
-                            title={att.isCheckedIn ? "Click to undo check-in" : "Click to check in attendee"}
-                          >
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full ${
-                                att.isCheckedIn ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground"
-                              }`}
-                            />
-                            {att.isCheckedIn ? "Checked In" : "Check In"}
-                          </button>
-                        </td>
-
-                        {/* Actions */}
-                        <td className="py-3 px-4 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              onClick={() => handleResendConfirmation(att)}
-                              className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                              title="Resend Confirmation Email"
-                            >
-                              <Mail className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleCancelRegistration(att)}
-                              className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                              title="Cancel Ticket"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filteredAttendees.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="text-center py-12 text-muted-foreground">
+                          <Users className="w-8 h-8 mx-auto mb-2 opacity-30 text-primary" />
+                          <p className="font-semibold text-sm">No attendees found</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {searchQuery ? "Try refining your search filter" : "Share your event link to start collecting registrations!"}
+                          </p>
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    ) : (
+                      filteredAttendees.map((att) => (
+                        <tr
+                          key={att.id}
+                          className="hover:bg-secondary/40 transition-colors group"
+                        >
+                          {/* Avatar & Name */}
+                          <td className="py-3 px-4 font-semibold text-foreground flex items-center gap-3">
+                            {att.avatarUrl ? (
+                              <img
+                                src={att.avatarUrl}
+                                alt={att.name}
+                                className="w-8 h-8 rounded-full object-cover border border-primary/30"
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center font-bold text-[11px] text-primary">
+                                {att.name
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
+                                  .slice(0, 2)
+                                  .toUpperCase()}
+                              </div>
+                            )}
+                            <span className="font-bold text-foreground">{att.name}</span>
+                          </td>
+
+                          {/* Email */}
+                          <td className="py-3 px-4 text-muted-foreground font-mono text-xs">
+                            {att.email}
+                          </td>
+
+                          {/* Ticket Tier */}
+                          <td className="py-3 px-4">
+                            <span className="px-2.5 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary font-bold text-[10.5px]">
+                              {att.ticketTier}
+                            </span>
+                          </td>
+
+                          {/* Registration Timestamp */}
+                          <td className="py-3 px-4 text-muted-foreground text-xs">
+                            {att.registeredAt ? format(new Date(att.registeredAt), "dd.MM.yyyy, h:mm a") : "—"}
+                          </td>
+
+                          {/* Check-in */}
+                          <td className="py-3 px-4 text-center">
+                            <button
+                              type="button"
+                              onClick={() => (att.isCheckedIn ? handleUndoCheckIn(att.id) : handleCheckIn(att.id))}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all cursor-pointer hover:scale-105 ${
+                                att.isCheckedIn
+                                  ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25"
+                                  : "bg-secondary text-muted-foreground border border-border hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                              }`}
+                              title={att.isCheckedIn ? "Click to undo check-in" : "Click to check in attendee"}
+                            >
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  att.isCheckedIn ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground"
+                                }`}
+                              />
+                              {att.isCheckedIn ? "Checked In" : "Check In"}
+                            </button>
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => handleResendConfirmation(att)}
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                                title="Resend Confirmation Email"
+                              >
+                                <Mail className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleCancelRegistration(att)}
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                                title="Cancel Ticket"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              /* Waitlist Queue Table */
+              <div className="overflow-x-auto rounded-xl border border-border">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-border bg-secondary/70 text-muted-foreground font-bold tracking-wider uppercase text-[11px]">
+                      <th className="py-3.5 px-4 text-center">Queue Pos</th>
+                      <th className="py-3.5 px-4">Attendee Avatar &amp; Name</th>
+                      <th className="py-3.5 px-4">Email</th>
+                      <th className="py-3.5 px-4">Joined Waitlist</th>
+                      <th className="py-3.5 px-4 text-center">Status</th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filteredWaitlist.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="text-center py-12 text-muted-foreground">
+                          <Clock className="w-8 h-8 mx-auto mb-2 opacity-30 text-amber-500" />
+                          <p className="font-semibold text-sm">No attendees on waitlist</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {searchQuery ? "No waitlisted attendee matches your search" : "When this event sells out, waitlisted attendees will appear here."}
+                          </p>
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredWaitlist.map((att, index) => (
+                        <tr
+                          key={att.id}
+                          className="hover:bg-secondary/40 transition-colors group"
+                        >
+                          {/* Queue Position */}
+                          <td className="py-3 px-4 text-center">
+                            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold text-xs">
+                              #{index + 1}
+                            </span>
+                          </td>
+
+                          {/* Avatar & Name */}
+                          <td className="py-3 px-4 font-semibold text-foreground flex items-center gap-3">
+                            {att.avatarUrl ? (
+                              <img
+                                src={att.avatarUrl}
+                                alt={att.name}
+                                className="w-8 h-8 rounded-full object-cover border border-amber-500/30"
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center font-bold text-[11px] text-amber-500">
+                                {att.name
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
+                                  .slice(0, 2)
+                                  .toUpperCase()}
+                              </div>
+                            )}
+                            <span className="font-bold text-foreground">{att.name}</span>
+                          </td>
+
+                          {/* Email */}
+                          <td className="py-3 px-4 text-muted-foreground font-mono text-xs">
+                            {att.email}
+                          </td>
+
+                          {/* Timestamp */}
+                          <td className="py-3 px-4 text-muted-foreground text-xs">
+                            {att.registeredAt ? format(new Date(att.registeredAt), "dd.MM.yyyy, h:mm a") : "—"}
+                          </td>
+
+                          {/* Status */}
+                          <td className="py-3 px-4 text-center">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 font-bold text-[10.5px]">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                              Waitlisted
+                            </span>
+                          </td>
+
+                          {/* Actions: Approve / Admit */}
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleAdmitWaitlist(att)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm hover:scale-105 transition-all"
+                                title="Approve and admit this attendee to the event"
+                              >
+                                <UserCheck className="w-3.5 h-3.5" />
+                                Approve / Admit
+                              </button>
+                              <button
+                                onClick={() => handleCancelRegistration(att)}
+                                className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                                title="Remove from waitlist"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
       </main>
