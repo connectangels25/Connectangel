@@ -29,7 +29,10 @@ export default function ExploreCountries() {
         <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
           Explore by <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-400">Countries</span>
         </h2>
-        <button className="flex items-center gap-1 text-sm font-medium text-foreground/70 hover:text-primary transition-colors group">
+        <button 
+          onClick={() => navigate("/potential")}
+          className="flex items-center gap-1 text-sm font-medium text-foreground/70 hover:text-primary transition-colors group"
+        >
           Explore More
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </button>

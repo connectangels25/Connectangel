@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { GraduationCap, Activity, Landmark, ShoppingBag, Cpu, Globe, Rocket, ShieldCheck, ArrowRight } from "lucide-react";
 
 const INDUSTRIES = [
@@ -61,6 +62,7 @@ const INDUSTRIES = [
 ];
 
 export default function ExploreIndustries() {
+  const navigate = useNavigate();
   // Double the list for infinite scroll effect
   const displayIndustries = [...INDUSTRIES, ...INDUSTRIES];
 
@@ -87,7 +89,10 @@ export default function ExploreIndustries() {
             Explore by <span className="italic font-serif text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-400">Industries</span>
           </motion.h2>
         </div>
-        <button className="flex items-center gap-2 text-sm font-bold text-primary hover:underline transition-all group">
+        <button 
+          onClick={() => navigate("/potential")}
+          className="flex items-center gap-2 text-sm font-bold text-primary hover:underline transition-all group"
+        >
           View All Verticals
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </button>
@@ -112,6 +117,7 @@ export default function ExploreIndustries() {
                   scale: 1.02,
                   transition: { duration: 0.2 }
                 }}
+                onClick={() => navigate(`/potential?industry=${encodeURIComponent(industry.name)}`)}
                 className="group relative p-6 rounded-[28px] bg-card border border-border hover:border-primary/30 transition-all cursor-pointer overflow-hidden min-w-[240px] h-[180px] flex flex-col items-center justify-center shadow-sm"
               >
                 {/* Industry Background Image (Theme-Aware Opacity) */}

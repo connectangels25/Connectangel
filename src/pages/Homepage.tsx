@@ -7,8 +7,8 @@ import ExploreIndustries from "@/components/home/ExploreIndustries";
 import TopIncubators from "@/components/home/TopIncubators";
 import TrendingEvents from "@/components/home/TrendingEvents";
 import TrendingIndustries from "@/components/home/TrendingIndustries";
-import { MessageCircle, ArrowUp, Mail, Phone } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { MessageCircle, ArrowUp, Mail, Phone, Twitter, Linkedin, Instagram } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
 
 export default function Homepage() {
@@ -48,16 +48,26 @@ export default function Homepage() {
                 Bridging the gap between innovation and capital.
               </p>
               <div className="flex gap-4">
-                {["Twitter", "LinkedIn", "Instagram", "Discord"].map((social) => (
-                  <a 
-                    key={social} 
-                    href="#" 
-                    className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
-                  >
-                    <span className="sr-only">{social}</span>
-                    <div className="w-4 h-4 bg-muted-foreground rounded-sm" />
-                  </a>
-                ))}
+                {[
+                  { name: "Twitter", icon: Twitter, href: "https://twitter.com" },
+                  { name: "LinkedIn", icon: Linkedin, href: "https://linkedin.com" },
+                  { name: "Instagram", icon: Instagram, href: "https://instagram.com" },
+                  { name: "Discord", icon: MessageCircle, href: "https://discord.com" },
+                ].map((social) => {
+                  const Icon = social.icon;
+                  return (
+                    <a 
+                      key={social.name} 
+                      href={social.href} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-10 h-10 rounded-full bg-secondary border border-border flex items-center justify-center hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all text-muted-foreground"
+                      aria-label={social.name}
+                    >
+                      <Icon className="w-4 h-4" />
+                    </a>
+                  );
+                })}
               </div>
             </div>
 
@@ -75,7 +85,13 @@ export default function Homepage() {
             <div>
               <h4 className="text-foreground font-bold mb-6">Company</h4>
               <ul className="space-y-4">
-                {["About Us", "Our Mission", "Careers", "Blog", "Contact"].map((item) => (
+                <li>
+                  <Link to="/about" className="text-muted-foreground hover:text-primary transition-colors">About Us</Link>
+                </li>
+                <li>
+                  <Link to="/blog" className="text-muted-foreground hover:text-primary transition-colors">Blog</Link>
+                </li>
+                {["Our Mission", "Careers", "Contact"].map((item) => (
                   <li key={item}>
                     <a href="#" className="text-muted-foreground hover:text-primary transition-colors">{item}</a>
                   </li>

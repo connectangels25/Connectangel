@@ -12,6 +12,7 @@ import ChatPage from "./pages/ChatPage.tsx";
 import ComingSoonChat from "./pages/ComingSoonChat.tsx";
 import ComingSoonMarketAnalysis from "./pages/ComingSoonMarketAnalysis.tsx";
 import BlogPage from "./pages/BlogPage.tsx";
+import AboutUsPage from "./pages/AboutUsPage.tsx";
 import PricingPage from "./pages/PricingPage.tsx";
 import HidPage from "./pages/HidPage.tsx";
 import EventDetails from "./pages/EventDetails.tsx";
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/chat" element={<PendingPlanGate><ComingSoonChat /></PendingPlanGate>} />
             <Route path="/market-analysis" element={<PendingPlanGate><ComingSoonMarketAnalysis /></PendingPlanGate>} />
             <Route path="/blog" element={<PendingPlanGate><BlogPage /></PendingPlanGate>} />
+            <Route path="/about" element={<AboutUsPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/hide" element={<PendingPlanGate><HidPage /></PendingPlanGate>} />
             <Route path="/event/:id" element={<PendingPlanGate><EventDetails /></PendingPlanGate>} />
